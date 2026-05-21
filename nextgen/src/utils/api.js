@@ -3,6 +3,10 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 const getApiUrl = () => {
+  // Use Render production backend URL by default as requested.
+  return 'https://nextgen-8hi5.onrender.com/api';
+
+  /*
   if (Platform.OS === 'web') {
     if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
       return 'http://localhost:5000/api';
@@ -18,8 +22,9 @@ const getApiUrl = () => {
     }
     return 'http://localhost:5000/api';
   }
-  // Production URL fallback (Render backend URL)
-  return 'https://nextgen-backend-service.onrender.com/api'; // User can customize this
+  // Production URL (Render backend)
+  return 'https://nextgen-8hi5.onrender.com/api';
+  */
 };
 
 export const API_URL = getApiUrl();
