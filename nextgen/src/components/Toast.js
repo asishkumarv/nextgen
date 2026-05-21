@@ -1,170 +1,328 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Text,
   View,
   StyleSheet,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+// ─── Config per toast type ───────────────────────────────────────────────────
 const TOAST_CONFIG = {
   error: {
-    bg: '#1F0A0A',
-    border: '#EF4444',
+    bg: 'rgba(18, 4, 4, 0.97)',
+    accentBar: '#EF4444',
+    borderColor: 'rgba(239, 68, 68, 0.4)',
     icon: 'alert-circle',
-    iconColor: '#EF4444',
-    textColor: '#FEE2E2',
+    iconColor: '#FF6B6B',
+    iconBg: 'rgba(239, 68, 68, 0.16)',
+    textColor: '#FFE4E4',
+    progressColor: '#EF4444',
+    label: 'Error',
   },
   success: {
-    bg: '#052E16',
-    border: '#10B981',
+    bg: 'rgba(3, 16, 9, 0.97)',
+    accentBar: '#10B981',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
     icon: 'checkmark-circle',
-    iconColor: '#10B981',
+    iconColor: '#34D399',
+    iconBg: 'rgba(16, 185, 129, 0.16)',
     textColor: '#D1FAE5',
+    progressColor: '#10B981',
+    label: 'Success',
   },
   warning: {
-    bg: '#1C1207',
-    border: '#F59E0B',
+    bg: 'rgba(16, 11, 2, 0.97)',
+    accentBar: '#F59E0B',
+    borderColor: 'rgba(245, 158, 11, 0.4)',
     icon: 'warning',
-    iconColor: '#F59E0B',
+    iconColor: '#FCD34D',
+    iconBg: 'rgba(245, 158, 11, 0.16)',
     textColor: '#FEF3C7',
+    progressColor: '#F59E0B',
+    label: 'Warning',
   },
   info: {
-    bg: '#0C1A2E',
-    border: '#0984E3',
+    bg: 'rgba(3, 9, 20, 0.97)',
+    accentBar: '#3B82F6',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
     icon: 'information-circle',
-    iconColor: '#0984E3',
+    iconColor: '#60A5FA',
+    iconBg: 'rgba(59, 130, 246, 0.16)',
     textColor: '#DBEAFE',
+    progressColor: '#3B82F6',
+    label: 'Info',
   },
 };
 
 /**
- * Toast component
- * @param {string} message  - Text to display
- * @param {'error'|'success'|'warning'|'info'} type - Toast type
- * @param {boolean} visible - Controls visibility
- * @param {Function} onHide - Callback when toast hides
- * @param {number} duration - Auto-hide duration (ms), default 3000
+ * Modern bottom-slide Toast notification
+ *
+ * Props:
+ *   message  {string}                              Text to display
+ *   type     {'error'|'success'|'warning'|'info'}  Toast variant
+ *   visible  {boolean}                             Show / hide trigger
+ *   onHide   {Function}                            Called after hide animation
+ *   duration {number}                              Auto-dismiss ms (default 3500)
  */
 export default function Toast({
   message = '',
-  type = 'error',
+  type    = 'error',
   visible = false,
   onHide,
   duration = 3500,
 }) {
-  const translateY = useRef(new Animated.Value(-120)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-  const hideTimer = useRef(null);
+  // shouldRender controls whether we mount the component at all.
+  // Starts false; becomes true when visible+message arrive, goes false after hide animation.
+  const [shouldRender, setShouldRender] = useState(false);
 
-  const config = TOAST_CONFIG[type] || TOAST_CONFIG.error;
+  // Refs hold display content so they survive the async state update timing gap.
+  // Refs update *synchronously* inside the effect, before the next render.
+  const displayMsg  = useRef('');
+  const displayType = useRef(type);
 
-  const showToast = () => {
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    Animated.parallel([
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 70,
-        friction: 10,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  // Animated values – created once
+  const translateY = useRef(new Animated.Value(200)).current;
+  const opacity    = useRef(new Animated.Value(0)).current;
+  const scale      = useRef(new Animated.Value(0.88)).current;
+  const progress   = useRef(new Animated.Value(1)).current;
+  const iconScale  = useRef(new Animated.Value(1)).current;
 
-    hideTimer.current = setTimeout(() => {
-      hideToast();
-    }, duration);
+  const hideTimer  = useRef(null);
+  const pulseLoop  = useRef(null);
+
+  // ── helpers ────────────────────────────────────────────────────────────────
+  const clearHideTimer = () => {
+    if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
   };
 
-  const hideToast = () => {
+  const stopPulse = () => {
+    if (pulseLoop.current) { pulseLoop.current.stop(); pulseLoop.current = null; }
+    iconScale.setValue(1);
+  };
+
+  const startPulse = () => {
+    stopPulse();
+    pulseLoop.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(iconScale, { toValue: 1.2,  duration: 650, useNativeDriver: true }),
+        Animated.timing(iconScale, { toValue: 1,    duration: 650, useNativeDriver: true }),
+      ])
+    );
+    pulseLoop.current.start();
+  };
+
+  // ── show animation ─────────────────────────────────────────────────────────
+  const animateIn = () => {
+    // Reset progress bar
+    progress.setValue(1);
+
     Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: -120,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      if (onHide) onHide();
+      Animated.spring(translateY, { toValue: 0,  useNativeDriver: true, tension: 75, friction: 8 }),
+      Animated.spring(scale,      { toValue: 1,  useNativeDriver: true, tension: 75, friction: 8 }),
+      Animated.timing(opacity,    { toValue: 1,  duration: 200, useNativeDriver: true }),
+    ]).start();
+
+    // Drain progress bar
+    Animated.timing(progress, { toValue: 0, duration, useNativeDriver: false }).start();
+
+    startPulse();
+    hideTimer.current = setTimeout(animateOut, duration);
+  };
+
+  // ── hide animation ─────────────────────────────────────────────────────────
+  const animateOut = () => {
+    clearHideTimer();
+    stopPulse();
+
+    Animated.parallel([
+      Animated.timing(translateY, { toValue: 200, duration: 280, useNativeDriver: true }),
+      Animated.timing(scale,      { toValue: 0.88, duration: 260, useNativeDriver: true }),
+      Animated.timing(opacity,    { toValue: 0,   duration: 220, useNativeDriver: true }),
+    ]).start(({ finished }) => {
+      if (finished) {
+        // Unmount after slide-out is complete
+        setShouldRender(false);
+        if (onHide) onHide();
+      }
     });
   };
 
+  // ── effect: respond to visible / message changes ───────────────────────────
   useEffect(() => {
     if (visible && message) {
-      showToast();
-    }
-    return () => {
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-    };
-  }, [visible, message]);
+      // 1. Update refs synchronously (no async gap)
+      displayMsg.current  = message;
+      displayType.current = type;
 
-  if (!message) return null;
+      // 2. Mount the component (triggers a re-render)
+      setShouldRender(true);
+
+      // 3. Clear any running timer from a previous toast
+      clearHideTimer();
+
+      // animateIn is called in the layout effect below once mounted
+    }
+
+    return () => {
+      clearHideTimer();
+    };
+  }, [visible, message]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Once shouldRender flips to true, kick off the animation ───────────────
+  useEffect(() => {
+    if (shouldRender && displayMsg.current) {
+      // Reset positions before animating in
+      translateY.setValue(200);
+      scale.setValue(0.88);
+      opacity.setValue(0);
+      animateIn();
+    }
+  }, [shouldRender]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Do not mount until we have content ────────────────────────────────────
+  if (!shouldRender || !displayMsg.current) return null;
+
+  const cfg = TOAST_CONFIG[displayType.current] || TOAST_CONFIG.error;
+
+  const progressWidth = progress.interpolate({
+    inputRange:  [0, 1],
+    outputRange: ['0%', '100%'],
+  });
 
   return (
     <Animated.View
       style={[
-        styles.toast,
-        {
-          backgroundColor: config.bg,
-          borderColor: config.border,
-          transform: [{ translateY }],
-          opacity,
-        },
+        styles.wrapper,
+        { opacity, transform: [{ translateY }, { scale }] },
       ]}
-      pointerEvents="none"
     >
-      <View style={[styles.iconWrapper, { backgroundColor: config.border + '22' }]}>
-        <Ionicons name={config.icon} size={20} color={config.iconColor} />
+      {/* Coloured left accent bar */}
+      <View style={[styles.accentBar, { backgroundColor: cfg.accentBar }]} />
+
+      {/* Main card */}
+      <View style={[styles.card, { backgroundColor: cfg.bg, borderColor: cfg.borderColor }]}>
+
+        {/* Content row */}
+        <View style={styles.row}>
+
+          {/* Pulsing icon bubble */}
+          <Animated.View
+            style={[styles.iconBubble, { backgroundColor: cfg.iconBg, transform: [{ scale: iconScale }] }]}
+          >
+            <Ionicons name={cfg.icon} size={22} color={cfg.iconColor} />
+          </Animated.View>
+
+          {/* Text */}
+          <View style={styles.textCol}>
+            <Text style={[styles.typeLabel, { color: cfg.iconColor }]}>
+              {cfg.label}
+            </Text>
+            <Text style={[styles.msgText, { color: cfg.textColor }]} numberOfLines={3}>
+              {displayMsg.current}
+            </Text>
+          </View>
+
+          {/* Close button */}
+          <TouchableOpacity
+            onPress={animateOut}
+            style={styles.closeBtn}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="close" size={18} color="rgba(255,255,255,0.4)" />
+          </TouchableOpacity>
+
+        </View>
+
+        {/* Draining progress bar */}
+        <View style={styles.progressTrack}>
+          <Animated.View
+            style={[styles.progressFill, { width: progressWidth, backgroundColor: cfg.progressColor }]}
+          />
+        </View>
+
       </View>
-      <Text style={[styles.message, { color: config.textColor }]} numberOfLines={3}>
-        {message}
-      </Text>
     </Animated.View>
   );
 }
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  toast: {
+  wrapper: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 54 : 20,
-    left: 16,
-    right: 16,
+    bottom: Platform.OS === 'ios' ? 44 : 30,
+    left: 12,
+    right: 12,
+    zIndex: 99999,
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 18,
-    borderWidth: 1.5,
+    borderRadius: 20,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 12,
-    zIndex: 9999,
-    gap: 12,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.6,
+    shadowRadius: 22,
+    elevation: 20,
   },
-  iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+  accentBar: {
+    width: 5,
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  card: {
+    flex: 1,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    paddingTop: 13,
+    paddingHorizontal: 14,
+    overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 11,
+    paddingBottom: 12,
+  },
+  iconBubble: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
+    marginTop: 1,
   },
-  message: {
+  textCol: {
     flex: 1,
+  },
+  typeLabel: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
+  msgText: {
     fontSize: 13.5,
     fontWeight: '600',
-    lineHeight: 20,
+    lineHeight: 19,
     letterSpacing: 0.1,
+  },
+  closeBtn: {
+    paddingTop: 3,
+    flexShrink: 0,
+  },
+  progressTrack: {
+    height: 3,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    marginHorizontal: -14,
+    marginBottom: 0,
+  },
+  progressFill: {
+    height: 3,
+    borderRadius: 2,
   },
 });

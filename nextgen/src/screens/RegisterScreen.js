@@ -121,7 +121,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
         message={toastMsg}
         type={toastType}
         visible={toastVisible}
-        onHide={() => { setToastVisible(false); setToastMsg(''); }}
+        onHide={() => setToastVisible(false)}
       />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
