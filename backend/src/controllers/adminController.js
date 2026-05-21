@@ -1,0 +1,336 @@
+const pool = require('../config/db');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+const { Service } = require('../models/dbModel');
+
+const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Please enter all fields' });
+  }
+
+  try {
+    const adminRes = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
+    if (adminRes.rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid admin credentials' });
+    }
+
+    const admin = adminRes.rows[0];
+
+    const isMatch = bcrypt.compareSync(password, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid admin credentials' });
+    }
+
+    const token = jwt.sign(
+      { id: admin.id, email: admin.email, name: admin.name, isAdmin: true },
+      process.env.JWT_SECRET || 'nextgen_jwt_secret_key_12345',
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      admin: {
+        id: admin.id,
+        email: admin.email,
+        name: admin.name
+      }
+    });
+
+  } catch (error) {
+    console.error('Error during admin login:', error);
+    res.status(500).json({ message: 'Server error during admin login' });
+  }
+};
+
+const getAdminMe = async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+    const adminRes = await pool.query('SELECT id, email, name, created_at FROM admins WHERE id = $1', [adminId]);
+    if (adminRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+    res.json(adminRes.rows[0]);
+  } catch (error) {
+    console.error('Error fetching admin profile:', error);
+    res.status(500).json({ message: 'Server error fetching admin profile' });
+  }
+};
+
+const getDashboardStats = async (req, res) => {
+  try {
+    // 1. Total Users
+    const usersCountRes = await pool.query('SELECT COUNT(*) FROM users');
+    const usersCount = parseInt(usersCountRes.rows[0].count);
+
+    // 2. Total Subscribers
+    const subCountRes = await pool.query('SELECT COUNT(*) FROM subscriptions');
+    const subscribersCount = parseInt(subCountRes.rows[0].count);
+
+    // 3. Total Bookings
+    const bookingsCountRes = await pool.query('SELECT COUNT(*) FROM bookings');
+    const bookingsCount = parseInt(bookingsCountRes.rows[0].count);
+
+    // 4. Revenue (Sum of subscriptions + bookings of normal users)
+    const subRevenueRes = await pool.query('SELECT COALESCE(SUM(price), 0) AS total FROM subscriptions');
+    const subRevenue = parseFloat(subRevenueRes.rows[0].total);
+
+    const bookingRevenueRes = await pool.query(`
+      SELECT COALESCE(SUM(price), 0) AS total 
+      FROM bookings 
+      WHERE user_id NOT IN (SELECT user_id FROM subscriptions)
+    `);
+    const bookingRevenue = parseFloat(bookingRevenueRes.rows[0].total);
+
+    const totalRevenue = subRevenue + bookingRevenue;
+
+    // 5. Recent Bookings (limit to 5)
+    const recentBookingsRes = await pool.query(`
+      SELECT 
+        b.id,
+        b.service_name AS "serviceName",
+        b.date,
+        b.price,
+        b.status,
+        b.icon,
+        b.address,
+        b.created_at,
+        u.name AS "userName",
+        u.phone AS "userPhone"
+      FROM bookings b
+      JOIN users u ON b.user_id = u.id
+      ORDER BY b.created_at DESC, b.id DESC
+      LIMIT 5
+    `);
+
+    res.json({
+      stats: {
+        users: usersCount,
+        subscribers: subscribersCount,
+        bookings: bookingsCount,
+        revenue: totalRevenue,
+        subscriptionRevenue: subRevenue,
+        bookingRevenue: bookingRevenue
+      },
+      recentBookings: recentBookingsRes.rows
+    });
+
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ message: 'Server error fetching dashboard statistics' });
+  }
+};
+
+const getUsers = async (req, res) => {
+  const search = req.query.search || '';
+  const searchPattern = `%${search}%`;
+
+  try {
+    const result = await pool.query(`
+      SELECT 
+        u.id, 
+        u.name, 
+        u.phone, 
+        u.created_at AS "createdAt", 
+        COUNT(b.id)::int AS "bookingCount",
+        (s.slot_number IS NOT NULL) AS "isSubscribed",
+        s.slot_number AS "slotNumber"
+      FROM users u
+      LEFT JOIN bookings b ON u.id = b.user_id
+      LEFT JOIN subscriptions s ON u.id = s.user_id
+      WHERE u.name ILIKE $1 OR u.phone ILIKE $1
+      GROUP BY u.id, s.slot_number
+      ORDER BY u.created_at DESC
+    `, [searchPattern]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error listing users:', error);
+    res.status(500).json({ message: 'Server error retrieving users list' });
+  }
+};
+
+const getSubscribers = async (req, res) => {
+  const search = req.query.search || '';
+  const searchPattern = `%${search}%`;
+
+  try {
+    const result = await pool.query(`
+      SELECT 
+        s.id AS "subId",
+        s.slot_number AS "slotNumber",
+        s.plan,
+        s.valid_till AS "validTill",
+        s.created_at AS "subscribedAt",
+        u.id AS "userId",
+        u.name,
+        u.phone
+      FROM subscriptions s
+      JOIN users u ON s.user_id = u.id
+      WHERE u.name ILIKE $1 OR u.phone ILIKE $1 OR CAST(s.slot_number AS VARCHAR) ILIKE $1
+      ORDER BY s.created_at DESC
+    `, [searchPattern]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error listing subscribers:', error);
+    res.status(500).json({ message: 'Server error retrieving subscribers list' });
+  }
+};
+
+const getBookings = async (req, res) => {
+  const status = req.query.status || 'All'; // 'Booked', 'Completed', 'All'
+  const search = req.query.search || '';
+  const searchPattern = `%${search}%`;
+
+  try {
+    let query = `
+      SELECT 
+        b.id,
+        b.service_name AS "serviceName",
+        b.date,
+        b.price,
+        b.status,
+        b.icon,
+        b.address,
+        b.created_at AS "createdAt",
+        u.name AS "userName",
+        u.phone AS "userPhone"
+      FROM bookings b
+      JOIN users u ON b.user_id = u.id
+      WHERE (b.status = $1 OR $1 = 'All')
+        AND (u.name ILIKE $2 OR u.phone ILIKE $2 OR b.service_name ILIKE $2 OR b.id ILIKE $2)
+      ORDER BY b.created_at DESC, b.id DESC
+    `;
+
+    const result = await pool.query(query, [status, searchPattern]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error listing bookings:', error);
+    res.status(500).json({ message: 'Server error retrieving bookings list' });
+  }
+};
+
+const completeBooking = async (req, res) => {
+  const bookingId = req.params.id;
+
+  try {
+    const updated = await pool.query(
+      "UPDATE bookings SET status = 'Completed' WHERE id = $1 RETURNING *",
+      [bookingId]
+    );
+
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Booking marked as completed',
+      booking: updated.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error completing booking:', error);
+    res.status(500).json({ message: 'Server error marking booking as completed' });
+  }
+};
+
+const cancelBooking = async (req, res) => {
+  const bookingId = req.params.id;
+
+  try {
+    const deleted = await pool.query('DELETE FROM bookings WHERE id = $1 RETURNING *', [bookingId]);
+    
+    if (deleted.rows.length === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Booking deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting booking:', error);
+    res.status(500).json({ message: 'Server error deleting booking' });
+  }
+};
+
+const adminGetServices = async (req, res) => {
+  try {
+    const services = await Service.getAll();
+    res.json(services);
+  } catch (error) {
+    console.error('Error fetching services for admin:', error);
+    res.status(500).json({ message: 'Server error fetching services' });
+  }
+};
+
+const adminAddService = async (req, res) => {
+  const { title, subtitle, price, icon } = req.body;
+
+  if (!title || !subtitle || price === undefined) {
+    return res.status(400).json({ message: 'Please provide title, subtitle, and price' });
+  }
+
+  try {
+    const newService = await Service.create(title, subtitle, price, icon);
+    res.status(201).json(newService);
+  } catch (error) {
+    console.error('Error creating service:', error);
+    res.status(500).json({ message: 'Server error creating service' });
+  }
+};
+
+const adminUpdateService = async (req, res) => {
+  const { id } = req.params;
+  const { title, subtitle, price, icon, status } = req.body;
+
+  if (!title || !subtitle || price === undefined || !status) {
+    return res.status(400).json({ message: 'Please enter all fields' });
+  }
+
+  try {
+    const updatedService = await Service.update(id, title, subtitle, price, icon, status);
+    if (!updatedService) {
+      return res.status(404).json({ message: 'Service not found' });
+    }
+    res.json(updatedService);
+  } catch (error) {
+    console.error('Error updating service:', error);
+    res.status(500).json({ message: 'Server error updating service' });
+  }
+};
+
+const adminDeleteService = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const success = await Service.delete(id);
+    if (!success) {
+      return res.status(404).json({ message: 'Service not found' });
+    }
+    res.json({ success: true, message: 'Service deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting service:', error);
+    res.status(500).json({ message: 'Server error deleting service' });
+  }
+};
+
+module.exports = {
+  adminLogin,
+  getAdminMe,
+  getDashboardStats,
+  getUsers,
+  getSubscribers,
+  getBookings,
+  completeBooking,
+  cancelBooking,
+  adminGetServices,
+  adminAddService,
+  adminUpdateService,
+  adminDeleteService
+};
