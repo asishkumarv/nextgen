@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 
 const getApiUrl = () => {
   // Use Render production backend URL by default as requested.
@@ -130,15 +129,26 @@ const request = async (endpoint, options = {}) => {
       headers,
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (_e) {
+      data = {};
+    }
 
     if (!response.ok) {
-      throw new Error(data.message || 'Request failed');
+      const err = new Error(data.message || 'Request failed');
+      err.status = response.status;
+      throw err;
     }
 
     return data;
   } catch (error) {
-    console.error(`API Error on ${endpoint}:`, error.message);
+    // Only log actual system/server errors (status >= 500 or undefined e.g. network/JSON parse failures)
+    // Client-side validation errors (4xx) should not print console.error (which shows error overlays)
+    if (!error.status || error.status >= 500) {
+      console.error(`API Error on ${endpoint}:`, error.message);
+    }
     throw error;
   }
 };

@@ -13,12 +13,14 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import Header from '../components/Header';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, bookedSlot, bookings, updateProfile, logout } = useApp();
+  const navigation = useNavigation();
+  const { user, bookedSlot, bookingDetails, bookings, updateProfile, logout } = useApp();
   const [modalVisible, setModalVisible] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
   const [editPhone, setEditPhone] = useState(user?.phone || '');
@@ -79,32 +81,60 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Active Subscription Card */}
-        <LinearGradient
-          colors={['#00B894', '#0091EA']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.subCard}
-        >
-          <View style={styles.subHeaderRow}>
-            <Ionicons name="ribbon" size={16} color="#FFF" style={{ marginRight: 6 }} />
-            <Text style={styles.subHeaderLabel}>ACTIVE SUBSCRIPTION</Text>
-          </View>
-
-          <Text style={styles.subTitle}>Power Care Annual</Text>
-          <Text style={styles.subInfo}>
-            Slot #{bookedSlot || '1877'} · Valid till 28 Apr 2027
-          </Text>
-
-          <View style={styles.badgeRow}>
-            <View style={styles.subBadge}>
-              <Text style={styles.subBadgeText}>Unlimited services</Text>
+        {/* Subscription Card */}
+        {bookedSlot ? (
+          <LinearGradient
+            colors={['#00B894', '#0091EA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.subCard}
+          >
+            <View style={styles.subHeaderRow}>
+              <Ionicons name="ribbon" size={16} color="#FFF" style={{ marginRight: 6 }} />
+              <Text style={styles.subHeaderLabel}>ACTIVE SUBSCRIPTION</Text>
             </View>
-            <View style={styles.subBadge}>
-              <Text style={styles.subBadgeText}>Priority support</Text>
+
+            <Text style={styles.subTitle}>{bookingDetails?.plan || 'Power Care Annual'}</Text>
+            <Text style={styles.subInfo}>
+              Slot #{bookedSlot} · Valid till {bookingDetails?.date || '28 Apr 2027'}
+            </Text>
+
+            <View style={styles.badgeRow}>
+              <View style={styles.subBadge}>
+                <Text style={styles.subBadgeText}>Unlimited services</Text>
+              </View>
+              <View style={styles.subBadge}>
+                <Text style={styles.subBadgeText}>Priority support</Text>
+              </View>
             </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        ) : (
+          <LinearGradient
+            colors={['#1E293B', '#0F172A']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.subCard}
+          >
+            <View style={styles.subHeaderRow}>
+              <Ionicons name="alert-circle-outline" size={16} color="#94A3B8" style={{ marginRight: 6 }} />
+              <Text style={[styles.subHeaderLabel, { color: '#94A3B8' }]}>NO ACTIVE SUBSCRIPTION</Text>
+            </View>
+
+            <Text style={styles.subTitle}>Not Subscribed</Text>
+            <Text style={styles.subInfo}>
+              Unlock unlimited smart services & priority support.
+            </Text>
+
+            <TouchableOpacity 
+              style={styles.subscribeBtn} 
+              onPress={() => navigation.navigate('Slots')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.subscribeBtnText}>Choose a Slot to Subscribe</Text>
+              <Ionicons name="arrow-forward-outline" size={16} color="#0F172A" />
+            </TouchableOpacity>
+          </LinearGradient>
+        )}
 
         {/* Booking History Header */}
         <View style={styles.sectionHeader}>
@@ -327,6 +357,21 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 12,
     fontWeight: '700',
+  },
+  subscribeBtn: {
+    backgroundColor: '#FFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 14,
+    paddingVertical: 12,
+    marginTop: 18,
+  },
+  subscribeBtnText: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '800',
   },
   sectionHeader: {
     flexDirection: 'row',

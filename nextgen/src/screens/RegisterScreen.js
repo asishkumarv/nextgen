@@ -94,7 +94,11 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     }
 
     if (hasError) {
-      showToast('Please fix the errors below before continuing.', 'warning');
+      if (password && confirmPassword && password !== confirmPassword) {
+        showToast('Passwords do not match', 'error');
+      } else {
+        showToast('Please fix the errors below before continuing.', 'warning');
+      }
       return;
     }
 
@@ -104,9 +108,9 @@ export default function RegisterScreen({ onNavigateToLogin }) {
 
     if (!result.success) {
       const msg = result.message || '';
-      if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('already registered')) {
-        showToast('This phone number is already registered. Please sign in instead.', 'error');
-        setPhoneError(' ');
+      if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('taken')) {
+        showToast('User already exists. Please sign in instead.', 'error');
+        setPhoneError('Phone number already registered');
       } else if (msg.toLowerCase().includes('server')) {
         showToast('Server error. Please try again later.', 'error');
       } else {

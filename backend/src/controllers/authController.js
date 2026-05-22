@@ -62,7 +62,7 @@ const login = async (req, res) => {
     // Find user
     const result = await pool.query('SELECT * FROM users WHERE phone = $1', [phone]);
     if (result.rows.length === 0) {
-      return res.status(400).json({ message: 'Invalid phone number or password' });
+      return res.status(400).json({ message: 'User does not exist. Please register to login.' });
     }
 
     const user = result.rows[0];
@@ -70,7 +70,7 @@ const login = async (req, res) => {
     // Check password
     const isMatch = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid phone number or password' });
+      return res.status(400).json({ message: 'Invalid credentials. Password is incorrect.' });
     }
 
     // Generate token

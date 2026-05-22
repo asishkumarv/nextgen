@@ -68,7 +68,13 @@ export default function LoginScreen({ onNavigateToRegister }) {
 
     if (!result.success) {
       const msg = result.message || '';
-      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('password') || msg.toLowerCase().includes('phone')) {
+      if (msg.toLowerCase().includes('does not exist') || msg.toLowerCase().includes('not exist') || msg.toLowerCase().includes('register to login')) {
+        showToast('User does not exist. Please register to login.', 'error');
+        setPhoneError('User does not exist');
+      } else if (msg.toLowerCase().includes('invalid credentials') || msg.toLowerCase().includes('incorrect password') || msg.toLowerCase().includes('password is incorrect')) {
+        showToast('Invalid credentials. Password is incorrect.', 'error');
+        setPasswordError('Incorrect password');
+      } else if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('password') || msg.toLowerCase().includes('phone')) {
         showToast('Invalid phone number or password. Please try again.', 'error');
         setPhoneError(' ');
         setPasswordError(' ');
@@ -186,7 +192,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
 
             {/* Sign Up Navigation Toggle */}
             <View style={styles.signupRow}>
-              <Text style={styles.signupText}>Don't have an account? </Text>
+              <Text style={styles.signupText}>{"Don't have an account? "}</Text>
               <TouchableOpacity onPress={onNavigateToRegister} disabled={loading}>
                 <Text style={styles.signupLink}>Sign Up</Text>
               </TouchableOpacity>
