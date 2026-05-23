@@ -329,15 +329,26 @@ const getVendors = async (req, res) => {
         v.phone, 
         v.status, 
         v.created_at AS "createdAt",
-        COALESCE(ARRAY_AGG(s.title) FILTER (WHERE s.title IS NOT NULL), '{}') AS services,
-        COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END)::int AS "assignedCount",
-        COUNT(CASE WHEN b.status = 'Completed' THEN 1 END)::int AS "completedCount",
-        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN b.price END), 0)::float AS "totalEarnings"
+        (
+          SELECT COALESCE(ARRAY_AGG(s.title), '{}')
+          FROM vendor_services vs
+          JOIN services s ON vs.service_id = s.id
+          WHERE vs.vendor_id = v.id
+        ) AS services,
+        COALESCE(b_stats.assigned_count, 0)::int AS "assignedCount",
+        COALESCE(b_stats.completed_count, 0)::int AS "completedCount",
+        COALESCE(b_stats.total_earnings, 0)::float AS "totalEarnings"
       FROM vendors v
-      LEFT JOIN vendor_services vs ON v.id = vs.vendor_id
-      LEFT JOIN services s ON vs.service_id = s.id
-      LEFT JOIN bookings b ON v.id = b.vendor_id
-      GROUP BY v.id
+      LEFT JOIN (
+        SELECT 
+          vendor_id,
+          COUNT(CASE WHEN status = 'Assigned' THEN 1 END) AS assigned_count,
+          COUNT(CASE WHEN status = 'Completed' THEN 1 END) AS completed_count,
+          SUM(CASE WHEN status = 'Completed' THEN price END) AS total_earnings
+        FROM bookings
+        GROUP BY vendor_id
+      ) b_stats ON v.id = b_stats.vendor_id
+      GROUP BY v.id, b_stats.assigned_count, b_stats.completed_count, b_stats.total_earnings
       ORDER BY v.created_at DESC
     `);
 
