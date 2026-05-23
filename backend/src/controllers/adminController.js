@@ -412,6 +412,54 @@ const rejectVendor = async (req, res) => {
   }
 };
 
+const deactivateVendor = async (req, res) => {
+  const vendorId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      "UPDATE vendors SET status = 'Deactivated' WHERE id = $1 RETURNING id, name, phone, status",
+      [vendorId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vendor deactivated successfully',
+      vendor: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error deactivating vendor:', error);
+    res.status(500).json({ message: 'Server error deactivating vendor' });
+  }
+};
+
+const reactivateVendor = async (req, res) => {
+  const vendorId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      "UPDATE vendors SET status = 'Approved' WHERE id = $1 RETURNING id, name, phone, status",
+      [vendorId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vendor reactivated successfully',
+      vendor: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error reactivating vendor:', error);
+    res.status(500).json({ message: 'Server error reactivating vendor' });
+  }
+};
+
 module.exports = {
   adminLogin,
   getAdminMe,
@@ -427,5 +475,7 @@ module.exports = {
   adminDeleteService,
   getVendors,
   approveVendor,
-  rejectVendor
+  rejectVendor,
+  deactivateVendor,
+  reactivateVendor
 };

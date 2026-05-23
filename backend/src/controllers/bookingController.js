@@ -5,7 +5,12 @@ const getMyBookings = async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, service_name AS "serviceName", date, price, status, icon, address, created_at FROM bookings WHERE user_id = $1 ORDER BY created_at DESC, id DESC',
+      `SELECT b.id, b.service_name AS "serviceName", b.date, b.price, b.status, b.icon, b.address, b.created_at, b.otp,
+              v.name AS "vendorName", v.phone AS "vendorPhone"
+       FROM bookings b
+       LEFT JOIN vendors v ON b.vendor_id = v.id
+       WHERE b.user_id = $1
+       ORDER BY b.created_at DESC, b.id DESC`,
       [userId]
     );
 
@@ -36,6 +41,9 @@ const createBooking = async (req, res) => {
 
     const dateAndSlot = timeSlot ? `${date} (${timeSlot})` : date;
 
+    // Generate 4-digit OTP
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
     // Find the vendor with the least workload offering this service
     let assignedVendorId = null;
     let bookingStatus = 'Booked';
@@ -59,8 +67,8 @@ const createBooking = async (req, res) => {
 
     // Insert booking
     const newBooking = await pool.query(
-      'INSERT INTO bookings (id, user_id, service_name, date, price, status, icon, address, vendor_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId"',
-      [randomId, userId, serviceName, dateAndSlot, price, bookingStatus, iconName, address, assignedVendorId]
+      'INSERT INTO bookings (id, user_id, service_name, date, price, status, icon, address, vendor_id, otp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId", otp',
+      [randomId, userId, serviceName, dateAndSlot, price, bookingStatus, iconName, address, assignedVendorId, otp]
     );
 
     res.status(201).json(newBooking.rows[0]);

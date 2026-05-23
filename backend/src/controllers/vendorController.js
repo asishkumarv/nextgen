@@ -107,6 +107,10 @@ const vendorLogin = async (req, res) => {
       return res.status(403).json({ message: 'Your registration request was rejected by the administrator.' });
     }
 
+    if (vendor.status === 'Deactivated') {
+      return res.status(403).json({ message: 'Your account has been deactivated by the administrator. Please contact support.' });
+    }
+
     const token = jwt.sign(
       { id: vendor.id, phone: vendor.phone, name: vendor.name, isVendor: true },
       process.env.JWT_SECRET || 'nextgen_jwt_secret_key_12345',
@@ -186,12 +190,42 @@ const getVendorMe = async (req, res) => {
 const completeTask = async (req, res) => {
   const taskId = req.params.id;
   const vendorId = req.vendor.id;
+  const { otp } = req.body;
+
+  if (!otp) {
+    return res.status(400).json({ message: 'Verification OTP is required to complete this task' });
+  }
 
   try {
     // Check if task is assigned to this vendor
     const bookingCheck = await pool.query('SELECT * FROM bookings WHERE id = $1 AND vendor_id = $2', [taskId, vendorId]);
     if (bookingCheck.rows.length === 0) {
       return res.status(404).json({ message: 'Task not found or not assigned to you' });
+    }
+
+    const booking = bookingCheck.rows[0];
+
+    // OTP validation
+    if (booking.otp !== otp.toString().trim()) {
+      return res.status(400).json({ message: 'Incorrect 4-digit verification OTP' });
+    }
+
+    // Date validation: "vendor cannot complete the task prior date of booking date"
+    try {
+      const datePart = booking.date.split('(')[0].trim();
+      const scheduledDate = new Date(datePart);
+      scheduledDate.setHours(0, 0, 0, 0);
+
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+
+      if (currentDate < scheduledDate) {
+        return res.status(400).json({ 
+          message: `Cannot mark task as completed prior to the scheduled booking date: ${datePart}` 
+        });
+      }
+    } catch (dateErr) {
+      console.warn('Date parsing warning:', dateErr.message);
     }
 
     const updated = await pool.query(

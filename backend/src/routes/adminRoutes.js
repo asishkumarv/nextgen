@@ -15,7 +15,9 @@ const {
   adminDeleteService,
   getVendors,
   approveVendor,
-  rejectVendor
+  rejectVendor,
+  deactivateVendor,
+  reactivateVendor
 } = require('../controllers/adminController');
 const { authenticateAdmin } = require('../middleware/auth');
 
@@ -32,6 +34,8 @@ router.delete('/bookings/:id', authenticateAdmin, cancelBooking);
 router.get('/vendors', authenticateAdmin, getVendors);
 router.put('/vendors/:id/approve', authenticateAdmin, approveVendor);
 router.put('/vendors/:id/reject', authenticateAdmin, rejectVendor);
+router.put('/vendors/:id/deactivate', authenticateAdmin, deactivateVendor);
+router.put('/vendors/:id/reactivate', authenticateAdmin, reactivateVendor);
 
 // Services routes
 router.get('/services', authenticateAdmin, adminGetServices);

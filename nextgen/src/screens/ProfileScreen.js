@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -24,6 +25,7 @@ export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
   const [editPhone, setEditPhone] = useState(user?.phone || '');
+  const [expandedBookingId, setExpandedBookingId] = useState(null);
 
   const handleOpenEdit = () => {
     setEditName(user?.name || '');
@@ -145,25 +147,75 @@ export default function ProfileScreen() {
         </View>
 
         {/* Booking History List */}
-        {bookings.map((booking) => (
-          <View key={booking.id} style={styles.bookingCard}>
-            <View style={styles.bookingLeft}>
-              <View style={styles.bookingIconBg}>
-                <Ionicons name={booking.icon || 'construct-outline'} size={20} color="#15803D" />
+        {bookings.map((booking) => {
+          const isExpanded = expandedBookingId === booking.id;
+          return (
+            <TouchableOpacity 
+              key={booking.id} 
+              style={[styles.bookingCard, isExpanded && styles.bookingCardExpanded]}
+              activeOpacity={0.9}
+              onPress={() => setExpandedBookingId(isExpanded ? null : booking.id)}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={styles.bookingLeft}>
+                  <View style={styles.bookingIconBg}>
+                    <Ionicons name={booking.icon || 'construct-outline'} size={20} color="#15803D" />
+                  </View>
+                  <View style={styles.bookingInfo}>
+                    <Text style={styles.bookingName}>{booking.serviceName}</Text>
+                    <Text style={styles.bookingDetails}>
+                      {booking.id} · {booking.date}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.bookingRight}>
+                  <Text style={styles.bookingPrice}>₹{booking.price}</Text>
+                  <Text style={styles.bookingStatus}>{booking.status}</Text>
+                </View>
               </View>
-              <View style={styles.bookingInfo}>
-                <Text style={styles.bookingName}>{booking.serviceName}</Text>
-                <Text style={styles.bookingDetails}>
-                  {booking.id} · {booking.date}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.bookingRight}>
-              <Text style={styles.bookingPrice}>₹{booking.price}</Text>
-              <Text style={styles.bookingStatus}>{booking.status}</Text>
-            </View>
-          </View>
-        ))}
+
+              {isExpanded && (
+                <View style={styles.expandedContent}>
+                  <View style={styles.expandedDivider} />
+                  
+                  {/* OTP Block */}
+                  <View style={styles.otpRow}>
+                    <Text style={styles.otpLabel}>Verification OTP Code:</Text>
+                    <View style={styles.otpBadge}>
+                      <Text style={styles.otpText}>{booking.otp || '1234'}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.otpSubText}>Provide this OTP to the technician upon service completion.</Text>
+
+                  {/* Vendor Details */}
+                  {booking.vendorName ? (
+                    <View style={styles.vendorSection}>
+                      <Text style={styles.vendorLabel}>Assigned Technician:</Text>
+                      <View style={styles.vendorRow}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                          <Ionicons name="person" size={14} color="#00B894" style={{ marginRight: 6 }} />
+                          <Text style={styles.vendorNameText}>{booking.vendorName}</Text>
+                        </View>
+                        <TouchableOpacity 
+                          style={styles.userCallBtn} 
+                          onPress={() => Linking.openURL(`tel:${booking.vendorPhone}`)}
+                        >
+                          <Ionicons name="call" size={12} color="#FFF" style={{ marginRight: 4 }} />
+                          <Text style={styles.userCallBtnText}>Call</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.vendorSection}>
+                      <Text style={styles.vendorLabel}>Assigned Technician:</Text>
+                      <Text style={styles.noVendorText}>Awaiting technician assignment...</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
 
         {/* Contact Support Section */}
         <TouchableOpacity style={styles.supportRow} activeOpacity={0.7}>
@@ -535,6 +587,93 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#FFF',
     fontSize: 16,
+    fontWeight: '700',
+  },
+  bookingCardExpanded: {
+    borderColor: '#00B894',
+    backgroundColor: '#FCFDFE',
+  },
+  expandedContent: {
+    marginTop: 12,
+  },
+  expandedDivider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginBottom: 12,
+  },
+  otpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  otpLabel: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  otpBadge: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#A5D6A7',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  otpText: {
+    color: '#2E7D32',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  otpSubText: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  vendorSection: {
+    marginTop: 14,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  vendorLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  vendorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  vendorNameText: {
+    fontSize: 13,
+    fontWeight: '750',
+    color: '#374151',
+  },
+  noVendorText: {
+    fontSize: 12.5,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    fontWeight: '500',
+  },
+  userCallBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00B894',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  userCallBtnText: {
+    color: '#FFF',
+    fontSize: 11,
     fontWeight: '700',
   },
 });

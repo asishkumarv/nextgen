@@ -44,6 +44,26 @@ export default function Vendors() {
     }
   };
 
+  const handleDeactivate = async (id) => {
+    if (!window.confirm('Are you sure you want to DEACTIVATE this vendor?')) return;
+    try {
+      await api.put(`/admin/vendors/${id}/deactivate`);
+      await fetchVendors();
+    } catch (err) {
+      alert(err.message || 'Failed to deactivate vendor');
+    }
+  };
+
+  const handleReactivate = async (id) => {
+    if (!window.confirm('Are you sure you want to REACTIVATE this vendor?')) return;
+    try {
+      await api.put(`/admin/vendors/${id}/reactivate`);
+      await fetchVendors();
+    } catch (err) {
+      alert(err.message || 'Failed to reactivate vendor');
+    }
+  };
+
   const toggleExpand = (id) => {
     if (expandedVendorId === id) {
       setExpandedVendorId(null);
@@ -162,6 +182,11 @@ export default function Vendors() {
                               <UserX size={12} /> Rejected
                             </span>
                           )}
+                          {v.status === 'Deactivated' && (
+                            <span className="badge" style={{ backgroundColor: '#E5E7EB', color: '#4B5563' }}>
+                              <AlertCircle size={12} /> Deactivated
+                            </span>
+                          )}
                         </td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -182,6 +207,24 @@ export default function Vendors() {
                                   Reject
                                 </button>
                               </>
+                            )}
+                            {v.status === 'Approved' && (
+                              <button
+                                onClick={() => handleDeactivate(v.id)}
+                                style={{ ...styles.actionBtn, ...styles.deactivateBtn }}
+                                title="Deactivate Vendor"
+                              >
+                                Deactivate
+                              </button>
+                            )}
+                            {v.status === 'Deactivated' && (
+                              <button
+                                onClick={() => handleReactivate(v.id)}
+                                style={{ ...styles.actionBtn, ...styles.reactivateBtn }}
+                                title="Reactivate Vendor"
+                              >
+                                Reactivate
+                              </button>
                             )}
                             <button
                               onClick={() => toggleExpand(v.id)}
@@ -353,6 +396,14 @@ const styles = {
   rejectBtn: {
     backgroundColor: '#FEE2E2',
     color: '#B91C1C',
+  },
+  deactivateBtn: {
+    backgroundColor: '#FEF3C7',
+    color: '#D97706',
+  },
+  reactivateBtn: {
+    backgroundColor: '#E0F2FE',
+    color: '#0369A1',
   },
   expandBtn: {
     display: 'inline-flex',

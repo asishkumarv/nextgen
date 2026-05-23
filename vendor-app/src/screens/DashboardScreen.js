@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Linking,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -22,6 +24,11 @@ export default function DashboardScreen() {
   const [activeTab, setActiveTab] = useState('assigned'); // 'assigned' or 'completed'
   const [refreshing, setRefreshing] = useState(false);
   const [completingId, setCompletingId] = useState(null);
+
+  // OTP Verification Modal States
+  const [otpModalVisible, setOtpModalVisible] = useState(false);
+  const [otpInput, setOtpInput] = useState('');
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   // Toast notifications
   const [toastMsg, setToastMsg] = useState('');
@@ -48,9 +55,26 @@ export default function DashboardScreen() {
     });
   };
 
-  const handleCompleteTask = async (id) => {
-    setCompletingId(id);
-    const res = await completeTask(id);
+  const handleOpenOtpModal = (id) => {
+    setSelectedTaskId(id);
+    setOtpInput('');
+    setOtpModalVisible(true);
+  };
+
+  const handleCompleteTaskVerify = async () => {
+    if (!otpInput.trim()) {
+      showToast('Please enter the 4-digit verification OTP.', 'warning');
+      return;
+    }
+    if (otpInput.trim().length !== 4) {
+      showToast('OTP must be exactly 4 digits.', 'warning');
+      return;
+    }
+
+    setCompletingId(selectedTaskId);
+    setOtpModalVisible(false);
+
+    const res = await completeTask(selectedTaskId, otpInput.trim());
     setCompletingId(null);
 
     if (res.success) {
@@ -195,7 +219,7 @@ export default function DashboardScreen() {
                   {/* Complete Task Trigger Action */}
                   <TouchableOpacity
                     style={styles.completeBtn}
-                    onPress={() => handleCompleteTask(item.id)}
+                    onPress={() => handleOpenOtpModal(item.id)}
                     disabled={completingId === item.id}
                   >
                     <LinearGradient
@@ -275,6 +299,64 @@ export default function DashboardScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* OTP Verification Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={otpModalVisible}
+        onRequestClose={() => setOtpModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Complete Task OTP</Text>
+              <TouchableOpacity onPress={() => setOtpModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSub}>Ask the customer for the 4-digit verification code shown on their booking card to settle this task.</Text>
+
+            <View style={styles.otpInputGroup}>
+              <TextInput
+                style={styles.otpTextInput}
+                placeholder="0000"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="number-pad"
+                maxLength={4}
+                value={otpInput}
+                onChangeText={setOtpInput}
+                autoFocus={true}
+              />
+            </View>
+
+            <View style={styles.modalActionRow}>
+              <TouchableOpacity 
+                style={[styles.modalBtn, styles.modalCancelBtn]} 
+                onPress={() => setOtpModalVisible(false)}
+              >
+                <Text style={styles.modalCancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.modalBtn, styles.modalSubmitBtn]} 
+                onPress={handleCompleteTaskVerify}
+              >
+                <LinearGradient
+                  colors={['#00C853', '#0091EA']}
+                  style={styles.modalBtnGrad}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={styles.modalSubmitBtnText}>Verify & Settle</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Toast
         message={toastMsg}
         type={toastType}
@@ -554,5 +636,97 @@ const styles = StyleSheet.create({
     color: '#15803D',
     fontSize: 11,
     fontWeight: '750',
+  },
+  modalBg: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 24,
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  modalSub: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 18,
+    marginBottom: 20,
+    fontWeight: '500',
+  },
+  otpInputGroup: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  otpTextInput: {
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    fontSize: 32,
+    fontWeight: '800',
+    textAlign: 'center',
+    width: '100%',
+    maxWidth: 200,
+    color: '#111827',
+    backgroundColor: '#F9FAFB',
+    letterSpacing: 8,
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  modalCancelBtn: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCancelBtnText: {
+    color: '#4B5563',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  modalSubmitBtn: {
+    shadowColor: '#00C853',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  modalBtnGrad: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalSubmitBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

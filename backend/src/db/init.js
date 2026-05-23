@@ -69,6 +69,10 @@ const createTables = async () => {
       ALTER TABLE bookings ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id) ON DELETE SET NULL;
     `);
 
+    await client.query(`
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS otp VARCHAR(4) DEFAULT '1234';
+    `);
+
     // Create Admins Table
     await client.query(`
       CREATE TABLE IF NOT EXISTS admins (

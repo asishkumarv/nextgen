@@ -16,6 +16,16 @@ export const VendorProvider = ({ children }) => {
   useEffect(() => {
     const bootstrapAsync = async () => {
       try {
+        // Fetch active services first (so registration forms can load them on mount)
+        try {
+          const servicesList = await api.get('/services');
+          if (Array.isArray(servicesList)) {
+            setAllSystemServices(servicesList);
+          }
+        } catch (err) {
+          console.warn('Could not fetch active system services on mount:', err.message);
+        }
+
         const storedToken = await getAuthToken();
         if (storedToken) {
           setTokenState(storedToken);
@@ -102,9 +112,9 @@ export const VendorProvider = ({ children }) => {
     setBookings([]);
   };
 
-  const completeTask = async (taskId) => {
+  const completeTask = async (taskId, otp) => {
     try {
-      const res = await api.put(`/vendor/tasks/${taskId}/complete`);
+      const res = await api.put(`/vendor/tasks/${taskId}/complete`, { otp });
       if (res.success) {
         // Reload dashboard details
         await loadVendorData();
