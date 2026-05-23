@@ -213,7 +213,20 @@ const completeTask = async (req, res) => {
     // Date validation: "vendor cannot complete the task prior date of booking date"
     try {
       const datePart = booking.date.split('(')[0].trim();
-      const scheduledDate = new Date(datePart);
+      let scheduledDate = new Date(datePart);
+      
+      // If year is missing (often defaults to 2001 or is otherwise prior to current year)
+      if (!isNaN(scheduledDate.getTime()) && scheduledDate.getFullYear() <= 2010) {
+        const currentYear = new Date().getFullYear();
+        let withYear = new Date(`${datePart} ${currentYear}`);
+        const now = new Date();
+        // Year rollover handling: e.g. booking is Jan 2 but current time is Dec 30
+        if (withYear < now && now.getMonth() === 11 && withYear.getMonth() === 0) {
+          withYear = new Date(`${datePart} ${currentYear + 1}`);
+        }
+        scheduledDate = withYear;
+      }
+      
       scheduledDate.setHours(0, 0, 0, 0);
 
       const currentDate = new Date();

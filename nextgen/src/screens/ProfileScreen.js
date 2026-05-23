@@ -443,9 +443,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   bookingCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: '#FFF',
     borderRadius: 20,
     padding: 16,
