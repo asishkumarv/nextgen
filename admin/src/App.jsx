@@ -9,6 +9,7 @@ import Users from './pages/Users';
 import Subscribers from './pages/Subscribers';
 import Bookings from './pages/Bookings';
 import Services from './pages/Services';
+import Vendors from './pages/Vendors';
 
 export default function App() {
   const [admin, setAdmin] = useState(null);
@@ -47,6 +48,8 @@ export default function App() {
         return <Bookings />;
       case 'services':
         return <Services />;
+      case 'vendors':
+        return <Vendors />;
       default:
         return <Dashboard onNavigateToView={setActiveView} />;
     }

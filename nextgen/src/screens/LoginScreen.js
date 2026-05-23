@@ -88,12 +88,6 @@ export default function LoginScreen({ onNavigateToRegister }) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Toast
-        message={toastMsg}
-        type={toastType}
-        visible={toastVisible}
-        onHide={() => setToastVisible(false)}
-      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -200,6 +194,12 @@ export default function LoginScreen({ onNavigateToRegister }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <Toast
+        message={toastMsg}
+        type={toastType}
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
+      />
     </View>
   );
 }

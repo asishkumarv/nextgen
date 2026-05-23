@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-// ─── Config per toast type ───────────────────────────────────────────────────
 const TOAST_CONFIG = {
   error: {
     bg: 'rgba(18, 4, 4, 0.97)',
@@ -57,16 +56,6 @@ const TOAST_CONFIG = {
   },
 };
 
-/**
- * Modern bottom-slide Toast notification
- *
- * Props:
- *   message  {string}                              Text to display
- *   type     {'error'|'success'|'warning'|'info'}  Toast variant
- *   visible  {boolean}                             Show / hide trigger
- *   onHide   {Function}                            Called after hide animation
- *   duration {number}                              Auto-dismiss ms (default 3500)
- */
 export default function Toast({
   message = '',
   type    = 'error',
@@ -74,16 +63,10 @@ export default function Toast({
   onHide,
   duration = 3500,
 }) {
-  // shouldRender controls whether we mount the component at all.
-  // Starts false; becomes true when visible+message arrive, goes false after hide animation.
   const [shouldRender, setShouldRender] = useState(false);
-
-  // Refs hold display content so they survive the async state update timing gap.
-  // Refs update *synchronously* inside the effect, before the next render.
   const displayMsg  = useRef('');
   const displayType = useRef(type);
 
-  // Animated values – created once
   const translateY = useRef(new Animated.Value(200)).current;
   const opacity    = useRef(new Animated.Value(0)).current;
   const scale      = useRef(new Animated.Value(0.88)).current;
@@ -93,10 +76,8 @@ export default function Toast({
   const hideTimer  = useRef(null);
   const pulseLoop  = useRef(null);
 
-  // Disable native driver on web platform as it is not supported and can stall/prevent animations.
   const useNative = Platform.OS !== 'web';
 
-  // ── helpers ────────────────────────────────────────────────────────────────
   const clearHideTimer = () => {
     if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
   };
@@ -117,9 +98,7 @@ export default function Toast({
     pulseLoop.current.start();
   };
 
-  // ── show animation ─────────────────────────────────────────────────────────
   const animateIn = () => {
-    // Reset progress bar
     progress.setValue(1);
 
     Animated.parallel([
@@ -128,14 +107,12 @@ export default function Toast({
       Animated.timing(opacity,    { toValue: 1,  duration: 200, useNativeDriver: useNative }),
     ]).start();
 
-    // Drain progress bar
     Animated.timing(progress, { toValue: 0, duration, useNativeDriver: false }).start();
 
     startPulse();
     hideTimer.current = setTimeout(animateOut, duration);
   };
 
-  // ── hide animation ─────────────────────────────────────────────────────────
   const animateOut = () => {
     clearHideTimer();
     stopPulse();
@@ -146,36 +123,28 @@ export default function Toast({
       Animated.timing(opacity,    { toValue: 0,   duration: 220, useNativeDriver: useNative }),
     ]).start(({ finished }) => {
       if (finished) {
-        // Unmount after slide-out is complete
         setShouldRender(false);
         if (onHide) onHide();
       }
     });
   };
 
-  // ── effect: respond to visible / message / type changes ──────────────────
   useEffect(() => {
     if (visible && message) {
-      // 1. Update refs synchronously (no async gap)
       displayMsg.current  = message;
       displayType.current = type;
-
-      // 2. Clear any running timer from a previous toast
       clearHideTimer();
       stopPulse();
 
       if (!shouldRender) {
-        // Mount the component (triggers a re-render and initiates animateIn via the shouldRender effect)
         setShouldRender(true);
       } else {
-        // If already rendered, reset positions and animate in again immediately
         translateY.setValue(200);
         scale.setValue(0.88);
         opacity.setValue(0);
         animateIn();
       }
     } else if (!visible && shouldRender) {
-      // If parent sets visible to false, trigger the slide-out
       animateOut();
     }
 
@@ -183,20 +152,17 @@ export default function Toast({
       clearHideTimer();
       stopPulse();
     };
-  }, [visible, message, type]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [visible, message, type]);
 
-  // ── Once shouldRender flips to true, kick off the animation ───────────────
   useEffect(() => {
     if (shouldRender && displayMsg.current) {
-      // Reset positions before animating in
       translateY.setValue(200);
       scale.setValue(0.88);
       opacity.setValue(0);
       animateIn();
     }
-  }, [shouldRender]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shouldRender]);
 
-  // ── Do not mount until we have content ────────────────────────────────────
   if (!shouldRender || !displayMsg.current) return null;
 
   const cfg = TOAST_CONFIG[displayType.current] || TOAST_CONFIG.error;
@@ -213,23 +179,14 @@ export default function Toast({
         { opacity, transform: [{ translateY }, { scale }] },
       ]}
     >
-      {/* Coloured left accent bar */}
       <View style={[styles.accentBar, { backgroundColor: cfg.accentBar }]} />
-
-      {/* Main card */}
       <View style={[styles.card, { backgroundColor: cfg.bg, borderColor: cfg.borderColor }]}>
-
-        {/* Content row */}
         <View style={styles.row}>
-
-          {/* Pulsing icon bubble */}
           <Animated.View
             style={[styles.iconBubble, { backgroundColor: cfg.iconBg, transform: [{ scale: iconScale }] }]}
           >
             <Ionicons name={cfg.icon} size={22} color={cfg.iconColor} />
           </Animated.View>
-
-          {/* Text */}
           <View style={styles.textCol}>
             <Text style={[styles.typeLabel, { color: cfg.iconColor }]}>
               {cfg.label}
@@ -238,8 +195,6 @@ export default function Toast({
               {displayMsg.current}
             </Text>
           </View>
-
-          {/* Close button */}
           <TouchableOpacity
             onPress={animateOut}
             style={styles.closeBtn}
@@ -247,22 +202,17 @@ export default function Toast({
           >
             <Ionicons name="close" size={18} color="rgba(255,255,255,0.4)" />
           </TouchableOpacity>
-
         </View>
-
-        {/* Draining progress bar */}
         <View style={styles.progressTrack}>
           <Animated.View
             style={[styles.progressFill, { width: progressWidth, backgroundColor: cfg.progressColor }]}
           />
         </View>
-
       </View>
     </Animated.View>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',

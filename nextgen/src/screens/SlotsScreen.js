@@ -224,7 +224,7 @@ export default function SlotsScreen() {
         <View style={styles.checkCircle}>
           <Ionicons name="checkmark" size={40} color="#00C853" />
         </View>
-        <Text style={styles.successTitle}>You're all set!</Text>
+        <Text style={styles.successTitle}>You&apos;re all set!</Text>
         <Text style={styles.successSubtitle}>Welcome to Next Gen Power Care</Text>
 
         <View style={styles.subscriptionActiveBadge}>

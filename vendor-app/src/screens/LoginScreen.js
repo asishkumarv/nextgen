@@ -14,21 +14,18 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from '../context/AppContext';
+import { useVendor } from '../context/VendorContext';
 import Toast from '../components/Toast';
 
-export default function RegisterScreen({ onNavigateToLogin }) {
+export default function LoginScreen({ onNavigateToRegister }) {
   const insets = useSafeAreaInsets();
-  const { register } = useApp();
-  const [name, setName] = useState('');
+  const { login } = useVendor();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [nameError, setNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [confirmError, setConfirmError] = useState('');
+  
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState('error');
@@ -39,35 +36,14 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     setToastVisible(true);
   };
 
-  // Password strength: 0=empty,1=weak,2=medium,3=strong
-  const getPasswordStrength = (p) => {
-    if (!p) return 0;
-    let score = 0;
-    if (p.length >= 6) score++;
-    if (p.length >= 10) score++;
-    if (/[A-Z]/.test(p) && /[0-9]/.test(p)) score++;
-    return score;
-  };
-  const strength = getPasswordStrength(password);
-  const strengthLabel = ['', 'Weak', 'Medium', 'Strong'][strength];
-  const strengthColor = ['#D1D5DB', '#EF4444', '#F59E0B', '#10B981'][strength];
-
-  const clearAllErrors = () => {
-    setNameError(''); setPhoneError('');
-    setPasswordError(''); setConfirmError('');
+  const clearFieldErrors = () => {
+    setPhoneError('');
+    setPasswordError('');
   };
 
-  const handleRegister = async () => {
-    clearAllErrors();
+  const handleLogin = async () => {
+    clearFieldErrors();
     let hasError = false;
-
-    if (!name.trim()) {
-      setNameError('Full name is required');
-      hasError = true;
-    } else if (name.trim().length < 2) {
-      setNameError('Name must be at least 2 characters');
-      hasError = true;
-    }
 
     if (!phone.trim()) {
       setPhoneError('Phone number is required');
@@ -80,41 +56,31 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     if (!password) {
       setPasswordError('Password is required');
       hasError = true;
-    } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters long');
-      hasError = true;
-    }
-
-    if (!confirmPassword) {
-      setConfirmError('Please confirm your password');
-      hasError = true;
-    } else if (password && confirmPassword && password !== confirmPassword) {
-      setConfirmError('Passwords do not match');
-      hasError = true;
     }
 
     if (hasError) {
-      if (password && confirmPassword && password !== confirmPassword) {
-        showToast('Passwords do not match', 'error');
-      } else {
-        showToast('Please fix the errors below before continuing.', 'warning');
-      }
+      showToast('Please fix the errors below before continuing.', 'warning');
       return;
     }
 
     setLoading(true);
-    const result = await register(name.trim(), phone.trim(), password);
+    const result = await login(phone.trim(), password);
     setLoading(false);
 
     if (!result.success) {
       const msg = result.message || '';
-      if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('taken')) {
-        showToast('User already exists. Please sign in instead.', 'error');
-        setPhoneError('Phone number already registered');
-      } else if (msg.toLowerCase().includes('server')) {
-        showToast('Server error. Please try again later.', 'error');
+      if (msg.toLowerCase().includes('pending')) {
+        showToast('Your registration is pending administrator approval.', 'warning');
+      } else if (msg.toLowerCase().includes('rejected')) {
+        showToast('Your registration request was rejected by the administrator.', 'error');
+      } else if (msg.toLowerCase().includes('does not exist') || msg.toLowerCase().includes('not exist')) {
+        showToast('Vendor does not exist. Please register to login.', 'error');
+        setPhoneError('Vendor does not exist');
+      } else if (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('incorrect') || msg.toLowerCase().includes('password')) {
+        showToast('Invalid credentials. Password is incorrect.', 'error');
+        setPasswordError('Incorrect password');
       } else {
-        showToast(msg || 'Registration failed. Please try again.', 'error');
+        showToast(msg || 'Login failed. Please check your credentials.', 'error');
       }
     }
   };
@@ -138,40 +104,18 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.title}>NextGen</Text>
-            <Text style={styles.subtitle}>Power Care Smart Support</Text>
+            <Text style={styles.title}>NextGen Vendor</Text>
+            <Text style={styles.subtitle}>Provide On-Demand Electric Services</Text>
           </View>
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            <Text style={styles.formHeading}>Create Account</Text>
-            <Text style={styles.formSub}>Register to book slots and services</Text>
-
-            {/* Full Name Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name</Text>
-              <View style={[styles.inputWrapper, nameError ? styles.inputWrapperError : null]}>
-                <Ionicons name="person-outline" size={18} color={nameError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="John Doe"
-                  placeholderTextColor="#9CA3AF"
-                  value={name}
-                  onChangeText={(t) => { setName(t); setNameError(''); }}
-                  editable={!loading}
-                />
-              </View>
-              {nameError ? (
-                <View style={styles.fieldErrorRow}>
-                  <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
-                  <Text style={styles.fieldErrorText}>{nameError}</Text>
-                </View>
-              ) : null}
-            </View>
+            <Text style={styles.formHeading}>Vendor Portal</Text>
+            <Text style={styles.formSub}>Log in to manage your tasks & revenue</Text>
 
             {/* Phone Number Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Phone Number</Text>
+              <Text style={styles.inputLabel}>Registered Phone Number</Text>
               <View style={[styles.inputWrapper, phoneError ? styles.inputWrapperError : null]}>
                 <Ionicons name="call-outline" size={18} color={phoneError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
                 <TextInput
@@ -184,7 +128,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   editable={!loading}
                 />
               </View>
-              {phoneError && phoneError.trim() ? (
+              {phoneError ? (
                 <View style={styles.fieldErrorRow}>
                   <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
                   <Text style={styles.fieldErrorText}>{phoneError}</Text>
@@ -199,7 +143,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <Ionicons name="lock-closed-outline" size={18} color={passwordError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Min. 6 characters"
+                  placeholder="Enter your password"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry
                   value={password}
@@ -207,15 +151,6 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   editable={!loading}
                 />
               </View>
-              {/* Password strength bar */}
-              {password.length > 0 && (
-                <View style={styles.strengthRow}>
-                  <View style={styles.strengthBarTrack}>
-                    <View style={[styles.strengthBarFill, { width: `${(strength / 3) * 100}%`, backgroundColor: strengthColor }]} />
-                  </View>
-                  <Text style={[styles.strengthLabel, { color: strengthColor }]}>{strengthLabel}</Text>
-                </View>
-              )}
               {passwordError ? (
                 <View style={styles.fieldErrorRow}>
                   <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
@@ -224,39 +159,16 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               ) : null}
             </View>
 
-            {/* Confirm Password Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Confirm Password</Text>
-              <View style={[styles.inputWrapper, confirmError ? styles.inputWrapperError : null]}>
-                <Ionicons name="lock-closed-outline" size={18} color={confirmError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Confirm your password"
-                  placeholderTextColor="#9CA3AF"
-                  secureTextEntry
-                  value={confirmPassword}
-                  onChangeText={(t) => { setConfirmPassword(t); setConfirmError(''); }}
-                  editable={!loading}
-                />
-              </View>
-              {confirmError ? (
-                <View style={styles.fieldErrorRow}>
-                  <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
-                  <Text style={styles.fieldErrorText}>{confirmError}</Text>
-                </View>
-              ) : null}
-            </View>
-
             {/* Action Button */}
             <TouchableOpacity
-              style={styles.registerButton}
-              onPress={handleRegister}
+              style={styles.loginButton}
+              onPress={handleLogin}
               disabled={loading}
               activeOpacity={0.8}
             >
               <LinearGradient
                 colors={['#00B894', '#0984E3']}
-                style={styles.registerButtonGrad}
+                style={styles.loginButtonGrad}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
@@ -264,18 +176,18 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <ActivityIndicator color="#FFF" size="small" />
                 ) : (
                   <View style={styles.btnContent}>
-                    <Text style={styles.registerButtonText}>Register</Text>
+                    <Text style={styles.loginButtonText}>Sign In</Text>
                     <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
                   </View>
                 )}
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Sign In Navigation Toggle */}
-            <View style={styles.loginRow}>
-              <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={onNavigateToLogin} disabled={loading}>
-                <Text style={styles.loginLink}>Sign In</Text>
+            {/* Sign Up Navigation Toggle */}
+            <View style={styles.signupRow}>
+              <Text style={styles.signupText}>{"Want to register as a partner? "}</Text>
+              <TouchableOpacity onPress={onNavigateToRegister} disabled={loading}>
+                <Text style={styles.signupLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -304,7 +216,7 @@ const styles = StyleSheet.create({
   },
   headerArea: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   logoWrapper: {
     width: 96,
@@ -338,6 +250,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontWeight: '600',
     marginTop: 4,
+    textAlign: 'center',
   },
   formCard: {
     backgroundColor: '#FFF',
@@ -363,23 +276,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontWeight: '500',
   },
-  alertBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#FEF2F2',
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 16,
-    borderWidth: 1.5,
-    borderColor: '#FECACA',
-  },
-  alertText: {
-    color: '#B91C1C',
-    fontSize: 13,
-    fontWeight: '600',
-    flex: 1,
-    lineHeight: 18,
-  },
   inputWrapperError: {
     borderColor: '#EF4444',
     backgroundColor: '#FFF5F5',
@@ -395,29 +291,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginLeft: 3,
-  },
-  strengthRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    gap: 8,
-  },
-  strengthBarTrack: {
-    flex: 1,
-    height: 5,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 99,
-    overflow: 'hidden',
-  },
-  strengthBarFill: {
-    height: 5,
-    borderRadius: 99,
-  },
-  strengthLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    minWidth: 44,
-    textAlign: 'right',
   },
   inputGroup: {
     marginBottom: 16,
@@ -447,7 +320,7 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: '500',
   },
-  registerButton: {
+  loginButton: {
     marginTop: 10,
     shadowColor: '#00B894',
     shadowOffset: { width: 0, height: 4 },
@@ -455,7 +328,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  registerButtonGrad: {
+  loginButtonGrad: {
     borderRadius: 16,
     paddingVertical: 14,
     justifyContent: 'center',
@@ -465,23 +338,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  registerButtonText: {
+  loginButtonText: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
   },
-  loginRow: {
+  signupRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
   },
-  loginText: {
+  signupText: {
     fontSize: 13,
     color: '#6B7280',
     fontWeight: '500',
   },
-  loginLink: {
+  signupLink: {
     fontSize: 13,
     color: '#0984E3',
     fontWeight: '700',

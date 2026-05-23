@@ -45,6 +45,30 @@ const createTables = async () => {
       );
     `);
 
+    // Alter bookings table to add vendor_id references if it doesn't exist
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS vendors (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        phone VARCHAR(20) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        status VARCHAR(20) DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS vendor_services (
+        vendor_id INTEGER REFERENCES vendors(id) ON DELETE CASCADE,
+        service_id INTEGER REFERENCES services(id) ON DELETE CASCADE,
+        PRIMARY KEY (vendor_id, service_id)
+      );
+    `);
+
+    await client.query(`
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS vendor_id INTEGER REFERENCES vendors(id) ON DELETE SET NULL;
+    `);
+
     // Create Admins Table
     await client.query(`
       CREATE TABLE IF NOT EXISTS admins (

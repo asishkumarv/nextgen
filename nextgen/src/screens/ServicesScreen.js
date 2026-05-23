@@ -169,7 +169,7 @@ export default function ServicesScreen() {
       {filteredServices.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.emptyText}>No services found matching "{searchQuery}"</Text>
+          <Text style={styles.emptyText}>No services found matching &quot;{searchQuery}&quot;</Text>
         </View>
       ) : (
         filteredServices.map(item => (

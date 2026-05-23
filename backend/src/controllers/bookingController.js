@@ -36,10 +36,31 @@ const createBooking = async (req, res) => {
 
     const dateAndSlot = timeSlot ? `${date} (${timeSlot})` : date;
 
-    // Insert booking (default status is 'Booked')
+    // Find the vendor with the least workload offering this service
+    let assignedVendorId = null;
+    let bookingStatus = 'Booked';
+
+    const vendorQuery = await pool.query(`
+      SELECT v.id, COUNT(b.id) AS booking_count
+      FROM vendors v
+      JOIN vendor_services vs ON v.id = vs.vendor_id
+      JOIN services s ON vs.service_id = s.id
+      LEFT JOIN bookings b ON v.id = b.vendor_id
+      WHERE LOWER(s.title) = LOWER($1) AND v.status = 'Approved'
+      GROUP BY v.id
+      ORDER BY booking_count ASC, v.id ASC
+      LIMIT 1
+    `, [serviceName.trim()]);
+
+    if (vendorQuery.rows.length > 0) {
+      assignedVendorId = vendorQuery.rows[0].id;
+      bookingStatus = 'Assigned';
+    }
+
+    // Insert booking
     const newBooking = await pool.query(
-      'INSERT INTO bookings (id, user_id, service_name, date, price, status, icon, address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, service_name AS "serviceName", date, price, status, icon, address',
-      [randomId, userId, serviceName, dateAndSlot, price, 'Booked', iconName, address]
+      'INSERT INTO bookings (id, user_id, service_name, date, price, status, icon, address, vendor_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId"',
+      [randomId, userId, serviceName, dateAndSlot, price, bookingStatus, iconName, address, assignedVendorId]
     );
 
     res.status(201).json(newBooking.rows[0]);

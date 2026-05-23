@@ -8,7 +8,11 @@
     "scheme": "nextgen",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./src/assets/logo.png"
+      "icon": "./src/assets/logo.png",
+      "bundleIdentifier": "com.asishkumarv.nextgen",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +21,8 @@
         "backgroundImage": "./src/assets/logo.png",
         "monochromeImage": "./src/assets/logo.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.asishkumarv.nextgen"
     },
     "web": {
       "output": "static",
@@ -41,6 +46,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "dff0fcf6-04f6-4b8c-a278-cd2e41639a0c"
+      }
     }
   }
 }

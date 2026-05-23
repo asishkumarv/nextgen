@@ -320,6 +320,98 @@ const adminDeleteService = async (req, res) => {
   }
 };
 
+const getVendors = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        v.id, 
+        v.name, 
+        v.phone, 
+        v.status, 
+        v.created_at AS "createdAt",
+        COALESCE(ARRAY_AGG(s.title) FILTER (WHERE s.title IS NOT NULL), '{}') AS services,
+        COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END)::int AS "assignedCount",
+        COUNT(CASE WHEN b.status = 'Completed' THEN 1 END)::int AS "completedCount",
+        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN b.price END), 0)::float AS "totalEarnings"
+      FROM vendors v
+      LEFT JOIN vendor_services vs ON v.id = vs.vendor_id
+      LEFT JOIN services s ON vs.service_id = s.id
+      LEFT JOIN bookings b ON v.id = b.vendor_id
+      GROUP BY v.id
+      ORDER BY v.created_at DESC
+    `);
+
+    const vendors = [];
+    for (let vendor of result.rows) {
+      const tasksRes = await pool.query(`
+        SELECT b.id, b.service_name AS "serviceName", b.date, b.price, b.status, b.address,
+               u.name AS "userName", u.phone AS "userPhone"
+        FROM bookings b
+        JOIN users u ON b.user_id = u.id
+        WHERE b.vendor_id = $1
+        ORDER BY b.created_at DESC
+      `, [vendor.id]);
+      vendors.push({
+        ...vendor,
+        tasks: tasksRes.rows
+      });
+    }
+
+    res.json(vendors);
+  } catch (error) {
+    console.error('Error fetching vendors list for admin:', error);
+    res.status(500).json({ message: 'Server error retrieving vendors list' });
+  }
+};
+
+const approveVendor = async (req, res) => {
+  const vendorId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      "UPDATE vendors SET status = 'Approved' WHERE id = $1 RETURNING id, name, phone, status",
+      [vendorId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vendor approved successfully',
+      vendor: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error approving vendor:', error);
+    res.status(500).json({ message: 'Server error approving vendor' });
+  }
+};
+
+const rejectVendor = async (req, res) => {
+  const vendorId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      "UPDATE vendors SET status = 'Rejected' WHERE id = $1 RETURNING id, name, phone, status",
+      [vendorId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vendor rejected successfully',
+      vendor: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error rejecting vendor:', error);
+    res.status(500).json({ message: 'Server error rejecting vendor' });
+  }
+};
+
 module.exports = {
   adminLogin,
   getAdminMe,
@@ -332,5 +424,8 @@ module.exports = {
   adminGetServices,
   adminAddService,
   adminUpdateService,
-  adminDeleteService
+  adminDeleteService,
+  getVendors,
+  approveVendor,
+  rejectVendor
 };
