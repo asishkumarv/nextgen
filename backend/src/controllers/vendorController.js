@@ -136,10 +136,13 @@ const vendorLogin = async (req, res) => {
 const parseBookingDate = (dateStr) => {
   if (!dateStr) return null;
   const cleanStr = dateStr.split('(')[0].trim();
-  let d = new Date(cleanStr);
-  if (isNaN(d.getTime())) {
+  const hasYear = /\b\d{4}\b/.test(cleanStr);
+  let d;
+  if (!hasYear) {
     const currentYear = new Date().getFullYear();
     d = new Date(`${cleanStr} ${currentYear}`);
+  } else {
+    d = new Date(cleanStr);
   }
   return d;
 };

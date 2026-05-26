@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,7 +17,15 @@ import Toast from '../components/Toast';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { vendor, services, allSystemServices, addService, logout, changePassword, leaves, addLeave, removeLeave } = useVendor();
+  const { vendor, services, allSystemServices, addService, logout, changePassword, leaves, addLeave, removeLeave, refreshData } = useVendor();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshData();
+    setRefreshing(false);
+  };
 
   const [addMode, setAddMode] = useState(false); // toggle add service view
   const [selectedServiceId, setSelectedServiceId] = useState('');
@@ -174,6 +183,9 @@ export default function ProfileScreen() {
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00B894']} />
+        }
       >
         <Text style={styles.heading}>Profile</Text>
 

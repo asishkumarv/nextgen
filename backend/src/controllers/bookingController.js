@@ -3,10 +3,13 @@ const pool = require('../config/db');
 const parseToDateString = (dateStr) => {
   if (!dateStr) return '';
   const datePart = dateStr.split('(')[0].trim();
-  let d = new Date(datePart);
-  if (isNaN(d.getTime())) {
+  const hasYear = /\b\d{4}\b/.test(datePart);
+  let d;
+  if (!hasYear) {
     const currentYear = new Date().getFullYear();
     d = new Date(`${datePart} ${currentYear}`);
+  } else {
+    d = new Date(datePart);
   }
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
