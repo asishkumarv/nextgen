@@ -1,5 +1,19 @@
 const pool = require('../config/db');
 
+const parseToDateString = (dateStr) => {
+  if (!dateStr) return '';
+  const datePart = dateStr.split('(')[0].trim();
+  let d = new Date(datePart);
+  if (isNaN(d.getTime())) {
+    const currentYear = new Date().getFullYear();
+    d = new Date(`${datePart} ${currentYear}`);
+  }
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const getMyBookings = async (req, res) => {
   const userId = req.user.id;
 
@@ -48,17 +62,23 @@ const createBooking = async (req, res) => {
     let assignedVendorId = null;
     let bookingStatus = 'Booked';
 
+    const leaveDateCheck = parseToDateString(date);
+
     const vendorQuery = await pool.query(`
       SELECT v.id, COUNT(b.id) AS booking_count
       FROM vendors v
       JOIN vendor_services vs ON v.id = vs.vendor_id
       JOIN services s ON vs.service_id = s.id
       LEFT JOIN bookings b ON v.id = b.vendor_id
-      WHERE LOWER(s.title) = LOWER($1) AND v.status = 'Approved'
+      WHERE LOWER(s.title) = LOWER($1) 
+        AND v.status = 'Approved'
+        AND v.id NOT IN (
+          SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
+        )
       GROUP BY v.id
       ORDER BY booking_count ASC, v.id ASC
       LIMIT 1
-    `, [serviceName.trim()]);
+    `, [serviceName.trim(), leaveDateCheck]);
 
     if (vendorQuery.rows.length > 0) {
       assignedVendorId = vendorQuery.rows[0].id;

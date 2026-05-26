@@ -16,7 +16,7 @@ import Toast from '../components/Toast';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { vendor, services, allSystemServices, addService, logout } = useVendor();
+  const { vendor, services, allSystemServices, addService, logout, changePassword, leaves, addLeave, removeLeave } = useVendor();
 
   const [addMode, setAddMode] = useState(false); // toggle add service view
   const [selectedServiceId, setSelectedServiceId] = useState('');
@@ -26,6 +26,16 @@ export default function ProfileScreen() {
   const [customTitle, setCustomTitle] = useState('');
   const [customSubtitle, setCustomSubtitle] = useState('');
   const [customPrice, setCustomPrice] = useState('');
+
+  // Change password states
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Leave states
+  const [leaveDateInput, setLeaveDateInput] = useState(''); // YYYY-MM-DD
+  const [leaveLoading, setLeaveLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -84,6 +94,78 @@ export default function ProfileScreen() {
       setCustomMode(false);
     } else {
       showToast(res.message || 'Failed to add service.', 'error');
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      showToast('Please fill all password fields.', 'warning');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast('New passwords do not match.', 'warning');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showToast('Password should be at least 6 characters.', 'warning');
+      return;
+    }
+
+    setPasswordLoading(true);
+    const res = await changePassword(currentPassword, newPassword);
+    setPasswordLoading(false);
+
+    if (res.success) {
+      showToast('Password changed successfully!', 'success');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      showToast(res.message || 'Failed to change password.', 'error');
+    }
+  };
+
+  const handleAddLeave = async () => {
+    if (!leaveDateInput.trim()) {
+      showToast('Please specify a leave date.', 'warning');
+      return;
+    }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(leaveDateInput.trim())) {
+      showToast('Date must be in YYYY-MM-DD format (e.g. 2026-05-26).', 'warning');
+      return;
+    }
+
+    const parsedDate = new Date(leaveDateInput.trim());
+    if (isNaN(parsedDate.getTime())) {
+      showToast('Invalid date. Please enter a real date.', 'warning');
+      return;
+    }
+
+    setLeaveLoading(true);
+    const res = await addLeave(leaveDateInput.trim());
+    setLeaveLoading(false);
+
+    if (res.success) {
+      showToast('Leave declared successfully!', 'success');
+      setLeaveDateInput('');
+    } else {
+      showToast(res.message || 'Failed to declare leave.', 'error');
+    }
+  };
+
+  const handleRemoveLeave = async (date) => {
+    setLeaveLoading(true);
+    const res = await removeLeave(date);
+    setLeaveLoading(false);
+
+    if (res.success) {
+      showToast('Leave declaration removed.', 'success');
+    } else {
+      showToast(res.message || 'Failed to remove leave.', 'error');
     }
   };
 
@@ -268,6 +350,108 @@ export default function ProfileScreen() {
               </View>
             ))
           )}
+        </View>
+
+        {/* Leave Declaration Section */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Leave Declaration</Text>
+          <Text style={styles.sectionDescription}>
+            Declare dates you are unavailable. Tasks will not be auto-assigned to you on these days.
+          </Text>
+
+          <View style={styles.leaveInputRow}>
+            <TextInput
+              style={[styles.textInput, { flex: 1, marginRight: 10 }]}
+              placeholder="YYYY-MM-DD (e.g. 2026-05-26)"
+              placeholderTextColor="#9CA3AF"
+              value={leaveDateInput}
+              onChangeText={setLeaveDateInput}
+            />
+            <TouchableOpacity
+              style={styles.addLeaveBtn}
+              onPress={handleAddLeave}
+              disabled={leaveLoading}
+            >
+              {leaveLoading ? (
+                <ActivityIndicator color="#FFF" size="small" />
+              ) : (
+                <Text style={styles.addLeaveBtnText}>Declare</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* List of active leaves */}
+          {(!leaves || leaves.length === 0) ? (
+            <Text style={styles.noLeavesText}>No leave dates declared.</Text>
+          ) : (
+            <View style={styles.leavesList}>
+              {leaves.map((lDate) => (
+                <View key={lDate} style={styles.leavePill}>
+                  <Ionicons name="calendar-outline" size={14} color="#374151" style={{ marginRight: 6 }} />
+                  <Text style={styles.leavePillText}>{lDate}</Text>
+                  <TouchableOpacity onPress={() => handleRemoveLeave(lDate)} style={styles.removeLeaveBtn}>
+                    <Ionicons name="close-circle" size={16} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Change Password Section */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Change Password</Text>
+
+          <View style={[styles.inputGroup, { marginTop: 12 }]}>
+            <Text style={styles.inputLabel}>Current Password</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Enter current password"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry={true}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>New Password</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Minimum 6 characters"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry={true}
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Confirm New Password</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Re-enter new password"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry={true}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={styles.submitPasswordBtn}
+            onPress={handlePasswordChange}
+            disabled={passwordLoading}
+          >
+            {passwordLoading ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Text style={styles.submitPasswordBtnText}>Update Password</Text>
+                <Ionicons name="key-outline" size={16} color="#FFF" style={{ marginLeft: 6 }} />
+              </>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
@@ -565,6 +749,90 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   submitSkillBtnText: {
+    color: '#FFF',
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    marginHorizontal: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 24,
+    marginTop: 24,
+  },
+  sectionDescription: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+    marginBottom: 14,
+    lineHeight: 16,
+    fontWeight: '500',
+  },
+  leaveInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  addLeaveBtn: {
+    backgroundColor: '#00B894',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 40,
+  },
+  addLeaveBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  noLeavesText: {
+    color: '#9CA3AF',
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  leavesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  leavePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 100,
+    paddingLeft: 10,
+    paddingRight: 6,
+    paddingVertical: 4,
+  },
+  leavePillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  removeLeaveBtn: {
+    marginLeft: 6,
+    padding: 2,
+  },
+  submitPasswordBtn: {
+    marginTop: 14,
+    backgroundColor: '#0984E3',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  submitPasswordBtnText: {
     color: '#FFF',
     fontSize: 13.5,
     fontWeight: '700',

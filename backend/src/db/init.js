@@ -73,6 +73,34 @@ const createTables = async () => {
       ALTER TABLE bookings ADD COLUMN IF NOT EXISTS otp VARCHAR(4) DEFAULT '1234';
     `);
 
+    // Create Settlements Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS settlements (
+        id SERIAL PRIMARY KEY,
+        vendor_id INTEGER REFERENCES vendors(id) ON DELETE CASCADE,
+        amount NUMERIC(10, 2) NOT NULL,
+        status VARCHAR(20) DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        approved_at TIMESTAMP
+      );
+    `);
+
+    // Create Vendor Leaves Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS vendor_leaves (
+        id SERIAL PRIMARY KEY,
+        vendor_id INTEGER REFERENCES vendors(id) ON DELETE CASCADE,
+        leave_date VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (vendor_id, leave_date)
+      );
+    `);
+
+    // Link Bookings to Settlements
+    await client.query(`
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS settlement_id INTEGER REFERENCES settlements(id) ON DELETE SET NULL;
+    `);
+
     // Create Admins Table
     await client.query(`
       CREATE TABLE IF NOT EXISTS admins (

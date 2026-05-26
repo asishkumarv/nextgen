@@ -197,9 +197,12 @@ const getBookings = async (req, res) => {
         b.address,
         b.created_at AS "createdAt",
         u.name AS "userName",
-        u.phone AS "userPhone"
+        u.phone AS "userPhone",
+        b.vendor_id AS "vendorId",
+        v.name AS "vendorName"
       FROM bookings b
       JOIN users u ON b.user_id = u.id
+      LEFT JOIN vendors v ON b.vendor_id = v.id
       WHERE (b.status = $1 OR $1 = 'All')
         AND (u.name ILIKE $2 OR u.phone ILIKE $2 OR b.service_name ILIKE $2 OR b.id ILIKE $2)
       ORDER BY b.created_at DESC, b.id DESC
@@ -471,6 +474,156 @@ const reactivateVendor = async (req, res) => {
   }
 };
 
+const getSettlements = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        s.id,
+        s.amount,
+        s.status,
+        s.created_at AS "createdAt",
+        s.approved_at AS "approvedAt",
+        v.name AS "vendorName",
+        v.phone AS "vendorPhone"
+      FROM settlements s
+      JOIN vendors v ON s.vendor_id = v.id
+      ORDER BY s.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching settlements for admin:', error);
+    res.status(500).json({ message: 'Server error retrieving settlements list' });
+  }
+};
+
+const approveSettlement = async (req, res) => {
+  const settlementId = req.params.id;
+  try {
+    const result = await pool.query(
+      "UPDATE settlements SET status = 'Approved', approved_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *",
+      [settlementId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Settlement request not found' });
+    }
+    res.json({ success: true, message: 'Settlement approved successfully', settlement: result.rows[0] });
+  } catch (error) {
+    console.error('Error approving settlement:', error);
+    res.status(500).json({ message: 'Server error approving settlement' });
+  }
+};
+
+const rejectSettlement = async (req, res) => {
+  const settlementId = req.params.id;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    const result = await client.query(
+      "UPDATE settlements SET status = 'Rejected', approved_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *",
+      [settlementId]
+    );
+    
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Settlement request not found' });
+    }
+
+    await client.query(
+      "UPDATE bookings SET settlement_id = NULL WHERE settlement_id = $1",
+      [settlementId]
+    );
+
+    await client.query('COMMIT');
+    res.json({ success: true, message: 'Settlement rejected successfully', settlement: result.rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error rejecting settlement:', error);
+    res.status(500).json({ message: 'Server error rejecting settlement' });
+  } finally {
+    client.release();
+  }
+};
+
+const getEligibleVendorsForBooking = async (req, res) => {
+  const bookingId = req.params.id;
+  try {
+    const bookingRes = await pool.query('SELECT service_name, date FROM bookings WHERE id = $1', [bookingId]);
+    if (bookingRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    const booking = bookingRes.rows[0];
+
+    const parseToDateString = (dateStr) => {
+      if (!dateStr) return '';
+      const datePart = dateStr.split('(')[0].trim();
+      let d = new Date(datePart);
+      if (isNaN(d.getTime())) {
+        const currentYear = new Date().getFullYear();
+        d = new Date(`${datePart} ${currentYear}`);
+      }
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const leaveDateCheck = parseToDateString(booking.date);
+
+    const vendorsRes = await pool.query(`
+      SELECT v.id, v.name, v.phone, v.status
+      FROM vendors v
+      JOIN vendor_services vs ON v.id = vs.vendor_id
+      JOIN services s ON vs.service_id = s.id
+      WHERE LOWER(s.title) = LOWER($1) 
+        AND v.status = 'Approved'
+        AND v.id NOT IN (
+          SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
+        )
+      ORDER BY v.name ASC
+    `, [booking.service_name.trim(), leaveDateCheck]);
+
+    res.json(vendorsRes.rows);
+  } catch (error) {
+    console.error('Error fetching eligible vendors:', error);
+    res.status(500).json({ message: 'Server error retrieving eligible vendors' });
+  }
+};
+
+const reassignBookingVendor = async (req, res) => {
+  const bookingId = req.params.id;
+  const { vendorId } = req.body;
+
+  try {
+    if (vendorId) {
+      const vendorCheck = await pool.query("SELECT * FROM vendors WHERE id = $1 AND status = 'Approved'", [vendorId]);
+      if (vendorCheck.rows.length === 0) {
+        return res.status(400).json({ message: 'Vendor must be an approved registered technician' });
+      }
+    }
+
+    const updated = await pool.query(
+      `UPDATE bookings 
+       SET vendor_id = $1, status = CASE WHEN $1 IS NULL THEN 'Booked' ELSE 'Assigned' END 
+       WHERE id = $2 RETURNING *`,
+      [vendorId || null, bookingId]
+    );
+
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vendor reassigned successfully',
+      booking: updated.rows[0]
+    });
+  } catch (error) {
+    console.error('Error reassigning vendor:', error);
+    res.status(500).json({ message: 'Server error reassigning vendor to booking' });
+  }
+};
+
 module.exports = {
   adminLogin,
   getAdminMe,
@@ -488,5 +641,10 @@ module.exports = {
   approveVendor,
   rejectVendor,
   deactivateVendor,
-  reactivateVendor
+  reactivateVendor,
+  getSettlements,
+  approveSettlement,
+  rejectSettlement,
+  getEligibleVendorsForBooking,
+  reassignBookingVendor
 };

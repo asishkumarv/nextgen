@@ -7,6 +7,16 @@ export const VendorProvider = ({ children }) => {
   const [token, setTokenState] = useState(null);
   const [vendor, setVendor] = useState(null);
   const [stats, setStats] = useState({ assigned: 0, completed: 0, revenue: 0 });
+  const [allStats, setAllStats] = useState({
+    today: { assigned: 0, completed: 0, revenue: 0 },
+    week: { assigned: 0, completed: 0, revenue: 0 },
+    month: { assigned: 0, completed: 0, revenue: 0 },
+    year: { assigned: 0, completed: 0, revenue: 0 },
+    total: { assigned: 0, completed: 0, revenue: 0 }
+  });
+  const [settlements, setSettlements] = useState([]);
+  const [leaves, setLeaves] = useState([]);
+  const [unsettledBalance, setUnsettledBalance] = useState(0);
   const [services, setServices] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [allSystemServices, setAllSystemServices] = useState([]); // to select from during add-service
@@ -47,8 +57,12 @@ export const VendorProvider = ({ children }) => {
       const data = await api.get('/vendor/me');
       setVendor(data.profile);
       setStats(data.stats);
+      setAllStats(data.allStats || { today: data.stats });
       setServices(data.services);
       setBookings(data.bookings);
+
+      // Fetch leaves and settlements
+      await fetchSettlementsAndLeaves();
 
       // Also load all active services in system for search/selection
       try {
@@ -66,6 +80,19 @@ export const VendorProvider = ({ children }) => {
       if (error.status === 401 || (error.message && error.message.toLowerCase().includes('token'))) {
         await logout();
       }
+    }
+  };
+
+  const fetchSettlementsAndLeaves = async () => {
+    try {
+      const leavesData = await api.get('/vendor/leaves');
+      setLeaves(leavesData || []);
+
+      const settlementsData = await api.get('/vendor/settlements');
+      setSettlements(settlementsData.settlements || []);
+      setUnsettledBalance(settlementsData.unsettledBalance || 0);
+    } catch (err) {
+      console.warn('Error fetching settlements/leaves:', err.message);
     }
   };
 
@@ -108,6 +135,16 @@ export const VendorProvider = ({ children }) => {
     setTokenState(null);
     setVendor(null);
     setStats({ assigned: 0, completed: 0, revenue: 0 });
+    setAllStats({
+      today: { assigned: 0, completed: 0, revenue: 0 },
+      week: { assigned: 0, completed: 0, revenue: 0 },
+      month: { assigned: 0, completed: 0, revenue: 0 },
+      year: { assigned: 0, completed: 0, revenue: 0 },
+      total: { assigned: 0, completed: 0, revenue: 0 }
+    });
+    setSettlements([]);
+    setLeaves([]);
+    setUnsettledBalance(0);
     setServices([]);
     setBookings([]);
   };
@@ -142,12 +179,70 @@ export const VendorProvider = ({ children }) => {
     }
   };
 
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      const res = await api.put('/vendor/change-password', { currentPassword, newPassword });
+      return { success: res.success, message: res.message };
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      return { success: false, message: error.message || 'Failed to change password' };
+    }
+  };
+
+  const addLeave = async (leaveDate) => {
+    try {
+      const res = await api.post('/vendor/leaves', { leaveDate });
+      if (res.success) {
+        await fetchSettlementsAndLeaves();
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Failed to add leave:', error);
+      return { success: false, message: error.message || 'Failed to declare leave' };
+    }
+  };
+
+  const removeLeave = async (leaveDate) => {
+    try {
+      const res = await api.delete(`/vendor/leaves/${leaveDate}`);
+      if (res.success) {
+        await fetchSettlementsAndLeaves();
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Failed to remove leave:', error);
+      return { success: false, message: error.message || 'Failed to remove leave' };
+    }
+  };
+
+  const requestSettlement = async () => {
+    try {
+      const res = await api.post('/vendor/settlements');
+      if (res.success) {
+        await fetchSettlementsAndLeaves();
+        const data = await api.get('/vendor/me');
+        setVendor(data.profile);
+        setStats(data.stats);
+        setAllStats(data.allStats || { today: data.stats });
+        setBookings(data.bookings);
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Failed to request settlement:', error);
+      return { success: false, message: error.message || 'Failed to request settlement' };
+    }
+  };
+
   return (
     <VendorContext.Provider
       value={{
         token,
         vendor,
         stats,
+        allStats,
+        settlements,
+        leaves,
+        unsettledBalance,
         services,
         bookings,
         allSystemServices,
@@ -157,7 +252,12 @@ export const VendorProvider = ({ children }) => {
         logout,
         completeTask,
         addService,
-        refreshData: loadVendorData
+        changePassword,
+        addLeave,
+        removeLeave,
+        requestSettlement,
+        refreshData: loadVendorData,
+        refreshSettlementsAndLeaves: fetchSettlementsAndLeaves
       }}
     >
       {children}

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import DashboardScreen from '../screens/DashboardScreen';
+import SettlementsScreen from '../screens/SettlementsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -64,6 +65,8 @@ export default function VendorNavigator() {
               let iconName;
               if (route.name === 'Dashboard') {
                 iconName = focused ? 'clipboard' : 'clipboard-outline';
+              } else if (route.name === 'Settlements') {
+                iconName = focused ? 'card' : 'card-outline';
               } else if (route.name === 'Profile') {
                 iconName = focused ? 'person' : 'person-outline';
               }
@@ -75,6 +78,11 @@ export default function VendorNavigator() {
             name="Dashboard"
             component={DashboardScreen}
             options={{ title: 'Tasks' }}
+          />
+          <Tab.Screen
+            name="Settlements"
+            component={SettlementsScreen}
+            options={{ title: 'Earnings' }}
           />
           <Tab.Screen
             name="Profile"
