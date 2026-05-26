@@ -37,13 +37,16 @@ export default function ProfileScreen() {
   const [customPrice, setCustomPrice] = useState('');
 
   // Change password states
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   // Leave states
-  const [leaveDateInput, setLeaveDateInput] = useState(''); // YYYY-MM-DD
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [leaveLoading, setLeaveLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -136,31 +139,48 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleAddLeave = async () => {
-    if (!leaveDateInput.trim()) {
-      showToast('Please specify a leave date.', 'warning');
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const days = [];
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(null);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push(new Date(year, month, d));
+    }
+    return days;
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const handleDeclareLeave = async () => {
+    if (!selectedDate) {
+      showToast('Please select a date from the calendar first.', 'warning');
       return;
     }
 
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(leaveDateInput.trim())) {
-      showToast('Date must be in YYYY-MM-DD format (e.g. 2026-05-26).', 'warning');
-      return;
-    }
-
-    const parsedDate = new Date(leaveDateInput.trim());
-    if (isNaN(parsedDate.getTime())) {
-      showToast('Invalid date. Please enter a real date.', 'warning');
-      return;
-    }
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    const leaveDateStr = `${year}-${month}-${day}`;
 
     setLeaveLoading(true);
-    const res = await addLeave(leaveDateInput.trim());
+    const res = await addLeave(leaveDateStr);
     setLeaveLoading(false);
 
     if (res.success) {
       showToast('Leave declared successfully!', 'success');
-      setLeaveDateInput('');
+      setSelectedDate(null);
     } else {
       showToast(res.message || 'Failed to declare leave.', 'error');
     }
@@ -371,18 +391,23 @@ export default function ProfileScreen() {
             Declare dates you are unavailable. Tasks will not be auto-assigned to you on these days.
           </Text>
 
-          <View style={styles.leaveInputRow}>
-            <TextInput
-              style={[styles.textInput, { flex: 1, marginRight: 10 }]}
-              placeholder="YYYY-MM-DD (e.g. 2026-05-26)"
-              placeholderTextColor="#9CA3AF"
-              value={leaveDateInput}
-              onChangeText={setLeaveDateInput}
-            />
+          <View style={styles.leaveActionRow}>
             <TouchableOpacity
-              style={styles.addLeaveBtn}
-              onPress={handleAddLeave}
-              disabled={leaveLoading}
+              style={styles.calendarTrigger}
+              onPress={() => setCalendarVisible(true)}
+            >
+              <Ionicons name="calendar-outline" size={18} color="#00B894" style={{ marginRight: 8 }} />
+              <Text style={styles.calendarTriggerText}>
+                {selectedDate
+                  ? selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : 'Select Date...'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.addLeaveBtn, !selectedDate && styles.addLeaveBtnDisabled]}
+              onPress={handleDeclareLeave}
+              disabled={leaveLoading || !selectedDate}
             >
               {leaveLoading ? (
                 <ActivityIndicator color="#FFF" size="small" />
@@ -412,58 +437,87 @@ export default function ProfileScreen() {
 
         {/* Change Password Section */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Change Password</Text>
-
-          <View style={[styles.inputGroup, { marginTop: 12 }]}>
-            <Text style={styles.inputLabel}>Current Password</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Enter current password"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry={true}
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>New Password</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Minimum 6 characters"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry={true}
-              value={newPassword}
-              onChangeText={setNewPassword}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Confirm New Password</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Re-enter new password"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry={true}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.submitPasswordBtn}
-            onPress={handlePasswordChange}
-            disabled={passwordLoading}
-          >
-            {passwordLoading ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Text style={styles.submitPasswordBtnText}>Update Password</Text>
-                <Ionicons name="key-outline" size={16} color="#FFF" style={{ marginLeft: 6 }} />
-              </>
+          <View style={styles.passwordHeader}>
+            <Text style={styles.sectionTitle}>Security Settings</Text>
+            {!showPasswordForm && (
+              <TouchableOpacity
+                style={styles.toggleFormBtn}
+                onPress={() => setShowPasswordForm(true)}
+              >
+                <Ionicons name="lock-closed-outline" size={14} color="#0984E3" style={{ marginRight: 4 }} />
+                <Text style={styles.toggleFormBtnText}>Change Password</Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
+          </View>
+
+          {showPasswordForm && (
+            <View style={{ marginTop: 12 }}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Current Password</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter current password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={true}
+                  value={currentPassword}
+                  onChangeText={setCurrentPassword}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>New Password</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Minimum 6 characters"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={true}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Confirm New Password</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Re-enter new password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={true}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+              </View>
+
+              <View style={styles.passwordActionsRow}>
+                <TouchableOpacity
+                  style={styles.cancelPasswordBtn}
+                  onPress={() => {
+                    setShowPasswordForm(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}
+                >
+                  <Text style={styles.cancelPasswordBtnText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.submitPasswordBtn}
+                  onPress={handlePasswordChange}
+                  disabled={passwordLoading}
+                >
+                  {passwordLoading ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <>
+                      <Text style={styles.submitPasswordBtnText}>Update</Text>
+                      <Ionicons name="key-outline" size={14} color="#FFF" style={{ marginLeft: 4 }} />
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Logout Button */}
@@ -472,6 +526,79 @@ export default function ProfileScreen() {
           <Text style={styles.logoutBtnText}>Log Out Account</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Calendar Selection Modal */}
+      {calendarVisible && (
+        <View style={styles.modalBg}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <TouchableOpacity onPress={handlePrevMonth} style={styles.monthNavBtn}>
+                <Ionicons name="chevron-back" size={20} color="#374151" />
+              </TouchableOpacity>
+              <Text style={styles.calendarMonthTitle}>
+                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </Text>
+              <TouchableOpacity onPress={handleNextMonth} style={styles.monthNavBtn}>
+                <Ionicons name="chevron-forward" size={20} color="#374151" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.weekdaysRow}>
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                <Text key={day} style={styles.weekdayText}>{day}</Text>
+              ))}
+            </View>
+
+            <View style={styles.daysGrid}>
+              {getDaysInMonth(currentMonth).map((dayObj, index) => {
+                if (!dayObj) {
+                  return <View key={`empty-${index}`} style={styles.dayCellEmpty} />;
+                }
+                const isSelected = selectedDate && 
+                  dayObj.getDate() === selectedDate.getDate() &&
+                  dayObj.getMonth() === selectedDate.getMonth() &&
+                  dayObj.getFullYear() === selectedDate.getFullYear();
+                
+                const isPast = dayObj < new Date(new Date().setHours(0,0,0,0));
+
+                return (
+                  <TouchableOpacity
+                    key={dayObj.toISOString()}
+                    style={[
+                      styles.dayCell, 
+                      isSelected && styles.dayCellActive,
+                      isPast && styles.dayCellDisabled
+                    ]}
+                    onPress={() => {
+                      if (!isPast) {
+                        setSelectedDate(dayObj);
+                        setCalendarVisible(false);
+                      }
+                    }}
+                    disabled={isPast}
+                  >
+                    <Text style={[
+                      styles.dayText, 
+                      isSelected && styles.dayTextActive,
+                      isPast && styles.dayTextDisabled
+                    ]}>
+                      {dayObj.getDate()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <TouchableOpacity 
+              style={styles.closeCalendarBtn}
+              onPress={() => setCalendarVisible(false)}
+            >
+              <Text style={styles.closeCalendarBtnText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <Toast
         message={toastMsg}
         type={toastType}
@@ -783,10 +910,26 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: '500',
   },
-  leaveInputRow: {
+  leaveActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+  },
+  calendarTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flex: 1,
+    marginRight: 10,
+  },
+  calendarTriggerText: {
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '600',
   },
   addLeaveBtn: {
     backgroundColor: '#00B894',
@@ -796,6 +939,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: 40,
+  },
+  addLeaveBtnDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   addLeaveBtnText: {
     color: '#FFF',
@@ -835,8 +981,47 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     padding: 2,
   },
+  passwordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  toggleFormBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  toggleFormBtnText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#0984E3',
+  },
+  passwordActionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  cancelPasswordBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelPasswordBtnText: {
+    color: '#4B5563',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   submitPasswordBtn: {
-    marginTop: 14,
+    flex: 1,
     backgroundColor: '#0984E3',
     borderRadius: 12,
     paddingVertical: 12,
@@ -846,6 +1031,104 @@ const styles = StyleSheet.create({
   },
   submitPasswordBtnText: {
     color: '#FFF',
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  modalBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  calendarModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    width: '90%',
+    maxWidth: 340,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  monthNavBtn: {
+    padding: 6,
+  },
+  calendarMonthTitle: {
+    fontSize: 15.5,
+    fontWeight: '850',
+    color: '#111827',
+  },
+  weekdaysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  weekdayText: {
+    width: '14.28%',
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9CA3AF',
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    rowGap: 8,
+  },
+  dayCell: {
+    width: '14.28%',
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 18,
+  },
+  dayCellActive: {
+    backgroundColor: '#00B894',
+  },
+  dayCellDisabled: {
+    backgroundColor: 'transparent',
+  },
+  dayCellEmpty: {
+    width: '14.28%',
+    height: 36,
+  },
+  dayText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  dayTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  dayTextDisabled: {
+    color: '#D1D5DB',
+  },
+  closeCalendarBtn: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeCalendarBtnText: {
+    color: '#374151',
     fontSize: 13.5,
     fontWeight: '700',
   },

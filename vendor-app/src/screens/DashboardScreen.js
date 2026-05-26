@@ -116,7 +116,7 @@ export default function DashboardScreen() {
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.statsHeader}>
-            <Text style={styles.statsLabel}>Total Revenue Generated</Text>
+            <Text style={styles.statsLabel}>Today's Generated Revenue</Text>
             <Text style={styles.revenueVal}>₹{(stats.revenue || 0).toLocaleString('en-IN')}</Text>
           </View>
 

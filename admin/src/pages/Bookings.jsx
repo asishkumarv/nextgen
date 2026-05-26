@@ -93,10 +93,14 @@ export default function Bookings() {
     return <div style={styles.error}>{error}</div>;
   }
 
+  const activeBooking = bookings.find((b) => b.id === activeBookingId);
+  const isUnassigned = activeBooking ? !activeBooking.vendorId : true;
+
   const tabs = ['All', 'Booked', 'Completed'];
 
   return (
-    <div style={styles.container} className="animate-fade-in">
+    <>
+      <div style={styles.container} className="animate-fade-in">
       <div style={styles.tabsRow}>
         <div style={styles.tabs}>
           {tabs.map((tab) => (
@@ -201,9 +205,9 @@ export default function Bookings() {
                             </button>
                             <button
                               onClick={() => handleOpenReassignModal(b.id)}
-                              style={styles.reassignBtn}
+                              style={b.vendorName ? styles.reassignBtn : styles.assignBtn}
                             >
-                              Reassign
+                              {b.vendorName ? 'Reassign' : 'Assign Vendor'}
                             </button>
                           </>
                         )}
@@ -223,14 +227,17 @@ export default function Bookings() {
           )}
         </div>
       )}
+      </div>
 
       {/* Reassign Modal */}
       {reassignModalOpen && (
         <div style={styles.modalBg}>
           <div style={styles.modalContent}>
-            <h3 style={styles.modalTitle}>Reassign Vendor</h3>
+            <h3 style={styles.modalTitle}>{isUnassigned ? 'Assign Vendor' : 'Reassign Vendor'}</h3>
             <p style={styles.modalSub}>
-              Select an approved technician for this task. Vendors on leave for the scheduled date are excluded automatically.
+              {isUnassigned
+                ? 'Select an approved technician to assign this task. Vendors on leave for the scheduled date are excluded automatically.'
+                : 'Select an approved technician to reassign this task. Vendors on leave for the scheduled date are excluded automatically.'}
             </p>
             {modalLoading ? (
               <div style={styles.modalLoading}>Loading eligible technicians...</div>
@@ -266,13 +273,13 @@ export default function Bookings() {
                 disabled={modalLoading || eligibleVendors.length === 0}
                 style={styles.modalConfirmBtn}
               >
-                Save Assignment
+                {isUnassigned ? 'Confirm Assignment' : 'Save Reassignment'}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -416,6 +423,17 @@ const styles = {
     backgroundColor: '#E0F2FE',
     color: '#0369A1',
     border: '1px solid #BAE6FD',
+    borderRadius: '8px',
+    padding: '6px 12px',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  },
+  assignBtn: {
+    backgroundColor: '#DCFCE7',
+    color: '#15803D',
+    border: '1px solid #86EFAC',
     borderRadius: '8px',
     padding: '6px 12px',
     fontSize: '0.75rem',

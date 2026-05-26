@@ -607,7 +607,7 @@ const reassignBookingVendor = async (req, res) => {
 
     const updated = await pool.query(
       `UPDATE bookings 
-       SET vendor_id = $1, status = CASE WHEN $1 IS NULL THEN 'Booked' ELSE 'Assigned' END 
+       SET vendor_id = $1::integer, status = CASE WHEN $1::integer IS NULL THEN 'Booked' ELSE 'Assigned' END 
        WHERE id = $2 RETURNING *`,
       [vendorId || null, bookingId]
     );
