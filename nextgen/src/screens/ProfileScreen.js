@@ -11,6 +11,7 @@ import {
   Platform,
   Linking,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -18,11 +19,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import Header from '../components/Header';
+import Toast from '../components/Toast';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, bookingDetails, bookings, updateProfile, logout, refreshData } = useApp();
+  const { user, bookedSlot, bookingDetails, bookings, updateProfile, logout, refreshData, changePassword, cancelBooking } = useApp();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -36,6 +38,71 @@ export default function ProfileScreen() {
   const [editName, setEditName] = useState(user?.name || '');
   const [editPhone, setEditPhone] = useState(user?.phone || '');
   const [expandedBookingId, setExpandedBookingId] = useState(null);
+
+  // See all / cancel states
+  const [showAllBookings, setShowAllBookings] = useState(false);
+  const [cancelLoadingId, setCancelLoadingId] = useState(null);
+
+  // Change password states
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Toast notifications
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastType, setToastType] = useState('success');
+
+  const showToast = (msg, type = 'success') => {
+    setToastMsg(msg);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const handleCancelBooking = async (bookingId) => {
+    setCancelLoadingId(bookingId);
+    const res = await cancelBooking(bookingId);
+    setCancelLoadingId(null);
+    if (res.success) {
+      showToast('Booking cancelled successfully!', 'success');
+      setExpandedBookingId(null);
+    } else {
+      showToast(res.message || 'Failed to cancel booking.', 'error');
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      showToast('Please fill all password fields.', 'warning');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast('New passwords do not match.', 'warning');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showToast('Password should be at least 6 characters.', 'warning');
+      return;
+    }
+
+    setPasswordLoading(true);
+    const res = await changePassword(currentPassword, newPassword);
+    setPasswordLoading(false);
+
+    if (res.success) {
+      showToast('Password changed successfully!', 'success');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordForm(false);
+    } else {
+      showToast(res.message || 'Failed to change password.', 'error');
+    }
+  };
 
   const handleOpenEdit = () => {
     setEditName(user?.name || '');
@@ -154,13 +221,15 @@ export default function ProfileScreen() {
         {/* Booking History Header */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Booking History</Text>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.sectionAction}>Book again</Text>
-          </TouchableOpacity>
+          {bookings.length > 3 && (
+            <TouchableOpacity activeOpacity={0.7} onPress={() => setShowAllBookings(!showAllBookings)}>
+              <Text style={styles.sectionAction}>{showAllBookings ? 'See Less' : 'See All'}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Booking History List */}
-        {bookings.map((booking) => {
+        {(showAllBookings ? bookings : bookings.slice(0, 3)).map((booking) => {
           const isExpanded = expandedBookingId === booking.id;
           return (
             <TouchableOpacity 
@@ -224,11 +293,114 @@ export default function ProfileScreen() {
                       <Text style={styles.noVendorText}>Awaiting technician assignment...</Text>
                     </View>
                   )}
+
+                  {/* Cancel Booking Button */}
+                  {booking.status !== 'Completed' && booking.status !== 'Cancelled' && (
+                    <TouchableOpacity
+                      style={styles.cancelBookingBtn}
+                      onPress={() => handleCancelBooking(booking.id)}
+                      disabled={cancelLoadingId === booking.id}
+                    >
+                      {cancelLoadingId === booking.id ? (
+                        <ActivityIndicator color="#EF4444" size="small" />
+                      ) : (
+                        <>
+                          <Ionicons name="close-circle-outline" size={14} color="#EF4444" style={{ marginRight: 6 }} />
+                          <Text style={styles.cancelBookingBtnText}>Cancel Booking</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </TouchableOpacity>
           );
         })}
+
+        {/* Security Settings Section */}
+        <View style={styles.sectionCard}>
+          <View style={styles.passwordHeader}>
+            <Text style={styles.sectionTitle}>Security Settings</Text>
+            {!showPasswordForm && (
+              <TouchableOpacity
+                style={styles.toggleFormBtn}
+                onPress={() => setShowPasswordForm(true)}
+              >
+                <Ionicons name="lock-closed-outline" size={14} color="#0984E3" style={{ marginRight: 4 }} />
+                <Text style={styles.toggleFormBtnText}>Change Password</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {showPasswordForm && (
+            <View style={{ marginTop: 12 }}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Current Password</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter current password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={true}
+                  value={currentPassword}
+                  onChangeText={setCurrentPassword}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>New Password</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Minimum 6 characters"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={true}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Confirm New Password</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Re-enter new password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={true}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+              </View>
+
+              <View style={styles.passwordActionsRow}>
+                <TouchableOpacity
+                  style={styles.cancelPasswordBtn}
+                  onPress={() => {
+                    setShowPasswordForm(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}
+                >
+                  <Text style={styles.cancelPasswordBtnText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.submitPasswordBtn}
+                  onPress={handlePasswordChange}
+                  disabled={passwordLoading}
+                >
+                  {passwordLoading ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <>
+                      <Text style={styles.submitPasswordBtnText}>Update</Text>
+                      <Ionicons name="key-outline" size={14} color="#FFF" style={{ marginLeft: 4 }} />
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
 
         {/* Contact Support Section */}
         <TouchableOpacity style={styles.supportRow} activeOpacity={0.7}>
@@ -256,6 +428,13 @@ export default function ProfileScreen() {
           <Ionicons name="chevron-forward" size={18} color="#FCA5A5" />
         </TouchableOpacity>
       </ScrollView>
+
+      <Toast
+        message={toastMsg}
+        type={toastType}
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
+      />
 
       {/* Edit Profile Modal */}
       <Modal
@@ -685,5 +864,74 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 11,
     fontWeight: '700',
+  },
+  cancelBookingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#EF4444',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginTop: 14,
+    backgroundColor: '#FFF',
+  },
+  cancelBookingBtnText: {
+    color: '#EF4444',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  passwordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  toggleFormBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  toggleFormBtnText: {
+    color: '#0984E3',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  passwordActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 12,
+  },
+  cancelPasswordBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  cancelPasswordBtnText: {
+    color: '#4B5563',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  submitPasswordBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00B894',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  submitPasswordBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '750',
   },
 });

@@ -157,6 +157,27 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      const res = await api.put('/auth/change-password', { currentPassword, newPassword });
+      return { success: res.success, message: res.message };
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      return { success: false, message: error.message || 'Failed to change password' };
+    }
+  };
+
+  const cancelBooking = async (bookingId) => {
+    try {
+      const res = await api.put(`/bookings/${bookingId}/cancel`);
+      await loadAppData();
+      return { success: res.success, message: res.message };
+    } catch (error) {
+      console.error('Failed to cancel booking:', error);
+      return { success: false, message: error.message || 'Failed to cancel booking' };
+    }
+  };
+
   const bookSlot = async (slotNumber) => {
     try {
       const res = await api.post('/subscription/book', { slotNumber });
@@ -237,6 +258,8 @@ export const AppProvider = ({ children }) => {
         register,
         logout,
         updateProfile,
+        changePassword,
+        cancelBooking,
         bookSlot,
         cancelSlot,
         addBooking,

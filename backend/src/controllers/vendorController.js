@@ -210,7 +210,7 @@ const getVendorMe = async (req, res) => {
              u.name AS "userName", u.phone AS "userPhone"
       FROM bookings b
       JOIN users u ON b.user_id = u.id
-      WHERE b.vendor_id = $1
+      WHERE b.vendor_id = $1 AND b.status != 'Cancelled'
       ORDER BY b.created_at DESC, b.id DESC
     `, [vendorId]);
 

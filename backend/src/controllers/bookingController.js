@@ -102,7 +102,42 @@ const createBooking = async (req, res) => {
   }
 };
 
+const cancelBooking = async (req, res) => {
+  const bookingId = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    const bookingQuery = await pool.query('SELECT * FROM bookings WHERE id = $1 AND user_id = $2', [bookingId, userId]);
+    if (bookingQuery.rows.length === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    const booking = bookingQuery.rows[0];
+    if (booking.status === 'Completed') {
+      return res.status(400).json({ message: 'Completed bookings cannot be cancelled' });
+    }
+    if (booking.status === 'Cancelled') {
+      return res.status(400).json({ message: 'Booking is already cancelled' });
+    }
+
+    const result = await pool.query(
+      "UPDATE bookings SET status = 'Cancelled' WHERE id = $1 RETURNING *",
+      [bookingId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Booking cancelled successfully',
+      booking: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error cancelling booking:', error);
+    res.status(500).json({ message: 'Server error cancelling booking' });
+  }
+};
+
 module.exports = {
   getMyBookings,
-  createBooking
+  createBooking,
+  cancelBooking
 };
