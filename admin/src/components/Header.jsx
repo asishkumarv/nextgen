@@ -1,7 +1,7 @@
 import React from 'react';
-import { Menu, Calendar, Bell } from 'lucide-react';
+import { Menu, Calendar, Bell, RotateCw } from 'lucide-react';
 
-export default function Header({ activeView, sidebarOpen, onToggleSidebar, adminName }) {
+export default function Header({ activeView, sidebarOpen, onToggleSidebar, adminName, onRefresh }) {
   const getPageTitle = () => {
     switch (activeView) {
       case 'dashboard':
@@ -12,6 +12,12 @@ export default function Header({ activeView, sidebarOpen, onToggleSidebar, admin
         return 'Active Subscribers';
       case 'bookings':
         return 'Bookings Registry';
+      case 'services':
+        return 'Services Manager';
+      case 'vendors':
+        return 'Vendors Manager';
+      case 'settlements':
+        return 'Payment Settlements';
       default:
         return 'Admin Panel';
     }
@@ -40,6 +46,10 @@ export default function Header({ activeView, sidebarOpen, onToggleSidebar, admin
           <Calendar size={16} color="#6B7280" />
           <span>{getTodayDate()}</span>
         </div>
+
+        <button onClick={onRefresh} className="admin-header-notification" title="Refresh Page Data">
+          <RotateCw size={18} color="#4B5563" />
+        </button>
 
         <button className="admin-header-notification" title="System Logs">
           <Bell size={18} color="#4B5563" />

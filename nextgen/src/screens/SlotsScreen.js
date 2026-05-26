@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -21,8 +22,17 @@ const SLOT_SIZE = (width - 104) / 5; // 5 slots per row, centered/stretched layo
 export default function SlotsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { bookedSlot, bookingDetails, bookSlot, cancelSlot, dbBookedSlots, refreshBookedSlots } = useApp();
+  const { bookedSlot, bookingDetails, bookSlot, cancelSlot, dbBookedSlots, refreshBookedSlots, refreshData } = useApp();
   const [selectedLocalSlot, setSelectedLocalSlot] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    if (refreshData) {
+      await refreshData();
+    }
+    setRefreshing(false);
+  };
   const [currentPage, setCurrentPage] = useState(0); // 0 to 4 (5 pages total)
 
   const SLOTS_PER_PAGE = 600;
@@ -80,6 +90,9 @@ export default function SlotsScreen() {
       style={styles.scrollContainer}
       contentContainerStyle={{ paddingBottom: 100 }}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#0091EA']} />
+      }
     >
       <View style={styles.headerWrapper}>
         <Header />
@@ -209,6 +222,9 @@ export default function SlotsScreen() {
       style={styles.scrollContainer}
       contentContainerStyle={{ paddingBottom: 100 }}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00C853']} />
+      }
     >
       <View style={styles.headerWrapper}>
         <Header />

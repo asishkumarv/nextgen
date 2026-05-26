@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
+  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -41,6 +42,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
   };
 
   const handleLogin = async () => {
+    Keyboard.dismiss();
     clearFieldErrors();
     let hasError = false;
 
@@ -193,13 +195,13 @@ export default function LoginScreen({ onNavigateToRegister }) {
             </View>
           </View>
         </ScrollView>
+        <Toast
+          message={toastMsg}
+          type={toastType}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
       </KeyboardAvoidingView>
-      <Toast
-        message={toastMsg}
-        type={toastType}
-        visible={toastVisible}
-        onHide={() => setToastVisible(false)}
-      />
     </View>
   );
 }

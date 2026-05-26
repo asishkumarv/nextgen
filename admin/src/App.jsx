@@ -16,6 +16,7 @@ export default function App() {
   const [admin, setAdmin] = useState(null);
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const profile = getAdminProfile();
@@ -40,21 +41,21 @@ export default function App() {
   const renderActiveView = () => {
     switch (activeView) {
       case 'dashboard':
-        return <Dashboard onNavigateToView={setActiveView} />;
+        return <Dashboard key={refreshKey} onNavigateToView={setActiveView} />;
       case 'users':
-        return <Users />;
+        return <Users key={refreshKey} />;
       case 'subscribers':
-        return <Subscribers />;
+        return <Subscribers key={refreshKey} />;
       case 'bookings':
-        return <Bookings />;
+        return <Bookings key={refreshKey} />;
       case 'services':
-        return <Services />;
+        return <Services key={refreshKey} />;
       case 'vendors':
-        return <Vendors />;
+        return <Vendors key={refreshKey} />;
       case 'settlements':
-        return <Settlements />;
+        return <Settlements key={refreshKey} />;
       default:
-        return <Dashboard onNavigateToView={setActiveView} />;
+        return <Dashboard key={refreshKey} onNavigateToView={setActiveView} />;
     }
   };
 
@@ -86,6 +87,7 @@ export default function App() {
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           adminName={admin.name}
+          onRefresh={() => setRefreshKey(prev => prev + 1)}
         />
         
         <div className="view-container">

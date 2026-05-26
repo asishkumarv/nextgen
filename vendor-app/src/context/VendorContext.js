@@ -97,23 +97,22 @@ export const VendorProvider = ({ children }) => {
   };
 
   const login = async (phone, password) => {
-    setIsLoading(true);
     try {
       const data = await api.post('/vendor/login', { phone, password });
       await setAuthToken(data.token);
+      
+      // Load all data before setting token state so transition is instant
+      await loadVendorData();
+      
       setTokenState(data.token);
       setVendor(data.vendor);
-      await loadVendorData();
-      setIsLoading(false);
       return { success: true };
     } catch (error) {
-      setIsLoading(false);
       return { success: false, message: error.message || 'Login failed' };
     }
   };
 
   const register = async (name, phone, password, existingServices, newService) => {
-    setIsLoading(true);
     try {
       const data = await api.post('/vendor/register', {
         name,
@@ -122,10 +121,8 @@ export const VendorProvider = ({ children }) => {
         existingServices,
         newService
       });
-      setIsLoading(false);
       return { success: true, message: data.message };
     } catch (error) {
-      setIsLoading(false);
       return { success: false, message: error.message || 'Registration failed' };
     }
   };

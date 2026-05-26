@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,7 +22,17 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, setActiveBookingService } = useApp();
+  const { user, bookedSlot, setActiveBookingService, refreshData } = useApp();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    if (refreshData) {
+      await refreshData();
+    }
+    setRefreshing(false);
+  };
 
   const handleBookService = (service) => {
     setActiveBookingService(service);
@@ -34,6 +45,9 @@ export default function HomeScreen() {
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00C853']} />
+        }
       >
         <Header />
 

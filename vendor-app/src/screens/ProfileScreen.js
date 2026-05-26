@@ -19,6 +19,17 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { vendor, services, allSystemServices, addService, logout, changePassword, leaves, addLeave, removeLeave, refreshData } = useVendor();
 
+  const formatLeaveDate = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parts[0];
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${day} ${months[monthIdx]} ${year}`;
+  };
+
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -423,11 +434,20 @@ export default function ProfileScreen() {
           ) : (
             <View style={styles.leavesList}>
               {leaves.map((lDate) => (
-                <View key={lDate} style={styles.leavePill}>
-                  <Ionicons name="calendar-outline" size={14} color="#374151" style={{ marginRight: 6 }} />
-                  <Text style={styles.leavePillText}>{lDate}</Text>
-                  <TouchableOpacity onPress={() => handleRemoveLeave(lDate)} style={styles.removeLeaveBtn}>
-                    <Ionicons name="close-circle" size={16} color="#EF4444" />
+                <View key={lDate} style={styles.leaveCard}>
+                  <View style={styles.leaveCardLeft}>
+                    <View style={[styles.statusIndicator, { backgroundColor: '#EF4444' }]} />
+                    <View>
+                      <Text style={styles.leaveCardDate}>{formatLeaveDate(lDate)}</Text>
+                      <Text style={styles.leaveCardLabel}>Unavailable (Leave)</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveLeave(lDate)}
+                    style={styles.removeLeaveBadge}
+                  >
+                    <Text style={styles.removeLeaveBadgeText}>Remove</Text>
+                    <Ionicons name="trash-outline" size={11} color="#EF4444" style={{ marginLeft: 4 }} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -956,30 +976,54 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   leavesList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
+    marginTop: 16,
   },
-  leavePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+  leaveCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 14,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 100,
-    paddingLeft: 10,
-    paddingRight: 6,
-    paddingVertical: 4,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  leavePillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#374151',
+  leaveCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  removeLeaveBtn: {
-    marginLeft: 6,
-    padding: 2,
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 12,
+  },
+  leaveCardDate: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  leaveCardLabel: {
+    fontSize: 11,
+    color: '#EF4444',
+    marginTop: 2,
+    fontWeight: '750',
+  },
+  removeLeaveBadge: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  removeLeaveBadgeText: {
+    color: '#EF4444',
+    fontSize: 11,
+    fontWeight: '750',
   },
   passwordHeader: {
     flexDirection: 'row',

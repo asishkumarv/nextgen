@@ -103,35 +103,35 @@ export const AppProvider = ({ children }) => {
   };
 
   const login = async (phone, password) => {
-    setIsLoading(true);
     try {
       const data = await api.post('/auth/login', { phone, password });
       await setAuthToken(data.token);
-      setTokenState(data.token);
-      setUser(data.user);
+      
+      // Load all data before setting token state so transition is instant
       await loadAppData();
       await fetchDbBookedSlots();
-      setIsLoading(false);
+      
+      setTokenState(data.token);
+      setUser(data.user);
       return { success: true };
     } catch (error) {
-      setIsLoading(false);
       return { success: false, message: error.message || 'Login failed' };
     }
   };
 
   const register = async (name, phone, password) => {
-    setIsLoading(true);
     try {
       const data = await api.post('/auth/register', { name, phone, password });
       await setAuthToken(data.token);
-      setTokenState(data.token);
-      setUser(data.user);
+      
+      // Load all data before setting token state so transition is instant
       await loadAppData();
       await fetchDbBookedSlots();
-      setIsLoading(false);
+      
+      setTokenState(data.token);
+      setUser(data.user);
       return { success: true };
     } catch (error) {
-      setIsLoading(false);
       return { success: false, message: error.message || 'Registration failed' };
     }
   };
@@ -241,6 +241,10 @@ export const AppProvider = ({ children }) => {
         cancelSlot,
         addBooking,
         refreshBookedSlots: fetchDbBookedSlots,
+        refreshData: async () => {
+          await loadAppData();
+          await fetchDbBookedSlots();
+        },
         refreshServices: async () => {
           try {
             const servicesList = await api.get('/services');

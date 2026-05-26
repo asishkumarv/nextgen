@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -28,8 +29,19 @@ export default function ServicesScreen() {
     activeBookingService, 
     setActiveBookingService, 
     addBooking,
-    services
+    services,
+    refreshData
   } = useApp();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    if (refreshData) {
+      await refreshData();
+    }
+    setRefreshing(false);
+  };
 
   // Search & filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -142,6 +154,9 @@ export default function ServicesScreen() {
       style={styles.scrollContainer}
       contentContainerStyle={{ paddingBottom: 100 }}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00C853']} />
+      }
     >
       <Header />
 

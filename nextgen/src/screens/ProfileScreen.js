@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -21,7 +22,16 @@ import Header from '../components/Header';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, bookingDetails, bookings, updateProfile, logout } = useApp();
+  const { user, bookedSlot, bookingDetails, bookings, updateProfile, logout, refreshData } = useApp();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    if (refreshData) {
+      await refreshData();
+    }
+    setRefreshing(false);
+  };
   const [modalVisible, setModalVisible] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
   const [editPhone, setEditPhone] = useState(user?.phone || '');
@@ -58,6 +68,9 @@ export default function ProfileScreen() {
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00B894']} />
+        }
       >
         {/* Header */}
         <Header />

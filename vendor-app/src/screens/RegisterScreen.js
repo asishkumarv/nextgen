@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -69,6 +70,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   };
 
   const handleNext = () => {
+    Keyboard.dismiss();
     if (step === 1) {
       if (validateStep1()) {
         setStep(2);
@@ -101,6 +103,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   };
 
   const handleRegisterSubmit = async () => {
+    Keyboard.dismiss();
     if (addCustomService) {
       if (!customTitle.trim() || !customSubtitle.trim() || !customPrice.trim()) {
         showToast('Please enter all fields for your custom service or uncheck "Add a custom service".', 'warning');
@@ -445,13 +448,13 @@ export default function RegisterScreen({ onNavigateToLogin }) {
           )}
 
         </ScrollView>
+        <Toast
+          message={toastMsg}
+          type={toastType}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
       </KeyboardAvoidingView>
-      <Toast
-        message={toastMsg}
-        type={toastType}
-        visible={toastVisible}
-        onHide={() => setToastVisible(false)}
-      />
     </View>
   );
 }

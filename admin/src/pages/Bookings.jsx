@@ -147,37 +147,37 @@ export default function Bookings() {
             <table>
               <thead>
                 <tr>
-                  <th>Booking ID</th>
-                  <th>Customer Profile</th>
-                  <th>Service requested</th>
-                  <th>Scheduled Date</th>
-                  <th>Price</th>
-                  <th>Service Address</th>
-                  <th>Assigned Vendor</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
+                  <th style={styles.tableTh}>Booking ID</th>
+                  <th style={styles.tableTh}>Customer Profile</th>
+                  <th style={styles.tableTh}>Service requested</th>
+                  <th style={styles.tableTh}>Scheduled Date</th>
+                  <th style={styles.tableTh}>Price</th>
+                  <th style={styles.tableTh}>Service Address</th>
+                  <th style={styles.tableTh}>Assigned Vendor</th>
+                  <th style={styles.tableTh}>Status</th>
+                  <th style={{ ...styles.tableTh, textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {bookings.map((b) => (
                   <tr key={b.id}>
-                    <td style={{ fontWeight: '700', color: '#111827' }}>{b.id}</td>
-                    <td>
+                    <td style={{ ...styles.tableTd, fontWeight: '700', color: '#111827' }}>{b.id}</td>
+                    <td style={styles.tableTd}>
                       <div style={styles.customerCell}>
                         <span style={styles.customerName}>{b.userName}</span>
                         <span style={styles.customerPhone}>{b.userPhone}</span>
                       </div>
                     </td>
-                    <td>{b.serviceName}</td>
-                    <td>{b.date}</td>
-                    <td style={{ fontWeight: '750', color: '#15803D' }}>₹{b.price}</td>
-                    <td style={{ maxWidth: '220px', fontSize: '0.8rem' }}>
+                    <td style={styles.tableTd}>{b.serviceName}</td>
+                    <td style={styles.tableTd}>{b.date}</td>
+                    <td style={{ ...styles.tableTd, fontWeight: '750', color: '#15803D' }}>₹{b.price}</td>
+                    <td style={{ ...styles.tableTd, maxWidth: '170px', fontSize: '0.78rem' }}>
                       <div style={styles.addressCell} title={b.address}>
                         <MapPin size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
                         <span style={styles.addressText}>{b.address}</span>
                       </div>
                     </td>
-                    <td>
+                    <td style={styles.tableTd}>
                       {b.vendorName ? (
                         <div style={styles.vendorCell}>
                           <span style={styles.vendorName}>{b.vendorName}</span>
@@ -187,13 +187,13 @@ export default function Bookings() {
                         <span style={styles.unassigned}>Unassigned</span>
                       )}
                     </td>
-                    <td>
+                    <td style={styles.tableTd}>
                       <span className={`badge ${b.status === 'Completed' ? 'badge-success' : 'badge-warning'}`}>
                         {b.status === 'Completed' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                         {b.status}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td style={{ ...styles.tableTd, textAlign: 'right' }}>
                       <div style={styles.actionsCell}>
                         {b.status !== 'Completed' && (
                           <>
@@ -383,8 +383,8 @@ const styles = {
     color: '#15803D',
     border: '1px solid #86EFAC',
     borderRadius: '8px',
-    padding: '6px 12px',
-    fontSize: '0.75rem',
+    padding: '5px 10px',
+    fontSize: '0.72rem',
     fontWeight: '700',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
@@ -394,7 +394,7 @@ const styles = {
     color: '#EF4444',
     border: '1px solid #FCA5A5',
     borderRadius: '8px',
-    padding: '6px',
+    padding: '5px',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
     display: 'flex',
@@ -424,8 +424,8 @@ const styles = {
     color: '#0369A1',
     border: '1px solid #BAE6FD',
     borderRadius: '8px',
-    padding: '6px 12px',
-    fontSize: '0.75rem',
+    padding: '5px 10px',
+    fontSize: '0.72rem',
     fontWeight: '700',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
@@ -435,11 +435,19 @@ const styles = {
     color: '#15803D',
     border: '1px solid #86EFAC',
     borderRadius: '8px',
-    padding: '6px 12px',
-    fontSize: '0.75rem',
+    padding: '5px 10px',
+    fontSize: '0.72rem',
     fontWeight: '700',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
+  },
+  tableTh: {
+    padding: '12px 8px',
+    fontSize: '0.75rem',
+  },
+  tableTd: {
+    padding: '12px 8px',
+    fontSize: '0.82rem',
   },
   modalBg: {
     position: 'fixed',
