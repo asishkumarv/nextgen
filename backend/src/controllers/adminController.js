@@ -99,14 +99,14 @@ const getDashboardStats = async (req, res) => {
     const bookingsCountRes = await pool.query('SELECT COUNT(*) FROM bookings');
     const bookingsCount = parseInt(bookingsCountRes.rows[0].count);
 
-    // 4. Revenue (Sum of subscriptions + bookings of normal users)
+    // 4. Revenue (Sum of subscriptions + paid bookings)
     const subRevenueRes = await pool.query('SELECT COALESCE(SUM(price), 0) AS total FROM subscriptions');
     const subRevenue = parseFloat(subRevenueRes.rows[0].total);
 
     const bookingRevenueRes = await pool.query(`
       SELECT COALESCE(SUM(price), 0) AS total 
       FROM bookings 
-      WHERE user_id NOT IN (SELECT user_id FROM subscriptions)
+      WHERE status != 'Cancelled' AND price > 0
     `);
     const bookingRevenue = parseFloat(bookingRevenueRes.rows[0].total);
 
