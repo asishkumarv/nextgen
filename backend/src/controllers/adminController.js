@@ -162,14 +162,20 @@ const getSubscribers = async (req, res) => {
         s.id AS "subId",
         s.slot_number AS "slotNumber",
         s.plan,
+        s.price,
         s.valid_till AS "validTill",
         s.created_at AS "subscribedAt",
         u.id AS "userId",
         u.name,
-        u.phone
+        u.phone,
+        d.name AS "districtName",
+        m.name AS "mandalName",
+        s.event_name AS "eventName"
       FROM subscriptions s
       JOIN users u ON s.user_id = u.id
-      WHERE u.name ILIKE $1 OR u.phone ILIKE $1 OR CAST(s.slot_number AS VARCHAR) ILIKE $1
+      LEFT JOIN districts d ON s.district_id = d.id
+      LEFT JOIN mandals m ON s.mandal_id = m.id
+      WHERE u.name ILIKE $1 OR u.phone ILIKE $1 OR CAST(s.slot_number AS VARCHAR) ILIKE $1 OR d.name ILIKE $1 OR m.name ILIKE $1
       ORDER BY s.created_at DESC
     `, [searchPattern]);
 
@@ -199,12 +205,18 @@ const getBookings = async (req, res) => {
         u.name AS "userName",
         u.phone AS "userPhone",
         b.vendor_id AS "vendorId",
-        v.name AS "vendorName"
+        v.name AS "vendorName",
+        d.name AS "districtName",
+        m.name AS "mandalName",
+        b.event_name AS "eventName",
+        b.slot_number AS "slotNumber"
       FROM bookings b
       JOIN users u ON b.user_id = u.id
       LEFT JOIN vendors v ON b.vendor_id = v.id
+      LEFT JOIN districts d ON b.district_id = d.id
+      LEFT JOIN mandals m ON b.mandal_id = m.id
       WHERE (b.status = $1 OR $1 = 'All')
-        AND (u.name ILIKE $2 OR u.phone ILIKE $2 OR b.service_name ILIKE $2 OR b.id ILIKE $2)
+        AND (u.name ILIKE $2 OR u.phone ILIKE $2 OR b.service_name ILIKE $2 OR b.id ILIKE $2 OR d.name ILIKE $2 OR m.name ILIKE $2)
       ORDER BY b.created_at DESC, b.id DESC
     `;
 
@@ -627,6 +639,156 @@ const reassignBookingVendor = async (req, res) => {
   }
 };
 
+// districts CRUD handlers
+const adminGetDistricts = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM districts ORDER BY name ASC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting districts:', error);
+    res.status(500).json({ message: 'Server error retrieving districts' });
+  }
+};
+
+const adminAddDistrict = async (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ message: 'Please enter a district name' });
+  }
+  try {
+    const check = await pool.query('SELECT * FROM districts WHERE LOWER(name) = LOWER($1)', [name]);
+    if (check.rows.length > 0) {
+      return res.status(400).json({ message: 'District already exists' });
+    }
+    const result = await pool.query('INSERT INTO districts (name) VALUES ($1) RETURNING *', [name]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error adding district:', error);
+    res.status(500).json({ message: 'Server error adding district' });
+  }
+};
+
+const adminUpdateDistrict = async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ message: 'Please enter a district name' });
+  }
+  try {
+    const check = await pool.query('SELECT * FROM districts WHERE LOWER(name) = LOWER($1) AND id != $2', [name, id]);
+    if (check.rows.length > 0) {
+      return res.status(400).json({ message: 'Another district with this name already exists' });
+    }
+    const result = await pool.query('UPDATE districts SET name = $1 WHERE id = $2 RETURNING *', [name, id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'District not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating district:', error);
+    res.status(500).json({ message: 'Server error updating district' });
+  }
+};
+
+const adminDeleteDistrict = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM districts WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'District not found' });
+    }
+    res.json({ success: true, message: 'District deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting district:', error);
+    res.status(500).json({ message: 'Server error deleting district' });
+  }
+};
+
+// mandals CRUD handlers
+const adminGetMandals = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT m.*, d.name as "districtName" 
+      FROM mandals m
+      JOIN districts d ON m.district_id = d.id
+      ORDER BY d.name ASC, m.name ASC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting mandals:', error);
+    res.status(500).json({ message: 'Server error retrieving mandals' });
+  }
+};
+
+const adminAddMandal = async (req, res) => {
+  const { district_id, name, event_names, slots, subscription_price, booking_price } = req.body;
+  if (!district_id || !name || !event_names || !slots || subscription_price === undefined || booking_price === undefined) {
+    return res.status(400).json({ message: 'Please enter all fields' });
+  }
+  try {
+    const check = await pool.query('SELECT * FROM mandals WHERE LOWER(name) = LOWER($1) AND district_id = $2', [name, district_id]);
+    if (check.rows.length > 0) {
+      return res.status(400).json({ message: 'Mandal already exists in this district' });
+    }
+    const result = await pool.query(
+      `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [district_id, name, event_names, slots, parseFloat(subscription_price), parseFloat(booking_price)]
+    );
+    const createdMandal = result.rows[0];
+    const dNameRes = await pool.query('SELECT name FROM districts WHERE id = $1', [district_id]);
+    createdMandal.districtName = dNameRes.rows[0].name;
+    res.status(201).json(createdMandal);
+  } catch (error) {
+    console.error('Error adding mandal:', error);
+    res.status(500).json({ message: 'Server error adding mandal' });
+  }
+};
+
+const adminUpdateMandal = async (req, res) => {
+  const { id } = req.params;
+  const { district_id, name, event_names, slots, subscription_price, booking_price } = req.body;
+  if (!district_id || !name || !event_names || !slots || subscription_price === undefined || booking_price === undefined) {
+    return res.status(400).json({ message: 'Please enter all fields' });
+  }
+  try {
+    const check = await pool.query('SELECT * FROM mandals WHERE LOWER(name) = LOWER($1) AND district_id = $2 AND id != $3', [name, district_id, id]);
+    if (check.rows.length > 0) {
+      return res.status(400).json({ message: 'Another mandal with this name already exists in this district' });
+    }
+    const result = await pool.query(
+      `UPDATE mandals 
+       SET district_id = $1, name = $2, event_names = $3, slots = $4, subscription_price = $5, booking_price = $6 
+       WHERE id = $7 RETURNING *`,
+      [district_id, name, event_names, slots, parseFloat(subscription_price), parseFloat(booking_price), id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Mandal not found' });
+    }
+    const updatedMandal = result.rows[0];
+    const dNameRes = await pool.query('SELECT name FROM districts WHERE id = $1', [district_id]);
+    updatedMandal.districtName = dNameRes.rows[0].name;
+    res.json(updatedMandal);
+  } catch (error) {
+    console.error('Error updating mandal:', error);
+    res.status(500).json({ message: 'Server error updating mandal' });
+  }
+};
+
+const adminDeleteMandal = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM mandals WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Mandal not found' });
+    }
+    res.json({ success: true, message: 'Mandal deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting mandal:', error);
+    res.status(500).json({ message: 'Server error deleting mandal' });
+  }
+};
+
 module.exports = {
   adminLogin,
   getAdminMe,
@@ -649,5 +811,13 @@ module.exports = {
   approveSettlement,
   rejectSettlement,
   getEligibleVendorsForBooking,
-  reassignBookingVendor
+  reassignBookingVendor,
+  adminGetDistricts,
+  adminAddDistrict,
+  adminUpdateDistrict,
+  adminDeleteDistrict,
+  adminGetMandals,
+  adminAddMandal,
+  adminUpdateMandal,
+  adminDeleteMandal
 };

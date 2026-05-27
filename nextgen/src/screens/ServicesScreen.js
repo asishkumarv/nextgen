@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import Header from '../components/Header';
 import { useApp } from '../context/AppContext';
+import { api } from '../utils/api';
 
 const { width } = Dimensions.get('window');
 
@@ -62,6 +63,92 @@ export default function ServicesScreen() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [createdBookingId, setCreatedBookingId] = useState('');
 
+  // District/Mandal/Event/Slot states for booking
+  const { bookedSlot, bookingDetails } = useApp();
+  const [districts, setDistricts] = useState([]);
+  const [mandals, setMandals] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedMandal, setSelectedMandal] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+
+  const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
+  const [mandalDropdownOpen, setMandalDropdownOpen] = useState(false);
+  const [eventDropdownOpen, setEventDropdownOpen] = useState(false);
+  const [slotDropdownOpen, setSlotDropdownOpen] = useState(false);
+
+  const [mandalBookedSlots, setMandalBookedSlots] = useState(new Set());
+  const [loadingBooked, setLoadingBooked] = useState(false);
+
+  // Fetch districts on entering step 2 (for non-subscribers)
+  useEffect(() => {
+    if (bookingStep === 2) {
+      if (bookedSlot && bookingDetails) {
+        // Prepopulate with active subscription
+        setSelectedSlot(bookingDetails.slotNumber);
+        setSelectedEvent(bookingDetails.eventName);
+      } else {
+        const loadDistricts = async () => {
+          try {
+            const data = await api.get('/subscription/districts');
+            setDistricts(data || []);
+          } catch (err) {
+            console.warn('Failed to load districts:', err.message);
+          }
+        };
+        loadDistricts();
+      }
+    }
+  }, [bookingStep, bookedSlot, bookingDetails]);
+
+  // Fetch mandals when district changes
+  useEffect(() => {
+    if (!selectedDistrict || bookedSlot) {
+      setMandals([]);
+      return;
+    }
+    const loadMandals = async () => {
+      try {
+        const data = await api.get(`/subscription/mandals?districtId=${selectedDistrict.id}`);
+        setMandals(data || []);
+      } catch (err) {
+        console.warn('Failed to load mandals:', err.message);
+      }
+    };
+    loadMandals();
+  }, [selectedDistrict, bookedSlot]);
+
+  // Fetch booked slots when mandal changes
+  useEffect(() => {
+    if (!selectedMandal || bookedSlot) {
+      setMandalBookedSlots(new Set());
+      return;
+    }
+    const loadBookedSlots = async () => {
+      setLoadingBooked(true);
+      try {
+        const data = await api.get(`/subscription/booked?mandalId=${selectedMandal.id}`);
+        if (data && data.bookedSlots) {
+          const parsed = data.bookedSlots.map(s => String(s).trim());
+          setMandalBookedSlots(new Set(parsed));
+        }
+      } catch (err) {
+        console.warn('Failed to load booked slots for mandal:', err.message);
+      } finally {
+        setLoadingBooked(false);
+      }
+    };
+    loadBookedSlots();
+  }, [selectedMandal, bookedSlot]);
+
+  const configuredSlots = selectedMandal
+    ? selectedMandal.slots.split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+
+  const configuredEvents = selectedMandal
+    ? selectedMandal.event_names.split(',').map(e => e.trim()).filter(Boolean)
+    : [];
+
   // Handle live search
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -101,6 +188,11 @@ export default function ServicesScreen() {
       setSelectedTimeSlot('Morning (9 AM - 12 PM)');
       setBookingStep(1);
       setBookingSuccess(false);
+      // Reset area selections
+      setSelectedDistrict(null);
+      setSelectedMandal(null);
+      setSelectedEvent(null);
+      setSelectedSlot(null);
     }
   }, [activeBookingService]);
 
@@ -109,7 +201,11 @@ export default function ServicesScreen() {
   };
 
   const handleNextStep = () => {
-    if (bookingStep < 4) {
+    if (bookingStep === 2 && !bookedSlot && (!selectedDistrict || !selectedMandal || !selectedEvent || !selectedSlot)) {
+      alert('Please complete all location selections');
+      return;
+    }
+    if (bookingStep < 5) {
       setBookingStep(bookingStep + 1);
     }
   };
@@ -126,12 +222,18 @@ export default function ServicesScreen() {
     if (!activeBookingService) return;
     try {
       const addressString = `${houseNo}, ${street}, ${landmark} - ${pincode}`;
+      const priceToBook = bookedSlot ? 0.00 : (selectedMandal ? parseFloat(selectedMandal.booking_price) : activeBookingService.price);
+      
       const newId = await addBooking(
         activeBookingService.title || '',
-        activeBookingService.price || 0,
+        priceToBook,
         selectedDate,
         selectedTimeSlot ? selectedTimeSlot.split(' ')[0] : 'Morning',
-        addressString
+        addressString,
+        bookedSlot ? bookingDetails?.districtId : selectedDistrict?.id,
+        bookedSlot ? bookingDetails?.mandalId : selectedMandal?.id,
+        bookedSlot ? bookingDetails?.slotNumber : selectedSlot,
+        bookedSlot ? bookingDetails?.eventName : selectedEvent
       );
       setCreatedBookingId(newId);
       setBookingSuccess(true);
@@ -143,10 +245,8 @@ export default function ServicesScreen() {
   const handleFinishBooking = () => {
     setActiveBookingService(null);
     setBookingSuccess(false);
-    // Navigate to profile tab to see history
     navigation.navigate('Profile');
   };
-
 
   // RENDERING COMPONENT A: Search and Service Listing View (Image 2)
   const renderServiceList = () => (
@@ -224,11 +324,11 @@ export default function ServicesScreen() {
     </ScrollView>
   );
 
-  // RENDERING COMPONENT B: 4-Step Booking Flow View (Image 4)
+  // RENDERING COMPONENT B: 5-Step Booking Flow View
   const renderBookingFlow = () => {
     if (!activeBookingService) return null;
     if (bookingSuccess) {
-
+      const priceToBook = bookedSlot ? 0.00 : (selectedMandal ? parseFloat(selectedMandal.booking_price) : activeBookingService.price);
       return (
         <View style={styles.successContainer}>
           <View style={styles.successCard}>
@@ -247,7 +347,7 @@ export default function ServicesScreen() {
               </View>
               <View style={styles.receiptRow}>
                 <Text style={styles.receiptLabel}>Amount Paid</Text>
-                <Text style={styles.receiptVal}>₹{activeBookingService?.price}</Text>
+                <Text style={styles.receiptVal}>₹{priceToBook.toFixed(2)}</Text>
               </View>
               <View style={styles.receiptRow}>
                 <Text style={styles.receiptLabel}>Scheduled For</Text>
@@ -288,13 +388,14 @@ export default function ServicesScreen() {
             <Text style={styles.flowTitle}>Book Service</Text>
           </View>
 
-          {/* Steps Progress Indicator (4 segments matching Image 4) */}
+          {/* Steps Progress Indicator (5 segments) */}
           <View style={styles.stepsContainer}>
             <View style={styles.stepsTextRow}>
               <Text style={[styles.stepLabelText, bookingStep >= 1 && styles.stepLabelActive]}>Service</Text>
-              <Text style={[styles.stepLabelText, bookingStep >= 2 && styles.stepLabelActive]}>Time</Text>
-              <Text style={[styles.stepLabelText, bookingStep >= 3 && styles.stepLabelActive]}>Address</Text>
-              <Text style={[styles.stepLabelText, bookingStep >= 4 && styles.stepLabelActive]}>Confirm</Text>
+              <Text style={[styles.stepLabelText, bookingStep >= 2 && styles.stepLabelActive]}>Area</Text>
+              <Text style={[styles.stepLabelText, bookingStep >= 3 && styles.stepLabelActive]}>Time</Text>
+              <Text style={[styles.stepLabelText, bookingStep >= 4 && styles.stepLabelActive]}>Address</Text>
+              <Text style={[styles.stepLabelText, bookingStep >= 5 && styles.stepLabelActive]}>Confirm</Text>
             </View>
             
             <View style={styles.barWrapper}>
@@ -302,10 +403,11 @@ export default function ServicesScreen() {
               <View style={[styles.barSegment, bookingStep >= 2 ? styles.barActive : styles.barInactive]} />
               <View style={[styles.barSegment, bookingStep >= 3 ? styles.barActive : styles.barInactive]} />
               <View style={[styles.barSegment, bookingStep >= 4 ? styles.barActive : styles.barInactive]} />
+              <View style={[styles.barSegment, bookingStep >= 5 ? styles.barActive : styles.barInactive]} />
             </View>
           </View>
 
-          {/* STEP 1: CHOOSE SERVICE SCREEN */}
+          {/* STEP 1: CHOOSE SERVICE */}
           {bookingStep === 1 && (
             <View>
               <View style={styles.stepSectionHeader}>
@@ -353,15 +455,118 @@ export default function ServicesScreen() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Text style={styles.nextStepBtnText}>Next: Select Time</Text>
+                  <Text style={styles.nextStepBtnText}>Next: Select Area</Text>
                   <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
           )}
 
-          {/* STEP 2: SELECT DATE & TIME */}
+          {/* STEP 2: SELECT AREA (District, Mandal, Event, Slot) */}
           {bookingStep === 2 && (
+            <View>
+              <View style={styles.stepSectionHeader}>
+                <View style={styles.stepIconBg}>
+                  <Ionicons name="map" size={16} color="#15803D" />
+                </View>
+                <Text style={styles.stepSectionTitle}>Select Region & Slot</Text>
+              </View>
+
+              {bookedSlot ? (
+                // Subscriber locked view
+                <View style={styles.subscriberAreaCard}>
+                  <LinearGradient
+                    colors={['#E6F4EA', '#ECFDF5']}
+                    style={styles.subGradientCard}
+                  >
+                    <View style={styles.badgeRow}>
+                      <Ionicons name="sparkles" size={14} color="#15803D" style={{ marginRight: 6 }} />
+                      <Text style={styles.subActiveBadgeText}>Active Power Care Subscriber</Text>
+                    </View>
+                    
+                    <Text style={styles.subDetailsTitle}>Subscription coverage: </Text>
+                    <Text style={styles.subDetailsText}>District: {bookingDetails?.districtName}</Text>
+                    <Text style={styles.subDetailsText}>Mandal: {bookingDetails?.mandalName}</Text>
+                    <Text style={styles.subDetailsText}>Slot: #{bookingDetails?.slotNumber}</Text>
+                    <Text style={styles.subDetailsText}>Registered Event: {bookingDetails?.eventName}</Text>
+                    
+                    <View style={styles.divider} />
+                    
+                    <Text style={styles.subDiscountText}>Booking Charge: ₹0.00 (Paid via Subscription)</Text>
+                  </LinearGradient>
+                </View>
+              ) : (
+                // Non-subscriber picker view
+                <View style={styles.pickerContainer}>
+                  <Text style={styles.fieldHeading}>Select District</Text>
+                  <TouchableOpacity style={styles.dropdownBtn} onPress={() => setDistrictDropdownOpen(true)}>
+                    <Text style={[styles.dropdownText, !selectedDistrict && { color: '#9CA3AF' }]}>
+                      {selectedDistrict ? selectedDistrict.name : "Select District"}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color="#6B7280" />
+                  </TouchableOpacity>
+
+                  <Text style={styles.fieldHeading}>Select Mandal</Text>
+                  <TouchableOpacity 
+                    style={[styles.dropdownBtn, !selectedDistrict && styles.dropdownDisabled]} 
+                    onPress={() => selectedDistrict && setMandalDropdownOpen(true)}
+                    disabled={!selectedDistrict}
+                  >
+                    <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#9CA3AF' }]}>
+                      {selectedMandal ? selectedMandal.name : "Select Mandal"}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color="#6B7280" />
+                  </TouchableOpacity>
+
+                  <Text style={styles.fieldHeading}>Select Event Name</Text>
+                  <TouchableOpacity 
+                    style={[styles.dropdownBtn, !selectedMandal && styles.dropdownDisabled]} 
+                    onPress={() => selectedMandal && setEventDropdownOpen(true)}
+                    disabled={!selectedMandal}
+                  >
+                    <Text style={[styles.dropdownText, (!selectedEvent || !selectedMandal) && { color: '#9CA3AF' }]}>
+                      {selectedEvent ? selectedEvent : "Select Event"}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color="#6B7280" />
+                  </TouchableOpacity>
+
+                  <Text style={styles.fieldHeading}>Select Slot Number</Text>
+                  <TouchableOpacity 
+                    style={[styles.dropdownBtn, !selectedMandal && styles.dropdownDisabled]} 
+                    onPress={() => selectedMandal && setSlotDropdownOpen(true)}
+                    disabled={!selectedMandal}
+                  >
+                    <Text style={[styles.dropdownText, (!selectedSlot || !selectedMandal) && { color: '#9CA3AF' }]}>
+                      {selectedSlot ? `Slot #${selectedSlot}` : "Select Slot"}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color="#6B7280" />
+                  </TouchableOpacity>
+
+                  {selectedMandal && (
+                    <View style={styles.mandalPriceTag}>
+                      <Text style={styles.priceTagLabel}>Booking Price in {selectedMandal.name}: </Text>
+                      <Text style={styles.priceTagVal}>₹{parseFloat(selectedMandal.booking_price).toFixed(2)}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
+                <LinearGradient
+                  colors={['#00C853', '#0091EA']}
+                  style={styles.nextStepBtnGrad}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={styles.nextStepBtnText}>Next: Select Date & Time</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* STEP 3: SELECT DATE & TIME */}
+          {bookingStep === 3 && (
             <View>
               <View style={styles.stepSectionHeader}>
                 <View style={styles.stepIconBg}>
@@ -436,8 +641,8 @@ export default function ServicesScreen() {
             </View>
           )}
 
-          {/* STEP 3: SERVICE ADDRESS */}
-          {bookingStep === 3 && (
+          {/* STEP 4: SERVICE ADDRESS */}
+          {bookingStep === 4 && (
             <View>
               <View style={styles.stepSectionHeader}>
                 <View style={styles.stepIconBg}>
@@ -503,8 +708,8 @@ export default function ServicesScreen() {
             </View>
           )}
 
-          {/* STEP 4: REVIEW & CONFIRM */}
-          {bookingStep === 4 && (
+          {/* STEP 5: REVIEW & CONFIRM */}
+          {bookingStep === 5 && (
             <View>
               <View style={styles.stepSectionHeader}>
                 <View style={styles.stepIconBg}>
@@ -517,7 +722,9 @@ export default function ServicesScreen() {
               <View style={styles.reviewCard}>
                 <View style={styles.reviewHeader}>
                   <Text style={styles.reviewServiceTitle}>{activeBookingService?.title}</Text>
-                  <Text style={styles.reviewServicePrice}>₹{activeBookingService?.price}</Text>
+                  <Text style={styles.reviewServicePrice}>
+                    ₹{bookedSlot ? '0.00' : (selectedMandal ? parseFloat(selectedMandal.booking_price).toFixed(2) : activeBookingService?.price)}
+                  </Text>
                 </View>
                 
                 <Text style={styles.reviewSubtitle}>{activeBookingService?.subtitle}</Text>
@@ -536,12 +743,31 @@ export default function ServicesScreen() {
                   </Text>
                 </View>
 
+                <View style={styles.reviewItem}>
+                  <Ionicons name="map-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
+                  <Text style={styles.reviewText}>
+                    Region: {bookedSlot ? bookingDetails?.districtName : selectedDistrict?.name} / {bookedSlot ? bookingDetails?.mandalName : selectedMandal?.name}
+                  </Text>
+                </View>
+
+                <View style={styles.reviewItem}>
+                  <Ionicons name="ticket-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
+                  <Text style={styles.reviewText}>
+                    Event & Slot: {bookedSlot ? bookingDetails?.eventName : selectedEvent} (Slot #{bookedSlot ? bookingDetails?.slotNumber : selectedSlot})
+                  </Text>
+                </View>
+
                 <View style={styles.reviewDivider} />
 
                 <View style={styles.paymentMethod}>
-                  <Ionicons name="card-outline" size={18} color="#00B894" style={{ marginRight: 10 }} />
+                  <Ionicons 
+                    name={bookedSlot ? "ribbon-outline" : "card-outline"} 
+                    size={18} 
+                    color="#00B894" 
+                    style={{ marginRight: 10 }} 
+                  />
                   <Text style={[styles.reviewText, { color: '#00B894', fontWeight: '700' }]}>
-                    Paid via Power Care Subscription
+                    {bookedSlot ? 'Paid via Power Care Subscription' : 'Local Charge (Paid on completion)'}
                   </Text>
                 </View>
               </View>
@@ -568,6 +794,141 @@ export default function ServicesScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {activeBookingService ? renderBookingFlow() : renderServiceList()}
+
+      {/* District Dropdown Modal Overlay */}
+      {districtDropdownOpen && (
+        <View style={styles.dropdownModalBg}>
+          <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setDistrictDropdownOpen(false)} />
+          <View style={styles.dropdownListContainer}>
+            <View style={styles.dropdownListHeader}>
+              <Text style={styles.dropdownListTitle}>Select District</Text>
+              <TouchableOpacity onPress={() => setDistrictDropdownOpen(false)}>
+                <Ionicons name="close" size={24} color="#374151" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownListScroll}>
+              {districts.map(d => (
+                <TouchableOpacity 
+                  key={d.id} 
+                  style={styles.dropdownListItem} 
+                  onPress={() => {
+                    setSelectedDistrict(d);
+                    setDistrictDropdownOpen(false);
+                    setSelectedMandal(null);
+                    setSelectedEvent(null);
+                    setSelectedSlot(null);
+                  }}
+                >
+                  <Text style={styles.dropdownListItemText}>{d.name}</Text>
+                  {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* Mandal Dropdown Modal Overlay */}
+      {mandalDropdownOpen && (
+        <View style={styles.dropdownModalBg}>
+          <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setMandalDropdownOpen(false)} />
+          <View style={styles.dropdownListContainer}>
+            <View style={styles.dropdownListHeader}>
+              <Text style={styles.dropdownListTitle}>Select Mandal</Text>
+              <TouchableOpacity onPress={() => setMandalDropdownOpen(false)}>
+                <Ionicons name="close" size={24} color="#374151" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownListScroll}>
+              {mandals.map(m => (
+                <TouchableOpacity 
+                  key={m.id} 
+                  style={styles.dropdownListItem} 
+                  onPress={() => {
+                    setSelectedMandal(m);
+                    setMandalDropdownOpen(false);
+                    setSelectedEvent(null);
+                    setSelectedSlot(null);
+                  }}
+                >
+                  <Text style={styles.dropdownListItemText}>{m.name}</Text>
+                  {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* Event Dropdown Modal Overlay */}
+      {eventDropdownOpen && (
+        <View style={styles.dropdownModalBg}>
+          <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setEventDropdownOpen(false)} />
+          <View style={styles.dropdownListContainer}>
+            <View style={styles.dropdownListHeader}>
+              <Text style={styles.dropdownListTitle}>Select Event Name</Text>
+              <TouchableOpacity onPress={() => setEventDropdownOpen(false)}>
+                <Ionicons name="close" size={24} color="#374151" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownListScroll}>
+              {configuredEvents.map(e => (
+                <TouchableOpacity 
+                  key={e} 
+                  style={styles.dropdownListItem} 
+                  onPress={() => {
+                    setSelectedEvent(e);
+                    setEventDropdownOpen(false);
+                    setSelectedSlot(null);
+                  }}
+                >
+                  <Text style={styles.dropdownListItemText}>{e}</Text>
+                  {selectedEvent === e && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* Slot Dropdown Modal Overlay */}
+      {slotDropdownOpen && (
+        <View style={styles.dropdownModalBg}>
+          <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setSlotDropdownOpen(false)} />
+          <View style={styles.dropdownListContainer}>
+            <View style={styles.dropdownListHeader}>
+              <Text style={styles.dropdownListTitle}>Select Slot Number</Text>
+              <TouchableOpacity onPress={() => setSlotDropdownOpen(false)}>
+                <Ionicons name="close" size={24} color="#374151" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownListScroll}>
+              {configuredSlots.map(num => {
+                const isBooked = mandalBookedSlots.has(String(num).trim());
+                return (
+                  <TouchableOpacity 
+                    key={num} 
+                    disabled={isBooked}
+                    style={[styles.dropdownListItem, isBooked && { opacity: 0.5 }]} 
+                    onPress={() => {
+                      setSelectedSlot(num);
+                      setSlotDropdownOpen(false);
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={[styles.dropdownListItemText, isBooked && { color: '#EF4444' }]}>
+                        Slot #{num} {isBooked ? '(Booked)' : ''}
+                      </Text>
+                      {isBooked && <Ionicons name="ban" size={14} color="#EF4444" style={{ marginLeft: 8 }} />}
+                    </View>
+                    {selectedSlot === num && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -1065,5 +1426,160 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 15,
     fontWeight: '700',
+  },
+  // Custom picker styles
+  subscriberAreaCard: {
+    marginBottom: 16,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+  },
+  subGradientCard: {
+    padding: 20,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  subActiveBadgeText: {
+    color: '#15803D',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  subDetailsTitle: {
+    fontSize: 14,
+    fontWeight: '750',
+    color: '#065F46',
+    marginBottom: 6,
+  },
+  subDetailsText: {
+    fontSize: 13,
+    color: '#047857',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(4, 120, 87, 0.1)',
+    marginVertical: 12,
+  },
+  subDiscountText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#15803D',
+  },
+  pickerContainer: {
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  dropdownBtn: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 12,
+  },
+  dropdownDisabled: {
+    backgroundColor: '#F9FAFB',
+    borderColor: '#F3F4F6',
+    opacity: 0.6,
+  },
+  dropdownText: {
+    color: '#374151',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  mandalPriceTag: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  priceTagLabel: {
+    fontSize: 13,
+    color: '#065F46',
+    fontWeight: '650',
+  },
+  priceTagVal: {
+    fontSize: 15,
+    color: '#047857',
+    fontWeight: '800',
+  },
+  dropdownModalBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    zIndex: 2000,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  dropdownModalDismiss: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  dropdownListContainer: {
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    width: '100%',
+    maxHeight: '60%',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  dropdownListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  dropdownListTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  dropdownListScroll: {
+    flexGrow: 0,
+  },
+  dropdownListItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: '#F9FAFB',
+  },
+  dropdownListItemText: {
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '600',
   },
 });

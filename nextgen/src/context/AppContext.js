@@ -73,6 +73,11 @@ export const AppProvider = ({ children }) => {
           plan: profile.subscription.plan,
           date: formattedDate,
           slotNumber: profile.subscription.slotNumber,
+          districtId: profile.subscription.districtId,
+          mandalId: profile.subscription.mandalId,
+          districtName: profile.subscription.districtName,
+          mandalName: profile.subscription.mandalName,
+          eventName: profile.subscription.eventName,
         });
       } else {
         setBookedSlot(null);
@@ -178,26 +183,11 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const bookSlot = async (slotNumber) => {
+  const bookSlot = async (districtId, mandalId, slotNumber, eventName) => {
     try {
-      const res = await api.post('/subscription/book', { slotNumber });
+      const res = await api.post('/subscription/book', { districtId, mandalId, slotNumber, eventName });
       if (res.success) {
-        setBookedSlot(slotNumber);
-        
-        const subDate = new Date(res.subscription.validTill);
-        const formattedDate = subDate.toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        });
-
-        setBookingDetails({
-          id: res.subscription.id,
-          plan: res.subscription.plan,
-          date: formattedDate,
-          slotNumber: slotNumber,
-        });
-
+        await loadAppData();
         await fetchDbBookedSlots();
         return { success: true };
       }
@@ -222,7 +212,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const addBooking = async (serviceName, price, date, timeSlot, address) => {
+  const addBooking = async (serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName) => {
     try {
       const newBooking = await api.post('/bookings', {
         serviceName,
@@ -230,6 +220,10 @@ export const AppProvider = ({ children }) => {
         date,
         timeSlot,
         address,
+        districtId,
+        mandalId,
+        slotNumber,
+        eventName
       });
 
       // Update state list

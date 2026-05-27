@@ -39,10 +39,10 @@ const getMyBookings = async (req, res) => {
 };
 
 const createBooking = async (req, res) => {
-  const { serviceName, price, date, timeSlot, address } = req.body;
+  const { serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName } = req.body;
   const userId = req.user.id;
 
-  if (!serviceName || !price || !date || !address) {
+  if (!serviceName || !date || !address) {
     return res.status(400).json({ message: 'Please enter all required fields' });
   }
 
@@ -60,6 +60,30 @@ const createBooking = async (req, res) => {
 
     // Generate 4-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // Check subscription status
+    const subCheck = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1', [userId]);
+    const isSubscribed = subCheck.rows.length > 0;
+    
+    let computedPrice = parseFloat(price || 0);
+    let finalDistrictId = districtId;
+    let finalMandalId = mandalId;
+    let finalEventName = eventName;
+    let finalSlotNumber = slotNumber;
+
+    if (isSubscribed) {
+      computedPrice = 0.00;
+      const sub = subCheck.rows[0];
+      if (!finalDistrictId) finalDistrictId = sub.district_id;
+      if (!finalMandalId) finalMandalId = sub.mandal_id;
+      if (!finalEventName) finalEventName = sub.event_name;
+      if (!finalSlotNumber) finalSlotNumber = sub.slot_number;
+    } else if (mandalId) {
+      const mandalRes = await pool.query('SELECT booking_price FROM mandals WHERE id = $1', [mandalId]);
+      if (mandalRes.rows.length > 0) {
+        computedPrice = parseFloat(mandalRes.rows[0].booking_price);
+      }
+    }
 
     // Find the vendor with the least workload offering this service
     let assignedVendorId = null;
@@ -90,8 +114,11 @@ const createBooking = async (req, res) => {
 
     // Insert booking
     const newBooking = await pool.query(
-      'INSERT INTO bookings (id, user_id, service_name, date, price, status, icon, address, vendor_id, otp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId", otp',
-      [randomId, userId, serviceName, dateAndSlot, price, bookingStatus, iconName, address, assignedVendorId, otp]
+      `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_name, slot_number, service_name, date, price, status, icon, address, vendor_id, otp) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+       RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId", otp,
+                 district_id AS "districtId", mandal_id AS "mandalId", event_name AS "eventName", slot_number AS "slotNumber"`,
+      [randomId, userId, finalDistrictId || null, finalMandalId || null, finalEventName || null, finalSlotNumber || null, serviceName, dateAndSlot, computedPrice, bookingStatus, iconName, address, assignedVendorId, otp]
     );
 
     res.status(201).json(newBooking.rows[0]);

@@ -149,6 +149,8 @@ export default function Bookings() {
                 <tr>
                   <th style={styles.tableTh}>Booking ID</th>
                   <th style={styles.tableTh}>Customer Profile</th>
+                  <th style={styles.tableTh}>District / Mandal</th>
+                  <th style={styles.tableTh}>Event / Slot</th>
                   <th style={styles.tableTh}>Service requested</th>
                   <th style={styles.tableTh}>Scheduled Date</th>
                   <th style={styles.tableTh}>Price</th>
@@ -166,6 +168,18 @@ export default function Bookings() {
                       <div style={styles.customerCell}>
                         <span style={styles.customerName}>{b.userName}</span>
                         <span style={styles.customerPhone}>{b.userPhone}</span>
+                      </div>
+                    </td>
+                    <td style={styles.tableTd}>
+                      <div style={styles.customerCell}>
+                        <span style={styles.customerName}>{b.districtName || 'N/A'}</span>
+                        <span style={styles.customerPhone}>{b.mandalName || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td style={styles.tableTd}>
+                      <div style={styles.customerCell}>
+                        <span style={styles.customerName}>{b.eventName || 'N/A'}</span>
+                        <span style={styles.customerPhone}>{b.slotNumber ? `#${b.slotNumber}` : 'N/A'}</span>
                       </div>
                     </td>
                     <td style={styles.tableTd}>{b.serviceName}</td>

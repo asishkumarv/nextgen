@@ -1,11 +1,11 @@
 const pool = require('../config/db');
 
 const bookSlot = async (req, res) => {
-  const { slotNumber } = req.body;
+  const { districtId, mandalId, slotNumber, eventName } = req.body;
   const userId = req.user.id;
 
-  if (!slotNumber) {
-    return res.status(400).json({ message: 'Please select a slot number' });
+  if (!districtId || !mandalId || !slotNumber || !eventName) {
+    return res.status(400).json({ message: 'Please select a District, Mandal, Event, and Slot' });
   }
 
   try {
@@ -15,24 +15,41 @@ const bookSlot = async (req, res) => {
       return res.status(400).json({ message: 'You already have an active subscription slot' });
     }
 
-    // Check if slot number is already taken
-    const slotCheck = await pool.query('SELECT * FROM subscriptions WHERE slot_number = $1', [slotNumber]);
+    // Verify Mandal exists
+    const mandalRes = await pool.query('SELECT * FROM mandals WHERE id = $1', [mandalId]);
+    if (mandalRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Selected Mandal not found' });
+    }
+    const mandal = mandalRes.rows[0];
+
+    // Check if slot number is configured for this mandal
+    const configuredSlots = mandal.slots.split(',').map(s => s.trim());
+    if (!configuredSlots.includes(String(slotNumber).trim())) {
+      return res.status(400).json({ message: `Slot #${slotNumber} is not available in Mandal ${mandal.name}` });
+    }
+
+    // Check if slot number is already taken in this mandal
+    const slotCheck = await pool.query(
+      'SELECT * FROM subscriptions WHERE mandal_id = $1 AND slot_number = $2',
+      [mandalId, slotNumber]
+    );
     if (slotCheck.rows.length > 0) {
-      return res.status(400).json({ message: `Slot #${slotNumber} is already booked` });
+      return res.status(400).json({ message: `Slot #${slotNumber} is already booked in Mandal ${mandal.name}` });
     }
 
     // Generate random Subscription ID
     const randomId = `NGPC-${Math.floor(100000 + Math.random() * 900000)}`;
-    const plan = 'Annual · ₹2999/year';
-    const price = 2999.00;
+    const plan = `Annual · ₹${parseInt(mandal.subscription_price)}/year`;
+    const price = parseFloat(mandal.subscription_price);
     
     const validTill = new Date();
     validTill.setFullYear(validTill.getFullYear() + 1); // 1 year validity
 
     // Insert subscription
     const newSub = await pool.query(
-      'INSERT INTO subscriptions (id, user_id, slot_number, plan, price, valid_till) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [randomId, userId, slotNumber, plan, price, validTill]
+      `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_name, slot_number, plan, price, valid_till) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [randomId, userId, districtId, mandalId, eventName, slotNumber, plan, price, validTill]
     );
 
     res.status(201).json({
@@ -75,8 +92,14 @@ const cancelSlot = async (req, res) => {
 };
 
 const getBookedSlots = async (req, res) => {
+  const mandalId = req.query.mandalId;
   try {
-    const result = await pool.query('SELECT slot_number FROM subscriptions');
+    let result;
+    if (mandalId) {
+      result = await pool.query('SELECT slot_number FROM subscriptions WHERE mandal_id = $1', [mandalId]);
+    } else {
+      result = await pool.query('SELECT slot_number FROM subscriptions');
+    }
     const bookedSlotsList = result.rows.map(row => row.slot_number);
     res.json({ bookedSlots: bookedSlotsList });
   } catch (error) {
@@ -85,8 +108,36 @@ const getBookedSlots = async (req, res) => {
   }
 };
 
+const getDistricts = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM districts ORDER BY name ASC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting districts:', error);
+    res.status(500).json({ message: 'Server error retrieving districts' });
+  }
+};
+
+const getMandals = async (req, res) => {
+  const districtId = req.query.districtId;
+  try {
+    let result;
+    if (districtId) {
+      result = await pool.query('SELECT * FROM mandals WHERE district_id = $1 ORDER BY name ASC', [districtId]);
+    } else {
+      result = await pool.query('SELECT * FROM mandals ORDER BY name ASC');
+    }
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting mandals:', error);
+    res.status(500).json({ message: 'Server error retrieving mandals' });
+  }
+};
+
 module.exports = {
   bookSlot,
   cancelSlot,
-  getBookedSlots
+  getBookedSlots,
+  getDistricts,
+  getMandals
 };

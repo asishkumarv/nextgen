@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, CreditCard, CalendarRange, Wrench, LogOut, Briefcase, Coins } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, CalendarRange, Wrench, LogOut, Briefcase, Coins, Map, MapPin } from 'lucide-react';
 import { removeAuthToken, removeAdminProfile } from '../utils/api';
 import logo from '../assets/logo.png';
 
@@ -7,6 +7,8 @@ export default function Sidebar({ activeView, onViewChange, onLogout, adminName 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Users Directory', icon: Users },
+    { id: 'districts', label: 'Districts Manager', icon: Map },
+    { id: 'mandals', label: 'Mandals Manager', icon: MapPin },
     { id: 'subscribers', label: 'Subscribers Slot', icon: CreditCard },
     { id: 'bookings', label: 'Bookings List', icon: CalendarRange },
     { id: 'services', label: 'Services Manager', icon: Wrench },

@@ -109,7 +109,13 @@ const getMe = async (req, res) => {
 
     // Fetch subscription details if any
     const subRes = await pool.query(
-      'SELECT id, slot_number, plan, valid_till FROM subscriptions WHERE user_id = $1',
+      `SELECT s.id, s.slot_number, s.plan, s.valid_till, s.event_name as "eventName",
+              s.district_id as "districtId", s.mandal_id as "mandalId",
+              d.name AS "districtName", m.name AS "mandalName"
+       FROM subscriptions s
+       LEFT JOIN districts d ON s.district_id = d.id
+       LEFT JOIN mandals m ON s.mandal_id = m.id
+       WHERE s.user_id = $1`,
       [userId]
     );
 
@@ -117,7 +123,12 @@ const getMe = async (req, res) => {
       id: subRes.rows[0].id,
       slotNumber: subRes.rows[0].slot_number,
       plan: subRes.rows[0].plan,
-      validTill: subRes.rows[0].valid_till
+      validTill: subRes.rows[0].valid_till,
+      eventName: subRes.rows[0].eventName,
+      districtId: subRes.rows[0].districtId,
+      mandalId: subRes.rows[0].mandalId,
+      districtName: subRes.rows[0].districtName,
+      mandalName: subRes.rows[0].mandalName
     } : null;
 
     res.json({

@@ -22,7 +22,15 @@ const {
   approveSettlement,
   rejectSettlement,
   getEligibleVendorsForBooking,
-  reassignBookingVendor
+  reassignBookingVendor,
+  adminGetDistricts,
+  adminAddDistrict,
+  adminUpdateDistrict,
+  adminDeleteDistrict,
+  adminGetMandals,
+  adminAddMandal,
+  adminUpdateMandal,
+  adminDeleteMandal
 } = require('../controllers/adminController');
 const { authenticateAdmin } = require('../middleware/auth');
 
@@ -56,5 +64,17 @@ router.get('/services', authenticateAdmin, adminGetServices);
 router.post('/services', authenticateAdmin, adminAddService);
 router.put('/services/:id', authenticateAdmin, adminUpdateService);
 router.delete('/services/:id', authenticateAdmin, adminDeleteService);
+
+// Districts routes
+router.get('/districts', authenticateAdmin, adminGetDistricts);
+router.post('/districts', authenticateAdmin, adminAddDistrict);
+router.put('/districts/:id', authenticateAdmin, adminUpdateDistrict);
+router.delete('/districts/:id', authenticateAdmin, adminDeleteDistrict);
+
+// Mandals routes
+router.get('/mandals', authenticateAdmin, adminGetMandals);
+router.post('/mandals', authenticateAdmin, adminAddMandal);
+router.put('/mandals/:id', authenticateAdmin, adminUpdateMandal);
+router.delete('/mandals/:id', authenticateAdmin, adminDeleteMandal);
 
 module.exports = router;

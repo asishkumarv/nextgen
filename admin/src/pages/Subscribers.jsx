@@ -70,6 +70,8 @@ export default function Subscribers() {
                   <th>Slot Number</th>
                   <th>Subscriber Name</th>
                   <th>Phone Number</th>
+                  <th>District / Mandal</th>
+                  <th>Event Name</th>
                   <th>Subscription ID</th>
                   <th>Purchased Date</th>
                   <th>Expiry Date</th>
@@ -84,6 +86,15 @@ export default function Subscribers() {
                     </td>
                     <td style={{ fontWeight: '750', color: '#111827' }}>{s.name}</td>
                     <td>{s.phone}</td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: '700', color: '#374151' }}>{s.districtName || 'N/A'}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>{s.mandalName || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td style={{ fontWeight: '600', color: '#4B5563' }}>
+                      {s.eventName || 'N/A'}
+                    </td>
                     <td style={{ fontFamily: 'monospace', fontWeight: '600' }}>{s.subId}</td>
                     <td>{formatDate(s.subscribedAt)}</td>
                     <td style={{ color: '#0984E3', fontWeight: '700' }}>{formatDate(s.validTill)}</td>

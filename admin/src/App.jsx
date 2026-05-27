@@ -11,6 +11,8 @@ import Bookings from './pages/Bookings';
 import Services from './pages/Services';
 import Vendors from './pages/Vendors';
 import Settlements from './pages/Settlements';
+import Districts from './pages/Districts';
+import Mandals from './pages/Mandals';
 
 export default function App() {
   const [admin, setAdmin] = useState(null);
@@ -44,6 +46,10 @@ export default function App() {
         return <Dashboard key={refreshKey} onNavigateToView={setActiveView} />;
       case 'users':
         return <Users key={refreshKey} />;
+      case 'districts':
+        return <Districts key={refreshKey} />;
+      case 'mandals':
+        return <Mandals key={refreshKey} />;
       case 'subscribers':
         return <Subscribers key={refreshKey} />;
       case 'bookings':
