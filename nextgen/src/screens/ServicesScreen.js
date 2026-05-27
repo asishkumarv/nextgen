@@ -222,7 +222,7 @@ export default function ServicesScreen() {
     if (!activeBookingService) return;
     try {
       const addressString = `${houseNo}, ${street}, ${landmark} - ${pincode}`;
-      const priceToBook = bookedSlot ? 0.00 : (selectedMandal ? parseFloat(selectedMandal.booking_price) : activeBookingService.price);
+      const priceToBook = bookedSlot ? 0.00 : parseFloat(activeBookingService.price || 0);
       
       const newId = await addBooking(
         activeBookingService.title || '',
@@ -328,7 +328,7 @@ export default function ServicesScreen() {
   const renderBookingFlow = () => {
     if (!activeBookingService) return null;
     if (bookingSuccess) {
-      const priceToBook = bookedSlot ? 0.00 : (selectedMandal ? parseFloat(selectedMandal.booking_price) : activeBookingService.price);
+      const priceToBook = bookedSlot ? 0.00 : parseFloat(activeBookingService.price || 0);
       return (
         <View style={styles.successContainer}>
           <View style={styles.successCard}>
@@ -520,12 +520,7 @@ export default function ServicesScreen() {
 
                   {/* Event Name and Slot Number selectors removed for standard service bookings */}
 
-                  {selectedMandal && (
-                    <View style={styles.mandalPriceTag}>
-                      <Text style={styles.priceTagLabel}>Booking Price in {selectedMandal.name}: </Text>
-                      <Text style={styles.priceTagVal}>₹{parseFloat(selectedMandal.booking_price).toFixed(2)}</Text>
-                    </View>
-                  )}
+                  {/* Mandal booking price display removed */}
                 </View>
               )}
 
@@ -701,7 +696,7 @@ export default function ServicesScreen() {
                 <View style={styles.reviewHeader}>
                   <Text style={styles.reviewServiceTitle}>{activeBookingService?.title}</Text>
                   <Text style={styles.reviewServicePrice}>
-                    {bookedSlot ? 'Free' : `₹${selectedMandal ? parseFloat(selectedMandal.booking_price).toFixed(2) : activeBookingService?.price}`}
+                    {bookedSlot ? 'Free' : `₹${parseFloat(activeBookingService?.price || 0).toFixed(2)}`}
                   </Text>
                 </View>
                 

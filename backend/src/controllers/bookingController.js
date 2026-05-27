@@ -73,7 +73,16 @@ const createBooking = async (req, res) => {
     const subCheck = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1', [userId]);
     const isSubscribed = subCheck.rows.length > 0;
     
-    let computedPrice = parseFloat(price || 0);
+    // Fetch the service price from database
+    const serviceRes = await pool.query('SELECT price FROM services WHERE LOWER(title) = LOWER($1)', [serviceName.trim()]);
+    let servicePrice = 0.00;
+    if (serviceRes.rows.length > 0) {
+      servicePrice = parseFloat(serviceRes.rows[0].price);
+    } else {
+      servicePrice = parseFloat(price || 0);
+    }
+
+    let computedPrice = servicePrice;
     let finalDistrictId = districtId;
     let finalMandalId = mandalId;
     let finalEventName = eventName;
@@ -86,11 +95,6 @@ const createBooking = async (req, res) => {
       if (!finalMandalId) finalMandalId = sub.mandal_id;
       if (!finalEventName) finalEventName = sub.event_name;
       if (!finalSlotNumber) finalSlotNumber = sub.slot_number;
-    } else if (mandalId) {
-      const mandalRes = await pool.query('SELECT booking_price FROM mandals WHERE id = $1', [mandalId]);
-      if (mandalRes.rows.length > 0) {
-        computedPrice = parseFloat(mandalRes.rows[0].booking_price);
-      }
     }
 
     // Find the vendor with the least workload offering this service
