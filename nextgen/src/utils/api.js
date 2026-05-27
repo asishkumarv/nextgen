@@ -2,28 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const getApiUrl = () => {
-  // Use Render production backend URL by default as requested.
-  return 'https://nextgen-8hi5.onrender.com/api';
-
-  /*
   if (Platform.OS === 'web') {
     if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
       return 'http://localhost:5000/api';
     }
   }
-  const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : true;
-  if (isDev) {
-    // If running in development on a native device/emulator, dynamically resolve local IP
-    const hostUri = Constants.expoConfig?.hostUri;
-    if (hostUri) {
-      const ip = hostUri.split(':')[0];
-      return `http://${ip}:5000/api`;
-    }
-    return 'http://localhost:5000/api';
-  }
-  // Production URL (Render backend)
+  // Default fallback (Render backend)
   return 'https://nextgen-8hi5.onrender.com/api';
-  */
 };
 
 export const API_URL = getApiUrl();

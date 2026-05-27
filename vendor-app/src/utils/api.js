@@ -2,7 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const getApiUrl = () => {
-  // Production URL (Render backend) or Fallback to local
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      return 'http://localhost:5000/api';
+    }
+  }
+  // Production URL (Render backend)
   return 'https://nextgen-8hi5.onrender.com/api';
 };
 

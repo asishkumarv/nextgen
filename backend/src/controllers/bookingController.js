@@ -47,8 +47,16 @@ const createBooking = async (req, res) => {
   }
 
   try {
-    // Generate Booking ID (e.g. B-1042)
-    const randomId = `B-${Math.floor(1000 + Math.random() * 9000)}`;
+    // Generate unique Booking ID (e.g. B-1042)
+    let randomId;
+    let isUnique = false;
+    while (!isUnique) {
+      randomId = `B-${Math.floor(1000 + Math.random() * 9000)}`;
+      const check = await pool.query('SELECT id FROM bookings WHERE id = $1', [randomId]);
+      if (check.rows.length === 0) {
+        isUnique = true;
+      }
+    }
     
     // Choose appropriate icon
     let iconName = 'construct-outline';
