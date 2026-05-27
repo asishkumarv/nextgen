@@ -17,8 +17,7 @@ export default function Mandals() {
     name: '',
     event_names: '',
     slots: '',
-    subscription_price: '',
-    booking_price: ''
+    subscription_price: ''
   });
 
   const fetchData = async () => {
@@ -49,8 +48,7 @@ export default function Mandals() {
       name: '',
       event_names: '',
       slots: '',
-      subscription_price: '2999.00',
-      booking_price: '199.00'
+      subscription_price: '2999.00'
     });
     setModalOpen(true);
   };
@@ -62,8 +60,7 @@ export default function Mandals() {
       name: mandal.name,
       event_names: mandal.event_names,
       slots: mandal.slots,
-      subscription_price: mandal.subscription_price,
-      booking_price: mandal.booking_price
+      subscription_price: mandal.subscription_price
     });
     setModalOpen(true);
   };
@@ -83,18 +80,17 @@ export default function Mandals() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { district_id, name, event_names, slots, subscription_price, booking_price } = formData;
+    const { district_id, name, event_names, slots, subscription_price } = formData;
     
-    if (!district_id || !name.trim() || !event_names.trim() || !slots.trim() || subscription_price === '' || booking_price === '') {
+    if (!district_id || !name.trim() || !event_names.trim() || !slots.trim() || subscription_price === '') {
       alert('Please fill out all fields');
       return;
     }
 
     const subPriceNum = parseFloat(subscription_price);
-    const bookPriceNum = parseFloat(booking_price);
 
-    if (isNaN(subPriceNum) || subPriceNum < 0 || isNaN(bookPriceNum) || bookPriceNum < 0) {
-      alert('Please enter valid prices');
+    if (isNaN(subPriceNum) || subPriceNum < 0) {
+      alert('Please enter valid subscription price');
       return;
     }
 
@@ -104,8 +100,7 @@ export default function Mandals() {
         name: name.trim(),
         event_names: event_names.trim(),
         slots: slots.trim(),
-        subscription_price: subPriceNum,
-        booking_price: bookPriceNum
+        subscription_price: subPriceNum
       };
 
       if (editingMandal) {
@@ -213,10 +208,6 @@ export default function Mandals() {
                     <span style={styles.priceLabel}>Subscription</span>
                     <span style={styles.priceVal}>₹{parseFloat(mandal.subscription_price).toFixed(2)}</span>
                   </div>
-                  <div style={styles.priceCell}>
-                    <span style={styles.priceLabel}>Booking Charge</span>
-                    <span style={styles.priceVal}>₹{parseFloat(mandal.booking_price).toFixed(2)}</span>
-                  </div>
                 </div>
               </div>
 
@@ -307,32 +298,17 @@ export default function Mandals() {
                 />
               </div>
 
-              <div style={styles.formRow}>
-                <div style={{ ...styles.inputGroup, flex: 1 }}>
-                  <label style={styles.label}>Subscription Price (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="e.g. 2999"
-                    style={styles.formInput}
-                    value={formData.subscription_price}
-                    onChange={(e) => setFormData({ ...formData, subscription_price: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div style={{ ...styles.inputGroup, flex: 1 }}>
-                  <label style={styles.label}>Booking Price (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="e.g. 199"
-                    style={styles.formInput}
-                    value={formData.booking_price}
-                    onChange={(e) => setFormData({ ...formData, booking_price: e.target.value })}
-                    required
-                  />
-                </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Subscription Price (₹) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g. 2999"
+                  style={styles.formInput}
+                  value={formData.subscription_price}
+                  onChange={(e) => setFormData({ ...formData, subscription_price: e.target.value })}
+                  required
+                />
               </div>
 
               <div style={styles.modalActions}>

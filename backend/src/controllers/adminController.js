@@ -344,6 +344,10 @@ const getVendors = async (req, res) => {
         v.phone, 
         v.status, 
         v.created_at AS "createdAt",
+        v.district_id AS "districtId",
+        v.mandal_id AS "mandalId",
+        d.name AS "districtName",
+        m.name AS "mandalName",
         (
           SELECT COALESCE(ARRAY_AGG(s.title), '{}')
           FROM vendor_services vs
@@ -354,6 +358,8 @@ const getVendors = async (req, res) => {
         COALESCE(b_stats.completed_count, 0)::int AS "completedCount",
         COALESCE(b_stats.total_earnings, 0)::float AS "totalEarnings"
       FROM vendors v
+      LEFT JOIN districts d ON v.district_id = d.id
+      LEFT JOIN mandals m ON v.mandal_id = m.id
       LEFT JOIN (
         SELECT 
           vendor_id,
@@ -363,7 +369,7 @@ const getVendors = async (req, res) => {
         FROM bookings
         GROUP BY vendor_id
       ) b_stats ON v.id = b_stats.vendor_id
-      GROUP BY v.id, b_stats.assigned_count, b_stats.completed_count, b_stats.total_earnings
+      GROUP BY v.id, d.name, m.name, b_stats.assigned_count, b_stats.completed_count, b_stats.total_earnings
       ORDER BY v.created_at DESC
     `);
 
@@ -722,7 +728,7 @@ const adminGetMandals = async (req, res) => {
 
 const adminAddMandal = async (req, res) => {
   const { district_id, name, event_names, slots, subscription_price, booking_price } = req.body;
-  if (!district_id || !name || !event_names || !slots || subscription_price === undefined || booking_price === undefined) {
+  if (!district_id || !name || !event_names || !slots || subscription_price === undefined) {
     return res.status(400).json({ message: 'Please enter all fields' });
   }
   try {
@@ -730,10 +736,11 @@ const adminAddMandal = async (req, res) => {
     if (check.rows.length > 0) {
       return res.status(400).json({ message: 'Mandal already exists in this district' });
     }
+    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
     const result = await pool.query(
       `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [district_id, name, event_names, slots, parseFloat(subscription_price), parseFloat(booking_price)]
+      [district_id, name, event_names, slots, parseFloat(subscription_price), bookPrice]
     );
     const createdMandal = result.rows[0];
     const dNameRes = await pool.query('SELECT name FROM districts WHERE id = $1', [district_id]);
@@ -748,7 +755,7 @@ const adminAddMandal = async (req, res) => {
 const adminUpdateMandal = async (req, res) => {
   const { id } = req.params;
   const { district_id, name, event_names, slots, subscription_price, booking_price } = req.body;
-  if (!district_id || !name || !event_names || !slots || subscription_price === undefined || booking_price === undefined) {
+  if (!district_id || !name || !event_names || !slots || subscription_price === undefined) {
     return res.status(400).json({ message: 'Please enter all fields' });
   }
   try {
@@ -756,11 +763,12 @@ const adminUpdateMandal = async (req, res) => {
     if (check.rows.length > 0) {
       return res.status(400).json({ message: 'Another mandal with this name already exists in this district' });
     }
+    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
     const result = await pool.query(
       `UPDATE mandals 
        SET district_id = $1, name = $2, event_names = $3, slots = $4, subscription_price = $5, booking_price = $6 
        WHERE id = $7 RETURNING *`,
-      [district_id, name, event_names, slots, parseFloat(subscription_price), parseFloat(booking_price), id]
+      [district_id, name, event_names, slots, parseFloat(subscription_price), bookPrice, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Mandal not found' });

@@ -112,14 +112,16 @@ export const VendorProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, phone, password, existingServices, newService) => {
+  const register = async (name, phone, password, existingServices, newService, districtId, mandalId) => {
     try {
       const data = await api.post('/vendor/register', {
         name,
         phone,
         password,
         existingServices,
-        newService
+        newService,
+        districtId,
+        mandalId
       });
       return { success: true, message: data.message };
     } catch (error) {

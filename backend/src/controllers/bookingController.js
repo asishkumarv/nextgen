@@ -92,20 +92,22 @@ const createBooking = async (req, res) => {
     const leaveDateCheck = parseToDateString(date);
 
     const vendorQuery = await pool.query(`
-      SELECT v.id, COUNT(b.id) AS booking_count
+      SELECT v.id, COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END) AS booking_count
       FROM vendors v
       JOIN vendor_services vs ON v.id = vs.vendor_id
       JOIN services s ON vs.service_id = s.id
       LEFT JOIN bookings b ON v.id = b.vendor_id
       WHERE LOWER(s.title) = LOWER($1) 
         AND v.status = 'Approved'
+        AND v.district_id = $2
+        AND v.mandal_id = $3
         AND v.id NOT IN (
-          SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
+          SELECT vendor_id FROM vendor_leaves WHERE leave_date = $4
         )
       GROUP BY v.id
       ORDER BY booking_count ASC, v.id ASC
       LIMIT 1
-    `, [serviceName.trim(), leaveDateCheck]);
+    `, [serviceName.trim(), finalDistrictId, finalMandalId, leaveDateCheck]);
 
     if (vendorQuery.rows.length > 0) {
       assignedVendorId = vendorQuery.rows[0].id;

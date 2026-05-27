@@ -118,6 +118,7 @@ export default function Vendors() {
               <thead>
                 <tr>
                   <th>Vendor Info</th>
+                  <th>District / Mandal</th>
                   <th>Offered Services</th>
                   <th>Workload (Done / Assigned)</th>
                   <th>Revenue Generated</th>
@@ -144,6 +145,16 @@ export default function Vendors() {
                               Registered: {formatDate(v.createdAt)}
                             </div>
                           </div>
+                        </td>
+                        <td>
+                          {v.districtName && v.mandalName ? (
+                            <div>
+                              <div style={{ fontWeight: '650', color: '#374151', fontSize: '0.9rem' }}>{v.districtName}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#6B7280', marginTop: '2px' }}>{v.mandalName}</div>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#9CA3AF', fontSize: '0.8rem', fontStyle: 'italic' }}>Not specified</span>
+                          )}
                         </td>
                         <td style={{ maxWidth: '220px' }}>
                           <div style={styles.servicesList}>
@@ -239,7 +250,7 @@ export default function Vendors() {
                       </tr>
                       {isExpanded && (
                         <tr>
-                          <td colSpan="6" style={styles.expandedRow}>
+                          <td colSpan="7" style={styles.expandedRow}>
                             <div style={styles.tasksContainer}>
                               <h4 style={styles.tasksHeader}>Tasks list for {v.name}</h4>
                               {v.tasks && v.tasks.length > 0 ? (

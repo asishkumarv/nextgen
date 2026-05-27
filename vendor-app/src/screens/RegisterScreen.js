@@ -16,6 +16,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVendor } from '../context/VendorContext';
 import Toast from '../components/Toast';
+import { api } from '../utils/api';
 
 export default function RegisterScreen({ onNavigateToLogin }) {
   const insets = useSafeAreaInsets();
@@ -37,6 +38,45 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   const [customTitle, setCustomTitle] = useState('');
   const [customSubtitle, setCustomSubtitle] = useState('');
   const [customPrice, setCustomPrice] = useState('');
+
+  // Districts and Mandals state
+  const [districts, setDistricts] = useState([]);
+  const [mandals, setMandals] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedMandal, setSelectedMandal] = useState(null);
+  const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
+  const [mandalDropdownOpen, setMandalDropdownOpen] = useState(false);
+
+  // Fetch districts on mount
+  useEffect(() => {
+    const loadDistricts = async () => {
+      try {
+        const data = await api.get('/subscription/districts');
+        setDistricts(data || []);
+      } catch (err) {
+        console.warn('Failed to load districts:', err.message);
+      }
+    };
+    loadDistricts();
+  }, []);
+
+  // Fetch mandals when district changes
+  useEffect(() => {
+    if (!selectedDistrict) {
+      setMandals([]);
+      setSelectedMandal(null);
+      return;
+    }
+    const loadMandals = async () => {
+      try {
+        const data = await api.get(`/subscription/mandals?districtId=${selectedDistrict.id}`);
+        setMandals(data || []);
+      } catch (err) {
+        console.warn('Failed to load mandals:', err.message);
+      }
+    };
+    loadMandals();
+  }, [selectedDistrict]);
 
   // Local UX states
   const [loading, setLoading] = useState(false);
@@ -63,6 +103,12 @@ export default function RegisterScreen({ onNavigateToLogin }) {
       localErrors.password = 'Password is required';
     } else if (password.length < 6) {
       localErrors.password = 'Password must be at least 6 characters';
+    }
+    if (!selectedDistrict) {
+      localErrors.district = 'District selection is required';
+    }
+    if (!selectedMandal) {
+      localErrors.mandal = 'Mandal selection is required';
     }
 
     setErrors(localErrors);
@@ -128,7 +174,9 @@ export default function RegisterScreen({ onNavigateToLogin }) {
       phone.trim(),
       password,
       selectedServices,
-      newServiceObj
+      newServiceObj,
+      selectedDistrict ? selectedDistrict.id : null,
+      selectedMandal ? selectedMandal.id : null
     );
     setLoading(false);
 
@@ -217,6 +265,53 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <View style={styles.fieldErrorRow}>
                     <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
                     <Text style={styles.fieldErrorText}>{errors.phone}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* District Select */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>District</Text>
+                <TouchableOpacity 
+                  style={[styles.dropdownBtn, errors.district ? styles.inputWrapperError : null]} 
+                  onPress={() => setDistrictDropdownOpen(true)}
+                >
+                  <Ionicons name="map-outline" size={18} color={errors.district ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                  <Text style={[styles.dropdownText, !selectedDistrict && { color: '#9CA3AF' }]}>
+                    {selectedDistrict ? selectedDistrict.name : "Select District"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="#6B7280" style={{ marginLeft: 'auto' }} />
+                </TouchableOpacity>
+                {errors.district ? (
+                  <View style={styles.fieldErrorRow}>
+                    <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                    <Text style={styles.fieldErrorText}>{errors.district}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Mandal Select */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Mandal</Text>
+                <TouchableOpacity 
+                  style={[
+                    styles.dropdownBtn, 
+                    !selectedDistrict && styles.dropdownDisabled,
+                    errors.mandal ? styles.inputWrapperError : null
+                  ]} 
+                  onPress={() => selectedDistrict && setMandalDropdownOpen(true)}
+                  disabled={!selectedDistrict}
+                >
+                  <Ionicons name="location-outline" size={18} color={errors.mandal ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                  <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#9CA3AF' }]}>
+                    {selectedMandal ? selectedMandal.name : "Select Mandal"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="#6B7280" style={{ marginLeft: 'auto' }} />
+                </TouchableOpacity>
+                {errors.mandal ? (
+                  <View style={styles.fieldErrorRow}>
+                    <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                    <Text style={styles.fieldErrorText}>{errors.mandal}</Text>
                   </View>
                 ) : null}
               </View>
@@ -392,6 +487,16 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <Text style={styles.reviewVal}>{phone}</Text>
                 </View>
 
+                <View style={styles.reviewItem}>
+                  <Text style={styles.reviewLabel}>District</Text>
+                  <Text style={styles.reviewVal}>{selectedDistrict?.name}</Text>
+                </View>
+
+                <View style={styles.reviewItem}>
+                  <Text style={styles.reviewLabel}>Mandal</Text>
+                  <Text style={styles.reviewVal}>{selectedMandal?.name}</Text>
+                </View>
+
                 <View style={styles.reviewDivider} />
 
                 <Text style={styles.reviewHeader}>Skills Summary</Text>
@@ -454,12 +559,156 @@ export default function RegisterScreen({ onNavigateToLogin }) {
           visible={toastVisible}
           onHide={() => setToastVisible(false)}
         />
+
+        {/* District Dropdown Modal Overlay */}
+        {districtDropdownOpen && (
+          <View style={styles.dropdownModalBg}>
+            <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setDistrictDropdownOpen(false)} />
+            <View style={styles.dropdownListContainer}>
+              <View style={styles.dropdownListHeader}>
+                <Text style={styles.dropdownListTitle}>Select District</Text>
+                <TouchableOpacity onPress={() => setDistrictDropdownOpen(false)}>
+                  <Ionicons name="close" size={24} color="#374151" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.dropdownListScroll}>
+                {districts.map(d => (
+                  <TouchableOpacity 
+                    key={d.id} 
+                    style={styles.dropdownListItem} 
+                    onPress={() => {
+                      setSelectedDistrict(d);
+                      setDistrictDropdownOpen(false);
+                      setSelectedMandal(null);
+                      setErrors(prev => ({ ...prev, district: '' }));
+                    }}
+                  >
+                    <Text style={styles.dropdownListItemText}>{d.name}</Text>
+                    {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#00B894" />}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+
+        {/* Mandal Dropdown Modal Overlay */}
+        {mandalDropdownOpen && (
+          <View style={styles.dropdownModalBg}>
+            <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setMandalDropdownOpen(false)} />
+            <View style={styles.dropdownListContainer}>
+              <View style={styles.dropdownListHeader}>
+                <Text style={styles.dropdownListTitle}>Select Mandal</Text>
+                <TouchableOpacity onPress={() => setMandalDropdownOpen(false)}>
+                  <Ionicons name="close" size={24} color="#374151" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.dropdownListScroll}>
+                {mandals.map(m => (
+                  <TouchableOpacity 
+                    key={m.id} 
+                    style={styles.dropdownListItem} 
+                    onPress={() => {
+                      setSelectedMandal(m);
+                      setMandalDropdownOpen(false);
+                      setErrors(prev => ({ ...prev, mandal: '' }));
+                    }}
+                  >
+                    <Text style={styles.dropdownListItemText}>{m.name}</Text>
+                    {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#00B894" />}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  dropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  dropdownDisabled: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#D1D5DB',
+    opacity: 0.6,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '500',
+  },
+  dropdownModalBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    zIndex: 2000,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  dropdownModalDismiss: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  dropdownListContainer: {
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    width: '100%',
+    maxHeight: '60%',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  dropdownListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  dropdownListTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  dropdownListScroll: {
+    flexGrow: 0,
+  },
+  dropdownListItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: '#F9FAFB',
+  },
+  dropdownListItemText: {
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '600',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F7FB',

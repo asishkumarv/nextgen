@@ -219,7 +219,7 @@ export default function Services() {
                   <p style={styles.serviceSubtitle}>{service.subtitle}</p>
                   
                   <div style={styles.priceRow}>
-                    <span style={styles.priceLabel}>Booking Charge</span>
+                    <span style={styles.priceLabel}>Service Price</span>
                     <span style={styles.priceVal}>₹{parseFloat(service.price).toFixed(2)}</span>
                   </div>
 

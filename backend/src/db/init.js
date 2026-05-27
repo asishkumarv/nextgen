@@ -8,10 +8,7 @@ const createTables = async () => {
     
     // Drop existing tables to perform clean migration
     console.log('Dropping existing tables to migrate schema...');
-    await client.query('DROP TABLE IF EXISTS bookings CASCADE;');
-    await client.query('DROP TABLE IF EXISTS subscriptions CASCADE;');
-    await client.query('DROP TABLE IF EXISTS mandals CASCADE;');
-    await client.query('DROP TABLE IF EXISTS districts CASCADE;');
+    await client.query('DROP TABLE IF EXISTS bookings, subscriptions, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, users, admins CASCADE;');
 
     // Create Districts Table
     await client.query(`
@@ -71,6 +68,8 @@ const createTables = async () => {
         phone VARCHAR(20) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         status VARCHAR(20) DEFAULT 'Pending',
+        district_id INTEGER REFERENCES districts(id) ON DELETE SET NULL,
+        mandal_id INTEGER REFERENCES mandals(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -220,6 +219,26 @@ const createTables = async () => {
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
       [gunturId, 'Tenali', 'Motor Repair, Fan Fix, Socket Replacement', '401, 402, 403', 2199.00, 129.00]
     );
+
+    // Seed Technician John (Vendor)
+    console.log('Seeding mock approved vendor Technician John...');
+    const vendorPasswordHash = bcrypt.hashSync('password123', 10);
+    const vendorRes = await client.query(
+      `INSERT INTO vendors (name, phone, password, district_id, mandal_id, status) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      ['Technician John', '+91 99999 88888', vendorPasswordHash, krishnaId, mandal1.rows[0].id, 'Approved']
+    );
+    const vendorId = vendorRes.rows[0].id;
+
+    // Link the seeded vendor to default services
+    console.log('Linking vendor to default services...');
+    const servicesRes = await client.query('SELECT id FROM services');
+    for (const serviceRow of servicesRes.rows) {
+      await client.query(
+        'INSERT INTO vendor_services (vendor_id, service_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [vendorId, serviceRow.id]
+      );
+    }
 
     // Seed mock Users, Subscriptions, and Bookings
     console.log('Seeding mock users, subscriptions, and bookings...');

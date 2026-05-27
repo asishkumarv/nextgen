@@ -201,7 +201,7 @@ export default function ServicesScreen() {
   };
 
   const handleNextStep = () => {
-    if (bookingStep === 2 && !bookedSlot && (!selectedDistrict || !selectedMandal || !selectedEvent || !selectedSlot)) {
+    if (bookingStep === 2 && !bookedSlot && (!selectedDistrict || !selectedMandal)) {
       alert('Please complete all location selections');
       return;
     }
@@ -232,8 +232,8 @@ export default function ServicesScreen() {
         addressString,
         bookedSlot ? bookingDetails?.districtId : selectedDistrict?.id,
         bookedSlot ? bookingDetails?.mandalId : selectedMandal?.id,
-        bookedSlot ? bookingDetails?.slotNumber : selectedSlot,
-        bookedSlot ? bookingDetails?.eventName : selectedEvent
+        bookedSlot ? bookingDetails?.slotNumber : null,
+        bookedSlot ? bookingDetails?.eventName : null
       );
       setCreatedBookingId(newId);
       setBookingSuccess(true);
@@ -492,7 +492,7 @@ export default function ServicesScreen() {
                     
                     <View style={styles.divider} />
                     
-                    <Text style={styles.subDiscountText}>Booking Charge: ₹0.00 (Paid via Subscription)</Text>
+                    <Text style={styles.subDiscountText}>Service Booking: Free (Power Care Subscriber)</Text>
                   </LinearGradient>
                 </View>
               ) : (
@@ -518,29 +518,7 @@ export default function ServicesScreen() {
                     <Ionicons name="chevron-down" size={16} color="#6B7280" />
                   </TouchableOpacity>
 
-                  <Text style={styles.fieldHeading}>Select Event Name</Text>
-                  <TouchableOpacity 
-                    style={[styles.dropdownBtn, !selectedMandal && styles.dropdownDisabled]} 
-                    onPress={() => selectedMandal && setEventDropdownOpen(true)}
-                    disabled={!selectedMandal}
-                  >
-                    <Text style={[styles.dropdownText, (!selectedEvent || !selectedMandal) && { color: '#9CA3AF' }]}>
-                      {selectedEvent ? selectedEvent : "Select Event"}
-                    </Text>
-                    <Ionicons name="chevron-down" size={16} color="#6B7280" />
-                  </TouchableOpacity>
-
-                  <Text style={styles.fieldHeading}>Select Slot Number</Text>
-                  <TouchableOpacity 
-                    style={[styles.dropdownBtn, !selectedMandal && styles.dropdownDisabled]} 
-                    onPress={() => selectedMandal && setSlotDropdownOpen(true)}
-                    disabled={!selectedMandal}
-                  >
-                    <Text style={[styles.dropdownText, (!selectedSlot || !selectedMandal) && { color: '#9CA3AF' }]}>
-                      {selectedSlot ? `Slot #${selectedSlot}` : "Select Slot"}
-                    </Text>
-                    <Ionicons name="chevron-down" size={16} color="#6B7280" />
-                  </TouchableOpacity>
+                  {/* Event Name and Slot Number selectors removed for standard service bookings */}
 
                   {selectedMandal && (
                     <View style={styles.mandalPriceTag}>
@@ -723,7 +701,7 @@ export default function ServicesScreen() {
                 <View style={styles.reviewHeader}>
                   <Text style={styles.reviewServiceTitle}>{activeBookingService?.title}</Text>
                   <Text style={styles.reviewServicePrice}>
-                    ₹{bookedSlot ? '0.00' : (selectedMandal ? parseFloat(selectedMandal.booking_price).toFixed(2) : activeBookingService?.price)}
+                    {bookedSlot ? 'Free' : `₹${selectedMandal ? parseFloat(selectedMandal.booking_price).toFixed(2) : activeBookingService?.price}`}
                   </Text>
                 </View>
                 
@@ -750,12 +728,14 @@ export default function ServicesScreen() {
                   </Text>
                 </View>
 
-                <View style={styles.reviewItem}>
-                  <Ionicons name="ticket-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
-                  <Text style={styles.reviewText}>
-                    Event & Slot: {bookedSlot ? bookingDetails?.eventName : selectedEvent} (Slot #{bookedSlot ? bookingDetails?.slotNumber : selectedSlot})
-                  </Text>
-                </View>
+                {bookedSlot && (
+                  <View style={styles.reviewItem}>
+                    <Ionicons name="ticket-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
+                    <Text style={styles.reviewText}>
+                      Event & Slot: {bookingDetails?.eventName} (Slot #{bookingDetails?.slotNumber})
+                    </Text>
+                  </View>
+                )}
 
                 <View style={styles.reviewDivider} />
 

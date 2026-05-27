@@ -4,10 +4,10 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const vendorRegister = async (req, res) => {
-  const { name, phone, password, existingServices, newService } = req.body;
+  const { name, phone, password, existingServices, newService, districtId, mandalId } = req.body;
 
-  if (!name || !phone || !password) {
-    return res.status(400).json({ message: 'Please enter all required fields' });
+  if (!name || !phone || !password || !districtId || !mandalId) {
+    return res.status(400).json({ message: 'Please enter all required fields including District and Mandal' });
   }
 
   const client = await pool.connect();
@@ -27,8 +27,8 @@ const vendorRegister = async (req, res) => {
 
     // Insert vendor
     const newVendorRes = await client.query(
-      'INSERT INTO vendors (name, phone, password, status) VALUES ($1, $2, $3, $4) RETURNING id, name, phone, status',
-      [name, phone, passwordHash, 'Pending']
+      'INSERT INTO vendors (name, phone, password, status, district_id, mandal_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, phone, status',
+      [name, phone, passwordHash, 'Pending', districtId, mandalId]
     );
     const vendor = newVendorRes.rows[0];
 
@@ -189,7 +189,10 @@ const getVendorMe = async (req, res) => {
 
   try {
     // 1. Fetch vendor profile
-    const vendorRes = await pool.query('SELECT id, name, phone, status, created_at FROM vendors WHERE id = $1', [vendorId]);
+    const vendorRes = await pool.query(
+      'SELECT id, name, phone, status, district_id AS "districtId", mandal_id AS "mandalId", created_at FROM vendors WHERE id = $1',
+      [vendorId]
+    );
     if (vendorRes.rows.length === 0) {
       return res.status(404).json({ message: 'Vendor not found' });
     }
