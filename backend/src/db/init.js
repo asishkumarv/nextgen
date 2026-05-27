@@ -1,14 +1,16 @@
 const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 
-const createTables = async () => {
+const createTables = async (dropExisting = false) => {
   const client = await pool.connect();
   try {
     console.log('Initializing database tables...');
     
-    // Drop existing tables to perform clean migration
-    console.log('Dropping existing tables to migrate schema...');
-    await client.query('DROP TABLE IF EXISTS bookings, subscriptions, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, users, admins CASCADE;');
+    if (dropExisting) {
+      // Drop existing tables to perform clean migration
+      console.log('Dropping existing tables to migrate schema...');
+      await client.query('DROP TABLE IF EXISTS bookings, subscriptions, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, users, admins CASCADE;');
+    }
 
     // Create Districts Table
     await client.query(`
@@ -186,8 +188,9 @@ const createTables = async () => {
       console.log('Services seeded successfully.');
     }
 
-    // Seed Districts and Mandals
-    console.log('Seeding Districts and Mandals...');
+    if (dropExisting) {
+      // Seed Districts and Mandals
+      console.log('Seeding Districts and Mandals...');
     const district1 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Krishna']);
     const district2 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Guntur']);
     const district3 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Visakhapatnam']);
@@ -309,7 +312,8 @@ const createTables = async () => {
       );
     }
 
-    console.log('Seeded database successfully.');
+      console.log('Seeded database successfully.');
+    }
   } catch (error) {
     console.error('Error initializing database:', error);
     throw error;
@@ -319,7 +323,7 @@ const createTables = async () => {
 };
 
 if (require.main === module) {
-  createTables()
+  createTables(true)
     .then(() => {
       console.log('Database script ran successfully.');
       process.exit(0);

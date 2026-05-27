@@ -4,6 +4,32 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { Service } = require('../models/dbModel');
 
+const parseSlotsRange = (slotsStr) => {
+  if (!slotsStr) return '';
+  const parts = slotsStr.split(',');
+  const expanded = [];
+  
+  for (let part of parts) {
+    part = part.trim();
+    if (part.includes('-')) {
+      const rangeParts = part.split('-');
+      if (rangeParts.length === 2) {
+        const start = parseInt(rangeParts[0].trim(), 10);
+        const end = parseInt(rangeParts[1].trim(), 10);
+        if (!isNaN(start) && !isNaN(end) && start <= end) {
+          for (let i = start; i <= end; i++) {
+            expanded.push(String(i));
+          }
+          continue;
+        }
+      }
+    }
+    if (part) expanded.push(part);
+  }
+  
+  return expanded.join(', ');
+};
+
 const adminLogin = async (req, res) => {
   const { email, password } = req.body;
 
@@ -737,10 +763,11 @@ const adminAddMandal = async (req, res) => {
       return res.status(400).json({ message: 'Mandal already exists in this district' });
     }
     const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
+    const expandedSlots = parseSlotsRange(slots);
     const result = await pool.query(
       `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [district_id, name, event_names, slots, parseFloat(subscription_price), bookPrice]
+      [district_id, name, event_names, expandedSlots, parseFloat(subscription_price), bookPrice]
     );
     const createdMandal = result.rows[0];
     const dNameRes = await pool.query('SELECT name FROM districts WHERE id = $1', [district_id]);
@@ -764,11 +791,12 @@ const adminUpdateMandal = async (req, res) => {
       return res.status(400).json({ message: 'Another mandal with this name already exists in this district' });
     }
     const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
+    const expandedSlots = parseSlotsRange(slots);
     const result = await pool.query(
       `UPDATE mandals 
        SET district_id = $1, name = $2, event_names = $3, slots = $4, subscription_price = $5, booking_price = $6 
        WHERE id = $7 RETURNING *`,
-      [district_id, name, event_names, slots, parseFloat(subscription_price), bookPrice, id]
+      [district_id, name, event_names, expandedSlots, parseFloat(subscription_price), bookPrice, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Mandal not found' });

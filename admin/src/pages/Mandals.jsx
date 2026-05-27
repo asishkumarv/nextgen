@@ -116,6 +116,37 @@ export default function Mandals() {
     }
   };
 
+  const previewSlotsExpanded = (slotsStr) => {
+    if (!slotsStr) return '';
+    const parts = slotsStr.split(',');
+    const expanded = [];
+    
+    for (let part of parts) {
+      part = part.trim();
+      if (part.includes('-')) {
+        const rangeParts = part.split('-');
+        if (rangeParts.length === 2) {
+          const start = parseInt(rangeParts[0].trim(), 10);
+          const end = parseInt(rangeParts[1].trim(), 10);
+          if (!isNaN(start) && !isNaN(end) && start <= end) {
+            for (let i = start; i <= end; i++) {
+              expanded.push(i);
+            }
+            continue;
+          }
+        }
+      }
+      if (part) expanded.push(part);
+    }
+    return expanded.join(', ');
+  };
+
+  const previewSlotsCount = (slotsStr) => {
+    if (!slotsStr) return 0;
+    const expandedStr = previewSlotsExpanded(slotsStr);
+    return expandedStr ? expandedStr.split(',').length : 0;
+  };
+
   const filteredMandals = mandals.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
     m.districtName.toLowerCase().includes(search.toLowerCase())
@@ -287,15 +318,23 @@ export default function Mandals() {
               </div>
 
               <div style={styles.inputGroup}>
-                <label style={styles.label}>Slot numbers (Comma separated) *</label>
+                <label style={styles.label}>Slot numbers (Comma separated or ranges like 101-110) *</label>
                 <input
                   type="text"
-                  placeholder="e.g. 101, 102, 103, 104, 105"
+                  placeholder="e.g. 101-105, 110, 112-115"
                   style={styles.formInput}
                   value={formData.slots}
                   onChange={(e) => setFormData({ ...formData, slots: e.target.value })}
                   required
                 />
+                {formData.slots ? (
+                  <div style={{ marginTop: '6px', padding: '10px', backgroundColor: '#F9FAFB', borderRadius: '8px', border: '1px dashed #D1D5DB' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: '750', color: '#6B7280', textTransform: 'uppercase' }}>Preview ({previewSlotsCount(formData.slots)} slots):</span>
+                    <p style={{ fontSize: '0.8rem', color: '#374151', marginTop: '2px', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                      {previewSlotsExpanded(formData.slots)}
+                    </p>
+                  </div>
+                ) : null}
               </div>
 
               <div style={styles.inputGroup}>
