@@ -1,8 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { createTables } = require('./db/init');
-
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
@@ -45,13 +43,6 @@ app.use((err, req, res, next) => {
 
 // Auto-initialize DB and start server
 const startServer = async () => {
-  try {
-    // Attempt database table initialization
-    await createTables();
-  } catch (error) {
-    console.warn('Database initialization warning: Could not run DB schema queries. Ensure DATABASE_URL is correct and active. Details:', error.message);
-  }
-
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
   });

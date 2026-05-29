@@ -4,7 +4,7 @@ import { Search, CheckCircle2, Clock, Trash2, MapPin } from 'lucide-react';
 
 export default function Bookings() {
   const [bookings, setBookings] = useState([]);
-  const [statusTab, setStatusTab] = useState('All'); // 'All', 'Booked', 'Completed'
+  const [statusTab, setStatusTab] = useState('All'); // 'All', 'Booked', 'Assigned', 'Completed'
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -96,7 +96,7 @@ export default function Bookings() {
   const activeBooking = bookings.find((b) => b.id === activeBookingId);
   const isUnassigned = activeBooking ? !activeBooking.vendorId : true;
 
-  const tabs = ['All', 'Booked', 'Completed'];
+  const tabs = ['All', 'Booked', 'Assigned', 'Completed'];
 
   return (
     <>
