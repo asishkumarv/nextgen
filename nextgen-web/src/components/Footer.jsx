@@ -1,0 +1,72 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Shield, Mail, Phone, MapPin } from 'lucide-react';
+
+export default function Footer() {
+  return (
+    <footer className="footer">
+      <div className="footer-top">
+        <div className="footer-grid">
+          {/* Brand Info */}
+          <div className="footer-brand">
+            <div className="footer-logo">
+              <Shield className="logo-icon" />
+              <span>NextGen <span className="logo-accent">PowerCare</span></span>
+            </div>
+            <p className="footer-desc">
+              State-of-the-art power system solutions, subscription-based slot booking, and priority technician routing. Serving you 24/7 with reliability and transparency.
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div className="footer-links-col">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><Link to="/">Home</Link></li>
+              <li><Link to="/about">About Us</Link></li>
+              <li><Link to="/contact">Contact Support</Link></li>
+            </ul>
+          </div>
+
+          {/* Customer Portal */}
+          <div className="footer-links-col">
+            <h3>Customer Portal</h3>
+            <ul>
+              <li><Link to="/dashboard">My Dashboard</Link></li>
+              <li><Link to="/services">Book a Service</Link></li>
+              <li><Link to="/slots">Subscription Slots</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact Details */}
+          <div className="footer-contact">
+            <h3>Contact Us</h3>
+            <div className="contact-item">
+              <Phone size={16} className="contact-icon" />
+              <span>+1 (800) 555-POWER</span>
+            </div>
+            <div className="contact-item">
+              <Mail size={16} className="contact-icon" />
+              <span>support@nextgenpowercare.com</span>
+            </div>
+            <div className="contact-item">
+              <MapPin size={16} className="contact-icon" />
+              <span>100 Technology Plaza, Suite 400</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        <div className="footer-bottom-container">
+          <p>&copy; {new Date().getFullYear()} NextGen PowerCare. All rights reserved.</p>
+          <div className="footer-legal">
+            <a href="#terms">Terms of Service</a>
+            <span className="bullet">&bull;</span>
+            <a href="#privacy">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
