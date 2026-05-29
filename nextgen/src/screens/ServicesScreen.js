@@ -201,17 +201,17 @@ export default function ServicesScreen() {
   };
 
   const handleNextStep = () => {
-    if (bookingStep === 2 && !bookedSlot && (!selectedDistrict || !selectedMandal)) {
-      alert('Please complete all location selections');
-      return;
-    }
-    if (bookingStep < 5) {
+    if (bookingStep === 1) {
+      setBookingStep(3);
+    } else if (bookingStep < 5) {
       setBookingStep(bookingStep + 1);
     }
   };
 
   const handleBackStep = () => {
-    if (bookingStep > 1) {
+    if (bookingStep === 3) {
+      setBookingStep(1);
+    } else if (bookingStep > 1) {
       setBookingStep(bookingStep - 1);
     } else {
       setActiveBookingService(null);
@@ -230,8 +230,8 @@ export default function ServicesScreen() {
         selectedDate,
         selectedTimeSlot ? selectedTimeSlot.split(' ')[0] : 'Morning',
         addressString,
-        bookedSlot ? bookingDetails?.districtId : selectedDistrict?.id,
-        bookedSlot ? bookingDetails?.mandalId : selectedMandal?.id,
+        bookedSlot ? bookingDetails?.districtId : (selectedDistrict?.id || null),
+        bookedSlot ? bookingDetails?.mandalId : (selectedMandal?.id || null),
         bookedSlot ? bookingDetails?.slotNumber : null,
         bookedSlot ? bookingDetails?.eventName : null
       );
@@ -388,11 +388,10 @@ export default function ServicesScreen() {
             <Text style={styles.flowTitle}>Book Service</Text>
           </View>
 
-          {/* Steps Progress Indicator (5 segments) */}
+          {/* Steps Progress Indicator (4 segments) */}
           <View style={styles.stepsContainer}>
             <View style={styles.stepsTextRow}>
               <Text style={[styles.stepLabelText, bookingStep >= 1 && styles.stepLabelActive]}>Service</Text>
-              <Text style={[styles.stepLabelText, bookingStep >= 2 && styles.stepLabelActive]}>Area</Text>
               <Text style={[styles.stepLabelText, bookingStep >= 3 && styles.stepLabelActive]}>Time</Text>
               <Text style={[styles.stepLabelText, bookingStep >= 4 && styles.stepLabelActive]}>Address</Text>
               <Text style={[styles.stepLabelText, bookingStep >= 5 && styles.stepLabelActive]}>Confirm</Text>
@@ -400,7 +399,6 @@ export default function ServicesScreen() {
             
             <View style={styles.barWrapper}>
               <View style={[styles.barSegment, bookingStep >= 1 ? styles.barActive : styles.barInactive]} />
-              <View style={[styles.barSegment, bookingStep >= 2 ? styles.barActive : styles.barInactive]} />
               <View style={[styles.barSegment, bookingStep >= 3 ? styles.barActive : styles.barInactive]} />
               <View style={[styles.barSegment, bookingStep >= 4 ? styles.barActive : styles.barInactive]} />
               <View style={[styles.barSegment, bookingStep >= 5 ? styles.barActive : styles.barInactive]} />
@@ -455,7 +453,7 @@ export default function ServicesScreen() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Text style={styles.nextStepBtnText}>Next: Select Area</Text>
+                  <Text style={styles.nextStepBtnText}>Next: Select Date & Time</Text>
                   <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
@@ -716,12 +714,14 @@ export default function ServicesScreen() {
                   </Text>
                 </View>
 
-                <View style={styles.reviewItem}>
-                  <Ionicons name="map-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
-                  <Text style={styles.reviewText}>
-                    Region: {bookedSlot ? bookingDetails?.districtName : selectedDistrict?.name} / {bookedSlot ? bookingDetails?.mandalName : selectedMandal?.name}
-                  </Text>
-                </View>
+                {!!(bookedSlot || selectedDistrict?.name) && (
+                  <View style={styles.reviewItem}>
+                    <Ionicons name="map-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
+                    <Text style={styles.reviewText}>
+                      Region: {bookedSlot ? bookingDetails?.districtName : selectedDistrict?.name} / {bookedSlot ? bookingDetails?.mandalName : selectedMandal?.name}
+                    </Text>
+                  </View>
+                )}
 
                 {bookedSlot && (
                   <View style={styles.reviewItem}>

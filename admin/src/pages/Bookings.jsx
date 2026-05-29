@@ -268,7 +268,9 @@ export default function Bookings() {
                       ...(selectedVendorId === v.id ? styles.vendorItemBtnActive : {}),
                     }}
                   >
-                    <span style={styles.modalVendorName}>{v.name}</span>
+                    <span style={styles.modalVendorName}>
+                      {v.name} {v.activeWorkload !== undefined && `(Active: ${v.activeWorkload}, Total: ${v.historicalWorkload})`}
+                    </span>
                     <span style={styles.modalVendorPhone}>{v.phone}</span>
                   </button>
                 ))}

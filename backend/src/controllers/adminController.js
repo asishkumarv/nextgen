@@ -618,16 +618,24 @@ const getEligibleVendorsForBooking = async (req, res) => {
     const leaveDateCheck = parseToDateString(booking.date);
 
     const vendorsRes = await pool.query(`
-      SELECT v.id, v.name, v.phone, v.status
+      SELECT 
+        v.id, 
+        v.name, 
+        v.phone, 
+        v.status,
+        COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END)::int AS "activeWorkload",
+        COUNT(CASE WHEN b.id IS NOT NULL AND b.status != 'Cancelled' THEN 1 END)::int AS "historicalWorkload"
       FROM vendors v
       JOIN vendor_services vs ON v.id = vs.vendor_id
       JOIN services s ON vs.service_id = s.id
+      LEFT JOIN bookings b ON v.id = b.vendor_id
       WHERE LOWER(s.title) = LOWER($1) 
         AND v.status = 'Approved'
         AND v.id NOT IN (
           SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
         )
-      ORDER BY v.name ASC
+      GROUP BY v.id
+      ORDER BY "activeWorkload" ASC, "historicalWorkload" ASC, v.name ASC
     `, [booking.service_name.trim(), leaveDateCheck]);
 
     res.json(vendorsRes.rows);
