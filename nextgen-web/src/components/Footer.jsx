@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Mail, Phone, MapPin } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 export default function Footer() {
   return (
@@ -10,7 +11,7 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <Shield className="logo-icon" />
+              <img src={logoImg} alt="NextGen Logo" className="logo-img" />
               <span>NextGen <span className="logo-accent">PowerCare</span></span>
             </div>
             <p className="footer-desc">

@@ -15,6 +15,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Services from './pages/Services';
 import Slots from './pages/Slots';
+import Profile from './pages/Profile';
 
 import './App.css';
 
@@ -70,6 +71,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Slots />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

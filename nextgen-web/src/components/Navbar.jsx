@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, LogOut, LayoutDashboard, Calendar, Wrench, Shield, Home, Info, PhoneCall } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Calendar, Wrench, Shield, Home, Info, PhoneCall, Sun, Moon, User } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 export default function Navbar() {
   const { token, logout, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('nextgen_theme') || 'light');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('nextgen_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -35,7 +46,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo" onClick={() => setMobileMenuOpen(false)}>
-          <Shield className="logo-icon" />
+          <img src={logoImg} alt="NextGen Logo" className="logo-img" />
           <span>NextGen <span className="logo-accent">PowerCare</span></span>
         </Link>
 
@@ -64,12 +75,16 @@ export default function Navbar() {
 
         {/* Desktop CTA / Auth buttons */}
         <div className="navbar-auth desktop-only">
+          <button onClick={toggleTheme} className="btn-theme-toggle" title="Toggle Theme">
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
           {token ? (
             <div className="user-menu">
-              <span className="user-greeting">
-                Hello, <strong>{user?.name || 'User'}</strong>
+              <Link to="/profile" className="user-profile-link" title="My Profile">
+                <User size={16} style={{ color: 'var(--primary)' }} />
+                <span>{user?.name || 'Profile'}</span>
                 {user?.subscription && <span className="badge-member">PRO</span>}
-              </span>
+              </Link>
               <button onClick={handleLogout} className="btn-logout" title="Log Out">
                 <LogOut size={16} />
                 <span>Logout</span>
@@ -83,10 +98,15 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button className="mobile-menu-toggle mobile-only" onClick={toggleMobileMenu} aria-label="Toggle Menu">
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile Header Actions */}
+        <div className="mobile-header-actions mobile-only">
+          <button onClick={toggleTheme} className="btn-theme-toggle" title="Toggle Theme">
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+          <button className="mobile-menu-toggle" onClick={toggleMobileMenu} aria-label="Toggle Menu">
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Drawer Menu */}
@@ -122,10 +142,15 @@ export default function Navbar() {
                 ))}
                 
                 <div className="drawer-user-info">
-                  <div className="drawer-user-details">
-                    <span className="drawer-username">{user?.name}</span>
-                    <span className="drawer-phone">{user?.phone}</span>
-                  </div>
+                  <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="drawer-user-details-link" style={{ textDecoration: 'none', display: 'block', marginBottom: '12px' }}>
+                    <div className="drawer-user-details">
+                      <span className="drawer-username">
+                        {user?.name}
+                        {user?.subscription && <span className="badge-member">PRO</span>}
+                      </span>
+                      <span className="drawer-phone">{user?.phone}</span>
+                    </div>
+                  </Link>
                   <button onClick={handleLogout} className="btn-drawer-logout">
                     <LogOut size={18} />
                     <span>Sign Out</span>

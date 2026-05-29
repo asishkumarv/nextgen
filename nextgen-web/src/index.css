@@ -16,11 +16,12 @@ html, body {
   height: 100%;
   width: 100%;
   font-family: var(--font-sans);
-  background-color: #0A0F1D; /* Sleek Dark Theme base */
-  color: #E2E8F0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
