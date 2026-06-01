@@ -846,7 +846,7 @@ const adminDeleteMandal = async (req, res) => {
 
 // Events CRUD Handlers
 const adminAddEvent = async (req, res) => {
-  const { mandal_id, event_name, description, slots, price, booking_price } = req.body;
+  const { mandal_id, event_name, description, slots, price } = req.body;
   if (!mandal_id || !event_name || !slots || price === undefined) {
     return res.status(400).json({ message: 'Please enter all required event fields' });
   }
@@ -855,13 +855,12 @@ const adminAddEvent = async (req, res) => {
     if (check.rows.length > 0) {
       return res.status(400).json({ message: 'Event already exists in this mandal' });
     }
-    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
     const expandedSlots = parseSlotsRange(slots);
     
     const result = await pool.query(
-      `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [mandal_id, event_name, description || '', expandedSlots, parseFloat(price), bookPrice]
+      `INSERT INTO events (mandal_id, event_name, description, slots, price) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [mandal_id, event_name, description || '', expandedSlots, parseFloat(price)]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -872,7 +871,7 @@ const adminAddEvent = async (req, res) => {
 
 const adminUpdateEvent = async (req, res) => {
   const { id } = req.params;
-  const { event_name, description, slots, price, booking_price } = req.body;
+  const { event_name, description, slots, price } = req.body;
   if (!event_name || !slots || price === undefined) {
     return res.status(400).json({ message: 'Please enter all required event fields' });
   }
@@ -887,12 +886,11 @@ const adminUpdateEvent = async (req, res) => {
       return res.status(400).json({ message: 'Another event with this name already exists in this mandal' });
     }
 
-    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
     const expandedSlots = parseSlotsRange(slots);
 
     const result = await pool.query(
-      `UPDATE events SET event_name = $1, description = $2, slots = $3, price = $4, booking_price = $5 WHERE id = $6 RETURNING *`,
-      [event_name, description || '', expandedSlots, parseFloat(price), bookPrice, id]
+      `UPDATE events SET event_name = $1, description = $2, slots = $3, price = $4 WHERE id = $5 RETURNING *`,
+      [event_name, description || '', expandedSlots, parseFloat(price), id]
     );
     res.json(result.rows[0]);
   } catch (error) {

@@ -163,7 +163,7 @@ export default function Slots() {
   };
 
   const handleBookSlot = async () => {
-    if (user?.subscription) {
+    if (user?.subscription && user.subscription.status !== 'Rejected') {
       setError('You already have an active subscription slot.');
       return;
     }
@@ -245,10 +245,17 @@ export default function Slots() {
         </p>
       </section>
 
-      {user?.subscription && (
+      {user?.subscription && user.subscription.status !== 'Rejected' && (
         <div className="banner info-banner container-small">
           <Shield size={18} />
           <span>You have an active or pending subscription slot: <strong>#{user.subscription.slotNumber}</strong>. You can only hold one active slot at a time.</span>
+        </div>
+      )}
+      
+      {user?.subscription?.status === 'Rejected' && (
+        <div className="banner error-banner container-small">
+          <AlertTriangle size={18} />
+          <span>Your previous subscription request was rejected. You may choose a new slot.</span>
         </div>
       )}
 
@@ -272,7 +279,7 @@ export default function Slots() {
                 id="district-select"
                 value={selectedDistrictId}
                 onChange={(e) => setSelectedDistrictId(e.target.value)}
-                disabled={districtsLoading || !!user?.subscription}
+                disabled={districtsLoading || (user?.subscription && user.subscription.status !== 'Rejected')}
               >
                 <option value="">-- Select District --</option>
                 {districts.map((d) => (
@@ -288,7 +295,7 @@ export default function Slots() {
                 id="mandal-select"
                 value={selectedMandalId}
                 onChange={(e) => setSelectedMandalId(e.target.value)}
-                disabled={!selectedDistrictId || mandalsLoading || !!user?.subscription}
+                disabled={!selectedDistrictId || mandalsLoading || (user?.subscription && user.subscription.status !== 'Rejected')}
               >
                 <option value="">
                   {mandalsLoading ? 'Loading mandals...' : '-- Select Mandal --'}
@@ -306,7 +313,7 @@ export default function Slots() {
                 id="event-select"
                 value={selectedEventId}
                 onChange={(e) => setSelectedEventId(e.target.value)}
-                disabled={!selectedMandalId || eventsLoading || !!user?.subscription}
+                disabled={!selectedMandalId || eventsLoading || (user?.subscription && user.subscription.status !== 'Rejected')}
               >
                 <option value="">
                   {eventsLoading ? 'Loading events...' : '-- Select Event --'}
@@ -330,7 +337,6 @@ export default function Slots() {
                   </div>
                 </div>
                 <div className="price-number">₹{parseInt(activeEvent.price)}/yr</div>
-                <p className="price-detail">Booking price later: ₹{parseInt(activeEvent.booking_price)}</p>
               </div>
             )}
           </div>
@@ -368,7 +374,7 @@ export default function Slots() {
                       <button
                         key={slotNum}
                         onClick={() => !isBooked && setSelectedSlot(slotNum)}
-                        disabled={isBooked || !!user?.subscription}
+                        disabled={isBooked || (user?.subscription && user.subscription.status !== 'Rejected')}
                         className={`slot-box-btn ${isBooked ? 'booked' : 'available'} ${isSelected ? 'selected' : ''}`}
                       >
                         <span className="slot-title">Slot</span>
@@ -383,7 +389,7 @@ export default function Slots() {
           </div>
 
           {/* Payment Method Panel */}
-          {selectedSlot && activeEvent && !user?.subscription && (
+          {selectedSlot && activeEvent && (!user?.subscription || user.subscription.status === 'Rejected') && (
             <div className="payment-method-card glass-card animate-slide-up" style={{ marginTop: '20px' }}>
               <h3>Step 3: Payment Details</h3>
               <div className="payment-options">
@@ -453,7 +459,7 @@ export default function Slots() {
           )}
 
           {/* Booking Summary Panel */}
-          {selectedSlot && activeEvent && !user?.subscription && (
+          {selectedSlot && activeEvent && (!user?.subscription || user.subscription.status === 'Rejected') && (
             <div className="subscription-summary-card glass-card animate-slide-up" style={{ marginTop: '20px' }}>
               <div className="summary-details">
                 <div className="summary-logo-row">

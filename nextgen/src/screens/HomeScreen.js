@@ -22,7 +22,7 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, setActiveBookingService, refreshData } = useApp();
+  const { user, bookedSlot, bookingDetails, setActiveBookingService, refreshData } = useApp();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -64,16 +64,28 @@ export default function HomeScreen() {
           style={styles.cardContainer}
         >
           <LinearGradient
-            colors={bookedSlot ? ['#00C853', '#0091EA'] : ['#F59E0B', '#EF4444']}
+            colors={
+              bookingDetails?.status === 'Pending' ? ['#F59E0B', '#D97706'] :
+              bookingDetails?.status === 'Rejected' ? ['#DC2626', '#991B1B'] :
+              bookedSlot ? ['#00C853', '#0091EA'] : ['#F59E0B', '#EF4444']
+            }
             style={styles.banner}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <View style={styles.bannerHeader}>
               <View style={styles.subActiveBadge}>
-                <Ionicons name={bookedSlot ? 'sparkles' : 'alert-circle'} size={12} color="#FFF" style={{ marginRight: 4 }} />
+                <Ionicons name={
+                  bookingDetails?.status === 'Pending' ? 'time' :
+                  bookingDetails?.status === 'Rejected' ? 'close-circle' :
+                  bookedSlot ? 'sparkles' : 'alert-circle'
+                } size={12} color="#FFF" style={{ marginRight: 4 }} />
                 <Text style={styles.subActiveText}>
-                  {bookedSlot ? 'Subscription Active' : 'No Active Slot'}
+                  {
+                    bookingDetails?.status === 'Pending' ? 'Subscription Pending' :
+                    bookingDetails?.status === 'Rejected' ? 'Subscription Rejected' :
+                    bookedSlot ? 'Subscription Active' : 'No Active Slot'
+                  }
                 </Text>
               </View>
               <Text style={styles.priceTag}>₹2999/year</Text>
@@ -84,13 +96,21 @@ export default function HomeScreen() {
             <View style={styles.slotLabelContainer}>
               <Ionicons name="calendar-outline" size={14} color="#FFF" style={{ marginRight: 6 }} />
               <Text style={styles.slotLabel}>
-                {bookedSlot ? `Reserved Slot #${bookedSlot}` : 'Tap to select subscription slot'}
+                {
+                  bookingDetails?.status === 'Pending' ? `Requested Slot #${bookedSlot}` :
+                  bookingDetails?.status === 'Rejected' ? 'Your request was rejected' :
+                  bookedSlot ? `Reserved Slot #${bookedSlot}` : 'Tap to select subscription slot'
+                }
               </Text>
             </View>
 
             <View style={styles.whiteButton}>
               <Text style={styles.whiteButtonText}>
-                {bookedSlot ? 'View Slot Details' : 'Pick Subscription Slot'}
+                {
+                  bookingDetails?.status === 'Pending' ? 'View Status' :
+                  bookingDetails?.status === 'Rejected' ? 'Try Again' :
+                  bookedSlot ? 'View Slot Details' : 'Pick Subscription Slot'
+                }
               </Text>
               <Ionicons name="arrow-forward" size={16} color="#111827" style={{ marginLeft: 6 }} />
             </View>

@@ -39,7 +39,6 @@ const createTables = async (dropExisting = false) => {
         description TEXT DEFAULT '',
         slots TEXT NOT NULL,
         price NUMERIC(10, 2) NOT NULL DEFAULT 2999.00,
-        booking_price NUMERIC(10, 2) NOT NULL DEFAULT 199.00,
         UNIQUE(mandal_id, event_name)
       );
     `);
@@ -237,26 +236,26 @@ const createTables = async (dropExisting = false) => {
 
       // Seed Events
       const event1 = await client.query(
-        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [mandal1.rows[0].id, 'AC Service Plan', 'Comprehensive AC maintenance covering cleaning and gas checkups.', '101, 102, 103', 2499.00, 149.00]
+        `INSERT INTO events (mandal_id, event_name, description, slots, price) 
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [mandal1.rows[0].id, 'AC Service Plan', 'Comprehensive AC maintenance covering cleaning and gas checkups.', '101, 102, 103', 2499.00]
       );
       const event2 = await client.query(
-        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [mandal1.rows[0].id, 'General Electrical', 'Wiring repair and general checkup for all household electricals.', '104, 105', 1999.00, 99.00]
+        `INSERT INTO events (mandal_id, event_name, description, slots, price) 
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [mandal1.rows[0].id, 'General Electrical', 'Wiring repair and general checkup for all household electricals.', '104, 105', 1999.00]
       );
 
       const event3 = await client.query(
-        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [mandal3.rows[0].id, 'Wiring Audit', 'Complete home wiring audit and fix.', '301, 302, 303', 2799.00, 179.00]
+        `INSERT INTO events (mandal_id, event_name, description, slots, price) 
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [mandal3.rows[0].id, 'Wiring Audit', 'Complete home wiring audit and fix.', '301, 302, 303', 2799.00]
       );
 
       const event4 = await client.query(
-        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [mandal4.rows[0].id, 'Motor Repair', 'Repairs and servicing for domestic water motors.', '401, 402', 2199.00, 129.00]
+        `INSERT INTO events (mandal_id, event_name, description, slots, price) 
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [mandal4.rows[0].id, 'Motor Repair', 'Repairs and servicing for domestic water motors.', '401, 402', 2199.00]
       );
 
       // Seed Technician John (Vendor)

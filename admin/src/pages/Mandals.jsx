@@ -25,8 +25,7 @@ export default function Mandals() {
     event_name: '',
     description: '',
     slots: '',
-    price: '',
-    booking_price: '199'
+    price: ''
   });
 
   const fetchData = async () => {
@@ -115,8 +114,7 @@ export default function Mandals() {
       event_name: '',
       description: '',
       slots: '',
-      price: '',
-      booking_price: '199'
+      price: ''
     });
     setEventModalOpen(true);
   };
@@ -128,8 +126,7 @@ export default function Mandals() {
       event_name: event.event_name,
       description: event.description || '',
       slots: event.slots,
-      price: event.price,
-      booking_price: event.booking_price
+      price: event.price
     });
     setEventModalOpen(true);
   };
@@ -151,7 +148,7 @@ export default function Mandals() {
 
   const handleEventSubmit = async (e) => {
     e.preventDefault();
-    const { event_name, description, slots, price, booking_price } = eventFormData;
+    const { event_name, description, slots, price } = eventFormData;
     if (!event_name.trim() || !slots.trim() || price === '') {
       alert('Please fill out all required event fields');
       return;
@@ -162,8 +159,7 @@ export default function Mandals() {
         event_name: event_name.trim(),
         description: description.trim(),
         slots: slots.trim(),
-        price: parseFloat(price),
-        booking_price: parseFloat(booking_price || 0)
+        price: parseFloat(price)
       };
 
       if (editingEvent) {
@@ -316,7 +312,6 @@ export default function Mandals() {
                         </div>
                         <div style={styles.pricesRow}>
                           <div style={styles.pricePill}>Sub: ₹{parseFloat(event.price).toFixed(0)}</div>
-                          <div style={styles.pricePill}>Book: ₹{parseFloat(event.booking_price).toFixed(0)}</div>
                         </div>
                       </div>
                     ))}
@@ -416,30 +411,17 @@ export default function Mandals() {
                   required
                 />
               </div>
-              <div style={styles.formRow}>
-                <div style={{...styles.inputGroup, flex: 1}}>
-                  <label style={styles.label}>Subscription Price (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="e.g. 2999"
-                    style={styles.formInput}
-                    value={eventFormData.price}
-                    onChange={(e) => setEventFormData({ ...eventFormData, price: e.target.value })}
-                    required
-                  />
-                </div>
-                <div style={{...styles.inputGroup, flex: 1}}>
-                  <label style={styles.label}>Booking Price (₹)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="e.g. 199"
-                    style={styles.formInput}
-                    value={eventFormData.booking_price}
-                    onChange={(e) => setEventFormData({ ...eventFormData, booking_price: e.target.value })}
-                  />
-                </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Subscription Price (₹) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g. 2999"
+                  style={styles.formInput}
+                  value={eventFormData.price}
+                  onChange={(e) => setEventFormData({ ...eventFormData, price: e.target.value })}
+                  required
+                />
               </div>
               <div style={styles.modalActions}>
                 <button type="button" onClick={() => setEventModalOpen(false)} style={styles.cancelBtn}>Cancel</button>

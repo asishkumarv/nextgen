@@ -83,7 +83,7 @@ export default function Navbar() {
               <Link to="/profile" className="user-profile-link" title="My Profile">
                 <User size={16} style={{ color: 'var(--primary)' }} />
                 <span>{user?.name || 'Profile'}</span>
-                {user?.subscription && <span className="badge-member">PRO</span>}
+                {user?.subscription?.status === 'Active' && <span className="badge-member">PRO</span>}
               </Link>
               <button onClick={handleLogout} className="btn-logout" title="Log Out">
                 <LogOut size={16} />
@@ -146,7 +146,7 @@ export default function Navbar() {
                     <div className="drawer-user-details">
                       <span className="drawer-username">
                         {user?.name}
-                        {user?.subscription && <span className="badge-member">PRO</span>}
+                        {user?.subscription?.status === 'Active' && <span className="badge-member">PRO</span>}
                       </span>
                       <span className="drawer-phone">{user?.phone}</span>
                     </div>

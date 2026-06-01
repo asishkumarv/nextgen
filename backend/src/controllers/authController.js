@@ -115,7 +115,9 @@ const getMe = async (req, res) => {
        FROM subscriptions s
        LEFT JOIN districts d ON s.district_id = d.id
        LEFT JOIN mandals m ON s.mandal_id = m.id
-       WHERE s.user_id = $1`,
+       WHERE s.user_id = $1
+       ORDER BY s.created_at DESC
+       LIMIT 1`,
       [userId]
     );
 

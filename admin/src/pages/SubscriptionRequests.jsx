@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../utils/api';
-import { CheckCircle, XCircle, FileImage, CreditCard } from 'lucide-react';
+import { CheckCircle, XCircle, FileImage, CreditCard, X } from 'lucide-react';
 
 export default function SubscriptionRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const fetchRequests = async () => {
     try {
@@ -104,9 +105,9 @@ export default function SubscriptionRequests() {
                       <div style={styles.proofContainer}>
                         <span style={styles.metaText}>Txn: {req.transactionId || 'N/A'}</span>
                         {req.screenshotUrl ? (
-                          <a href={req.screenshotUrl} target="_blank" rel="noreferrer" style={styles.viewProofBtn}>
+                          <button onClick={() => setSelectedImage(req.screenshotUrl)} style={styles.viewProofBtn}>
                             <FileImage size={14} /> View Screenshot
-                          </a>
+                          </button>
                         ) : (
                           <span style={styles.noProof}>No Image</span>
                         )}
@@ -129,6 +130,18 @@ export default function SubscriptionRequests() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedImage(null)}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setSelectedImage(null)} style={styles.closeBtn}>
+              <X size={24} />
+            </button>
+            <img src={selectedImage} alt="Payment Screenshot" style={styles.modalImage} />
+          </div>
         </div>
       )}
     </div>
@@ -162,11 +175,12 @@ const styles = {
     fontSize: '0.75rem',
     fontWeight: '600',
     color: '#0984E3',
-    textDecoration: 'none',
     backgroundColor: '#F0F9FF',
     padding: '4px 8px',
     borderRadius: '4px',
-    alignSelf: 'flex-start'
+    alignSelf: 'flex-start',
+    border: 'none',
+    cursor: 'pointer'
   },
   noProof: { fontSize: '0.8rem', color: '#9CA3AF', fontStyle: 'italic' },
   actions: { display: 'flex', gap: '8px' },
@@ -184,5 +198,33 @@ const styles = {
   },
   loading: { padding: '60px', textAlign: 'center', color: '#6B7280', fontSize: '1.1rem' },
   error: { padding: '20px', backgroundColor: '#FEE2E2', color: '#EF4444', borderRadius: '8px', textAlign: 'center' },
-  empty: { padding: '80px', textAlign: 'center', color: '#6B7280', display: 'flex', flexDirection: 'column', alignItems: 'center' }
+  empty: { padding: '80px', textAlign: 'center', color: '#6B7280', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  modalOverlay: {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)',
+    display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999
+  },
+  modalContent: {
+    position: 'relative',
+    backgroundColor: '#FFF',
+    padding: '16px',
+    borderRadius: '12px',
+    maxWidth: '90vw',
+    maxHeight: '90vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
+  },
+  closeBtn: {
+    position: 'absolute', top: '-12px', right: '-12px',
+    backgroundColor: '#FFF', border: 'none', borderRadius: '50%',
+    width: '32px', height: '32px', display: 'flex', justifyContent: 'center', alignItems: 'center',
+    cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', color: '#111827'
+  },
+  modalImage: {
+    maxWidth: '100%',
+    maxHeight: 'calc(90vh - 32px)',
+    objectFit: 'contain',
+    borderRadius: '8px'
+  }
 };

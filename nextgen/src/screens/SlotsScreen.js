@@ -251,6 +251,16 @@ export default function SlotsScreen() {
         <Header />
       </View>
 
+      {bookingDetails?.status === 'Rejected' && (
+        <View style={[styles.successGradientCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, marginBottom: 16 }]}>
+          <View style={[styles.checkCircle, { backgroundColor: '#FEE2E2' }]}>
+            <Ionicons name="close-circle" size={40} color="#DC2626" />
+          </View>
+          <Text style={[styles.successTitle, { color: '#B91C1C' }]}>Request Rejected</Text>
+          <Text style={[styles.successSubtitle, { color: '#991B1B' }]}>Your previous subscription request was rejected. Please select a new slot.</Text>
+        </View>
+      )}
+
       {/* Subscription Card */}
       <LinearGradient
         colors={['#00B0FF', '#0091EA', '#00C853']}
@@ -407,19 +417,6 @@ export default function SlotsScreen() {
             <Text style={styles.subscriptionActiveText}>Pending</Text>
           </View>
         </View>
-      ) : bookingDetails?.status === 'Rejected' ? (
-        <View style={[styles.successGradientCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
-          <View style={[styles.checkCircle, { backgroundColor: '#FEE2E2' }]}>
-            <Ionicons name="close-circle" size={40} color="#DC2626" />
-          </View>
-          <Text style={[styles.successTitle, { color: '#B91C1C' }]}>Request Rejected</Text>
-          <Text style={[styles.successSubtitle, { color: '#991B1B' }]}>Please choose another slot</Text>
-
-          <View style={[styles.subscriptionActiveBadge, { backgroundColor: '#DC2626' }]}>
-            <Ionicons name="close" size={12} color="#FFF" style={{ marginRight: 6 }} />
-            <Text style={styles.subscriptionActiveText}>Rejected</Text>
-          </View>
-        </View>
       ) : (
         <LinearGradient
           colors={['#00C853', '#00B0FF']}
@@ -514,7 +511,7 @@ export default function SlotsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {bookedSlot ? renderConfirmation() : renderSlotGrid()}
+      {bookedSlot && bookingDetails?.status !== 'Rejected' ? renderConfirmation() : renderSlotGrid()}
 
       {/* District Dropdown */}
       {districtDropdownOpen && (
