@@ -986,7 +986,13 @@ const rejectSubscription = async (req, res) => {
 const getWithdrawals = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT w.*, u.name as "userName", u.phone as "userPhone" 
+      SELECT 
+        w.*, 
+        u.name as "userName", 
+        u.phone as "userPhone",
+        u.wallet_balance as "walletBalance",
+        u.referral_code as "referralCode",
+        (SELECT COUNT(*) FROM users r WHERE r.referred_by = u.id)::int as "referralCount"
       FROM withdrawals w
       JOIN users u ON w.user_id = u.id
       ORDER BY w.created_at DESC

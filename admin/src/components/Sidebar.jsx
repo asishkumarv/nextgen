@@ -122,6 +122,7 @@ const styles = {
   nav: {
     flex: 1,
     padding: '24px 16px',
+    overflowY: 'auto',
   },
   menuGroup: {
     display: 'flex',

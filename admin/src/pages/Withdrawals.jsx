@@ -73,6 +73,7 @@ export default function Withdrawals() {
             <tr>
               <th style={styles.th}>Date</th>
               <th style={styles.th}>User Details</th>
+              <th style={styles.th}>Referral Details</th>
               <th style={styles.th}>Bank Details</th>
               <th style={styles.th}>Amount</th>
               <th style={styles.th}>Status</th>
@@ -82,7 +83,7 @@ export default function Withdrawals() {
           <tbody>
             {withdrawals.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#6B7280' }}>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#6B7280' }}>
                   No withdrawal requests found.
                 </td>
               </tr>
@@ -100,6 +101,13 @@ export default function Withdrawals() {
                         <strong>{w.userName}</strong><br/>
                         <span style={{color: '#6B7280', fontSize: '0.85rem'}}>{w.userPhone}</span>
                       </div>
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    <div>
+                      <span style={{color: '#6B7280', fontSize: '0.85rem'}}>Code: <strong>{w.referralCode}</strong></span><br/>
+                      <span style={{color: '#6B7280', fontSize: '0.85rem'}}>Referrals: <strong>{w.referralCount}</strong></span><br/>
+                      <span style={{color: '#6B7280', fontSize: '0.85rem'}}>Balance: <strong>₹{w.walletBalance}</strong></span>
                     </div>
                   </td>
                   <td style={styles.td}>
