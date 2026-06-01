@@ -266,8 +266,8 @@ export default function Referrals() {
       )}
 
       {showTerms && (
-        <div className="modal-overlay">
-          <div className="modal-content animate-slide-up" style={{ padding: '30px', maxWidth: '500px' }}>
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="modal-content animate-slide-up" style={{ padding: '30px', maxWidth: '500px', backgroundColor: 'var(--bg-primary)', borderRadius: '16px', maxHeight: '85vh', overflowY: 'auto', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0 }}>Referral Rewards & Terms</h3>
               <button onClick={() => setShowTerms(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem', color: 'var(--text-secondary)' }}>&times;</button>

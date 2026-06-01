@@ -651,7 +651,7 @@ const getEligibleVendorsForBooking = async (req, res) => {
         v.phone, 
         v.status,
         COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END)::int AS "activeWorkload",
-        COUNT(CASE WHEN b.id IS NOT NULL AND b.status != 'Cancelled' THEN 1 END)::int AS "historicalWorkload"
+        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN b.price ELSE 0 END), 0)::float AS "totalEarnings"
       FROM vendors v
       JOIN vendor_services vs ON v.id = vs.vendor_id
       JOIN services s ON vs.service_id = s.id
@@ -662,7 +662,7 @@ const getEligibleVendorsForBooking = async (req, res) => {
           SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
         )
       GROUP BY v.id
-      ORDER BY "activeWorkload" ASC, "historicalWorkload" ASC, v.name ASC
+      ORDER BY "activeWorkload" ASC, "totalEarnings" ASC, v.name ASC
     `, [booking.service_name.trim(), leaveDateCheck]);
 
     res.json(vendorsRes.rows);

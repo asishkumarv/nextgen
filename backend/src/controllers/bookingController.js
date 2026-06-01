@@ -107,22 +107,20 @@ const createBooking = async (req, res) => {
       SELECT 
         v.id, 
         COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END) AS active_workload,
-        COUNT(CASE WHEN b.id IS NOT NULL AND b.status != 'Cancelled' THEN 1 END) AS historical_workload
+        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN b.price ELSE 0 END), 0) AS total_earnings
       FROM vendors v
       JOIN vendor_services vs ON v.id = vs.vendor_id
       JOIN services s ON vs.service_id = s.id
       LEFT JOIN bookings b ON v.id = b.vendor_id
       WHERE LOWER(s.title) = LOWER($1) 
         AND v.status = 'Approved'
-        AND ($2::integer IS NULL OR v.district_id = $2::integer)
-        AND ($3::integer IS NULL OR v.mandal_id = $3::integer)
         AND v.id NOT IN (
-          SELECT vendor_id FROM vendor_leaves WHERE leave_date = $4
+          SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
         )
       GROUP BY v.id
-      ORDER BY active_workload ASC, historical_workload ASC, v.id ASC
+      ORDER BY active_workload ASC, total_earnings ASC, v.id ASC
       LIMIT 1
-    `, [serviceName.trim(), finalDistrictId || null, finalMandalId || null, leaveDateCheck]);
+    `, [serviceName.trim(), leaveDateCheck]);
 
     if (vendorQuery.rows.length > 0) {
       assignedVendorId = vendorQuery.rows[0].id;

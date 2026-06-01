@@ -518,9 +518,10 @@ const styles = {
     backdropFilter: 'blur(4px)',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     zIndex: 999,
-    padding: '16px',
+    padding: '80px 16px 40px 16px',
+    overflowY: 'auto',
   },
   modalContainer: {
     backgroundColor: '#FFFFFF',
