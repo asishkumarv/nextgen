@@ -859,8 +859,8 @@ const adminAddEvent = async (req, res) => {
     const expandedSlots = parseSlotsRange(slots);
     
     const result = await pool.query(
-      \`INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *\`,
+      `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [mandal_id, event_name, description || '', expandedSlots, parseFloat(price), bookPrice]
     );
     res.status(201).json(result.rows[0]);
@@ -891,7 +891,7 @@ const adminUpdateEvent = async (req, res) => {
     const expandedSlots = parseSlotsRange(slots);
 
     const result = await pool.query(
-      \`UPDATE events SET event_name = $1, description = $2, slots = $3, price = $4, booking_price = $5 WHERE id = $6 RETURNING *\`,
+      `UPDATE events SET event_name = $1, description = $2, slots = $3, price = $4, booking_price = $5 WHERE id = $6 RETURNING *`,
       [event_name, description || '', expandedSlots, parseFloat(price), bookPrice, id]
     );
     res.json(result.rows[0]);
