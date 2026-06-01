@@ -147,7 +147,7 @@ const getDashboardStats = async (req, res) => {
     const pendingWithdrawalsRes = await pool.query(`
       SELECT w.id, w.amount, w.created_at, u.name AS "userName", u.phone AS "userPhone"
       FROM withdrawals w JOIN users u ON w.user_id = u.id
-      WHERE w.status = 'In Progress' ORDER BY w.created_at DESC LIMIT 3
+      WHERE w.status = 'Pending' ORDER BY w.created_at DESC LIMIT 3
     `);
 
     res.json({
