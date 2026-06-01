@@ -30,7 +30,13 @@ const {
   adminGetMandals,
   adminAddMandal,
   adminUpdateMandal,
-  adminDeleteMandal
+  adminDeleteMandal,
+  adminAddEvent,
+  adminUpdateEvent,
+  adminDeleteEvent,
+  getSubscriptionRequests,
+  approveSubscription,
+  rejectSubscription
 } = require('../controllers/adminController');
 const { authenticateAdmin } = require('../middleware/auth');
 
@@ -76,5 +82,15 @@ router.get('/mandals', authenticateAdmin, adminGetMandals);
 router.post('/mandals', authenticateAdmin, adminAddMandal);
 router.put('/mandals/:id', authenticateAdmin, adminUpdateMandal);
 router.delete('/mandals/:id', authenticateAdmin, adminDeleteMandal);
+
+// Events routes
+router.post('/events', authenticateAdmin, adminAddEvent);
+router.put('/events/:id', authenticateAdmin, adminUpdateEvent);
+router.delete('/events/:id', authenticateAdmin, adminDeleteEvent);
+
+// Subscription Requests routes
+router.get('/subscription-requests', authenticateAdmin, getSubscriptionRequests);
+router.put('/subscription-requests/:id/approve', authenticateAdmin, approveSubscription);
+router.put('/subscription-requests/:id/reject', authenticateAdmin, rejectSubscription);
 
 module.exports = router;

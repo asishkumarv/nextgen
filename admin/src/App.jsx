@@ -13,6 +13,7 @@ import Vendors from './pages/Vendors';
 import Settlements from './pages/Settlements';
 import Districts from './pages/Districts';
 import Mandals from './pages/Mandals';
+import SubscriptionRequests from './pages/SubscriptionRequests';
 
 export default function App() {
   const [admin, setAdmin] = useState(null);
@@ -52,6 +53,8 @@ export default function App() {
         return <Mandals key={refreshKey} />;
       case 'subscribers':
         return <Subscribers key={refreshKey} />;
+      case 'requests':
+        return <SubscriptionRequests key={refreshKey} />;
       case 'bookings':
         return <Bookings key={refreshKey} />;
       case 'services':

@@ -10,6 +10,7 @@ export default function Sidebar({ activeView, onViewChange, onLogout, adminName 
     { id: 'districts', label: 'Districts Manager', icon: Map },
     { id: 'mandals', label: 'Mandals Manager', icon: MapPin },
     { id: 'subscribers', label: 'Subscribers Slot', icon: CreditCard },
+    { id: 'requests', label: 'Subscription Requests', icon: CalendarRange },
     { id: 'bookings', label: 'Bookings List', icon: CalendarRange },
     { id: 'services', label: 'Services Manager', icon: Wrench },
     { id: 'vendors', label: 'Vendors Manager', icon: Briefcase },

@@ -8,6 +8,9 @@ import {
   Dimensions,
   RefreshControl,
   ActivityIndicator,
+  TextInput,
+  Image,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,7 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 import Header from '../components/Header';
-import colors from '../theme/colors';
+import * as ImagePicker from 'expo-image-picker';
 
 const { width } = Dimensions.get('window');
 const SLOT_SIZE = (width - 104) / 5;
@@ -28,7 +31,8 @@ export default function SlotsScreen() {
   
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
-  const [mandalBookedSlots, setMandalBookedSlots] = useState(new Set());
+  const [events, setEvents] = useState([]);
+  const [eventBookedSlots, setEventBookedSlots] = useState(new Set());
   
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedMandal, setSelectedMandal] = useState(null);
@@ -38,6 +42,12 @@ export default function SlotsScreen() {
   const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
   const [mandalDropdownOpen, setMandalDropdownOpen] = useState(false);
   const [eventDropdownOpen, setEventDropdownOpen] = useState(false);
+
+  // Payment States
+  const [paymentMode, setPaymentMode] = useState('offline'); // offline or online
+  const [transactionId, setTransactionId] = useState('');
+  const [screenshotUri, setScreenshotUri] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadingBooked, setLoadingBooked] = useState(false);
@@ -73,18 +83,35 @@ export default function SlotsScreen() {
     fetchMandals();
   }, [selectedDistrict]);
 
-  // Fetch booked slots for the selected mandal
-  const fetchBookedSlots = async () => {
+  // Fetch events when mandal changes
+  useEffect(() => {
     if (!selectedMandal) {
-      setMandalBookedSlots(new Set());
+      setEvents([]);
+      return;
+    }
+    const fetchEvents = async () => {
+      try {
+        const data = await api.get(`/subscription/events?mandalId=${selectedMandal.id}`);
+        setEvents(data || []);
+      } catch (err) {
+        console.warn('Failed to load events:', err.message);
+      }
+    };
+    fetchEvents();
+  }, [selectedMandal]);
+
+  // Fetch booked slots for the selected event
+  const fetchBookedSlots = async () => {
+    if (!selectedEvent) {
+      setEventBookedSlots(new Set());
       return;
     }
     setLoadingBooked(true);
     try {
-      const data = await api.get(`/subscription/booked?mandalId=${selectedMandal.id}`);
+      const data = await api.get(`/subscription/booked?eventId=${selectedEvent.id}`);
       if (data && data.bookedSlots) {
         const parsed = data.bookedSlots.map(s => String(s).trim());
-        setMandalBookedSlots(new Set(parsed));
+        setEventBookedSlots(new Set(parsed));
       }
     } catch (err) {
       console.warn('Failed to load booked slots:', err.message);
@@ -95,7 +122,7 @@ export default function SlotsScreen() {
 
   useEffect(() => {
     fetchBookedSlots();
-  }, [selectedMandal]);
+  }, [selectedEvent]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -107,44 +134,110 @@ export default function SlotsScreen() {
     setRefreshing(false);
   };
 
-  const configuredSlots = selectedMandal
-    ? selectedMandal.slots.split(',').map(s => s.trim()).filter(Boolean)
-    : [];
-
-  const configuredEvents = selectedMandal
-    ? selectedMandal.event_names.split(',').map(e => e.trim()).filter(Boolean)
-    : [];
+  const getEventSlots = () => {
+    if (!selectedEvent || !selectedEvent.slots) return [];
+    const parts = selectedEvent.slots.split(',');
+    const expanded = [];
+    for (let part of parts) {
+      part = part.trim();
+      if (part.includes('-')) {
+        const rangeParts = part.split('-');
+        if (rangeParts.length === 2) {
+          const start = parseInt(rangeParts[0].trim(), 10);
+          const end = parseInt(rangeParts[1].trim(), 10);
+          if (!isNaN(start) && !isNaN(end) && start <= end) {
+            for (let i = start; i <= end; i++) expanded.push(i);
+            continue;
+          }
+        }
+      }
+      const num = parseInt(part, 10);
+      if (!isNaN(num)) expanded.push(num);
+    }
+    return expanded;
+  };
 
   const isSlotBooked = (slotNum) => {
-    return mandalBookedSlots.has(String(slotNum).trim());
+    return eventBookedSlots.has(String(slotNum).trim());
   };
 
   const handleSelectSlot = (slotNum) => {
     if (isSlotBooked(slotNum)) return;
-    if (!selectedEvent) {
-      alert('Please select an Event Name first');
-      return;
-    }
     setSelectedLocalSlot(slotNum === selectedLocalSlot ? null : slotNum);
   };
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setScreenshotUri(result.assets[0].uri);
+    }
+  };
+
   const handleConfirmBooking = async () => {
+    if (paymentMode === 'online') {
+      if (!transactionId.trim()) {
+        Alert.alert('Error', 'Please enter UPI Transaction ID.');
+        return;
+      }
+      if (!screenshotUri) {
+        Alert.alert('Error', 'Please upload a screenshot of your payment.');
+        return;
+      }
+    }
+
+    let uploadedUrl = null;
+
+    if (paymentMode === 'online' && screenshotUri) {
+      setUploadingImage(true);
+      try {
+        const formData = new FormData();
+        const filename = screenshotUri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image`;
+
+        formData.append('image', { uri: screenshotUri, name: filename, type });
+
+        const uploadRes = await api.upload('/upload', formData);
+        if (uploadRes && uploadRes.url) {
+          uploadedUrl = uploadRes.url;
+        } else {
+          throw new Error('Image upload failed to return URL');
+        }
+      } catch (uploadErr) {
+        setUploadingImage(false);
+        Alert.alert('Error', 'Failed to upload screenshot. Please try again.');
+        return;
+      }
+      setUploadingImage(false);
+    }
+
     if (selectedDistrict && selectedMandal && selectedLocalSlot && selectedEvent) {
       const result = await bookSlot(
         selectedDistrict.id,
         selectedMandal.id,
+        selectedEvent.id,
         selectedLocalSlot,
-        selectedEvent
+        paymentMode,
+        transactionId,
+        uploadedUrl
       );
       if (result && result.success) {
         setSelectedLocalSlot(null);
+        Alert.alert('Success', 'Subscription request submitted successfully!');
       } else {
-        alert(result?.message || 'Failed to purchase subscription');
+        Alert.alert('Error', result?.message || 'Failed to purchase subscription');
       }
     }
   };
 
-  // Rendering Case A: No Active Subscription (District/Mandal selection and slots grid)
+  const configuredSlots = getEventSlots();
+
+  // Rendering Case A: No Active Subscription (District/Mandal/Event selection and slots grid)
   const renderSlotGrid = () => (
     <ScrollView 
       style={styles.scrollContainer}
@@ -177,7 +270,7 @@ export default function SlotsScreen() {
 
       {/* Dropdown Filters */}
       <View style={styles.filterSection}>
-        <Text style={styles.sectionHeading}>Configure Location</Text>
+        <Text style={styles.sectionHeading}>Configure Location & Event</Text>
 
         {/* District Dropdown */}
         <TouchableOpacity style={styles.dropdownBtn} onPress={() => setDistrictDropdownOpen(true)}>
@@ -199,21 +292,21 @@ export default function SlotsScreen() {
           <Ionicons name="chevron-down" size={16} color="#6B7280" />
         </TouchableOpacity>
 
-        {/* Event Name Dropdown */}
+        {/* Event Dropdown */}
         <TouchableOpacity 
           style={[styles.dropdownBtn, !selectedMandal && styles.dropdownDisabled]} 
           onPress={() => selectedMandal && setEventDropdownOpen(true)}
           disabled={!selectedMandal}
         >
           <Text style={[styles.dropdownText, (!selectedEvent || !selectedMandal) && { color: '#9CA3AF' }]}>
-            {selectedEvent ? selectedEvent : "Select Event Name"}
+            {selectedEvent ? selectedEvent.event_name : "Select Event"}
           </Text>
           <Ionicons name="chevron-down" size={16} color="#6B7280" />
         </TouchableOpacity>
       </View>
 
       {/* Legend Indicator Section */}
-      {selectedMandal && (
+      {selectedEvent && (
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#22C55E' }]} />
@@ -231,10 +324,10 @@ export default function SlotsScreen() {
       )}
 
       {/* Slots Selection Grid */}
-      {selectedMandal && (
+      {selectedEvent && (
         <View style={styles.gridCard}>
           <View style={styles.gridHeader}>
-            <Text style={styles.gridHeading}>Available Slots in {selectedMandal.name}</Text>
+            <Text style={styles.gridHeading}>Available Slots</Text>
             {loadingBooked ? (
               <ActivityIndicator size="small" color="#0984E3" />
             ) : (
@@ -244,7 +337,7 @@ export default function SlotsScreen() {
 
           {configuredSlots.length === 0 ? (
             <View style={styles.noSlotsContainer}>
-              <Text style={styles.noSlotsText}>No slots configured for this Mandal.</Text>
+              <Text style={styles.noSlotsText}>No slots configured for this event.</Text>
             </View>
           ) : (
             <View style={styles.gridBody}>
@@ -395,7 +488,7 @@ export default function SlotsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {bookedSlot ? renderConfirmation() : renderSlotGrid()}
 
-      {/* District Dropdown Modal Overlay */}
+      {/* District Dropdown */}
       {districtDropdownOpen && (
         <View style={styles.dropdownModalBg}>
           <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setDistrictDropdownOpen(false)} />
@@ -428,7 +521,7 @@ export default function SlotsScreen() {
         </View>
       )}
 
-      {/* Mandal Dropdown Modal Overlay */}
+      {/* Mandal Dropdown */}
       {mandalDropdownOpen && (
         <View style={styles.dropdownModalBg}>
           <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setMandalDropdownOpen(false)} />
@@ -460,21 +553,21 @@ export default function SlotsScreen() {
         </View>
       )}
 
-      {/* Event Dropdown Modal Overlay */}
+      {/* Event Dropdown */}
       {eventDropdownOpen && (
         <View style={styles.dropdownModalBg}>
           <TouchableOpacity style={styles.dropdownModalDismiss} onPress={() => setEventDropdownOpen(false)} />
           <View style={styles.dropdownListContainer}>
             <View style={styles.dropdownListHeader}>
-              <Text style={styles.dropdownListTitle}>Select Event Name</Text>
+              <Text style={styles.dropdownListTitle}>Select Event</Text>
               <TouchableOpacity onPress={() => setEventDropdownOpen(false)}>
                 <Ionicons name="close" size={24} color="#374151" />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.dropdownListScroll}>
-              {configuredEvents.map(e => (
+              {events.map(e => (
                 <TouchableOpacity 
-                  key={e} 
+                  key={e.id} 
                   style={styles.dropdownListItem} 
                   onPress={() => {
                     setSelectedEvent(e);
@@ -482,8 +575,8 @@ export default function SlotsScreen() {
                     setSelectedLocalSlot(null);
                   }}
                 >
-                  <Text style={styles.dropdownListItemText}>{e}</Text>
-                  {selectedEvent === e && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  <Text style={styles.dropdownListItemText}>{e.event_name}</Text>
+                  {selectedEvent?.id === e.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -491,7 +584,7 @@ export default function SlotsScreen() {
         </View>
       )}
 
-      {/* Bottom Sheet Modal Overlay for Subscription Confirmation */}
+      {/* Bottom Sheet for Payment */}
       {!bookedSlot && selectedLocalSlot && selectedEvent && (
         <View style={styles.modalBackdrop}>
           <TouchableOpacity 
@@ -500,16 +593,15 @@ export default function SlotsScreen() {
             onPress={() => setSelectedLocalSlot(null)}
           />
           <View style={styles.bottomSheet}>
+            <ScrollView style={{maxHeight: Dimensions.get('window').height * 0.7}}>
             <View style={styles.sheetHeader}>
               <View>
-                <Text style={styles.sheetLabel}>Selected slot for {selectedEvent}</Text>
+                <Text style={styles.sheetLabel}>Selected slot for {selectedEvent.event_name}</Text>
                 <Text style={styles.sheetSlotNumber}>#{selectedLocalSlot}</Text>
-                <Text style={styles.sheetSubLabel}>{selectedDistrict?.name} / {selectedMandal?.name}</Text>
               </View>
               <TouchableOpacity 
                 style={styles.sheetCloseBtn} 
                 onPress={() => setSelectedLocalSlot(null)}
-                activeOpacity={0.7}
               >
                 <Ionicons name="close" size={22} color="#4B5563" />
               </TouchableOpacity>
@@ -523,17 +615,62 @@ export default function SlotsScreen() {
             >
               <View>
                 <Text style={styles.subInfoLabel}>Annual subscription</Text>
-                <Text style={styles.subInfoPrice}>₹{parseInt(selectedMandal?.subscription_price)}/year</Text>
+                <Text style={styles.subInfoPrice}>₹{parseInt(selectedEvent.price)}/year</Text>
               </View>
               <View style={styles.unlimitedBadge}>
-                <Text style={styles.unlimitedText}>Unlimited</Text>
+                <Text style={styles.unlimitedText}>Priority Care</Text>
               </View>
             </LinearGradient>
+
+            {/* Payment Mode Selection */}
+            <Text style={styles.paymentHeading}>Payment Method</Text>
+            <View style={styles.paymentRow}>
+              <TouchableOpacity 
+                style={[styles.paymentBtn, paymentMode === 'offline' && styles.paymentBtnActive]}
+                onPress={() => setPaymentMode('offline')}
+              >
+                <Ionicons name="cash-outline" size={20} color={paymentMode === 'offline' ? '#00B894' : '#6B7280'} />
+                <Text style={[styles.paymentBtnText, paymentMode === 'offline' && styles.paymentBtnTextActive]}>Offline/Cash</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.paymentBtn, paymentMode === 'online' && styles.paymentBtnActive]}
+                onPress={() => setPaymentMode('online')}
+              >
+                <Ionicons name="card-outline" size={20} color={paymentMode === 'online' ? '#00B894' : '#6B7280'} />
+                <Text style={[styles.paymentBtnText, paymentMode === 'online' && styles.paymentBtnTextActive]}>Online (UPI)</Text>
+              </TouchableOpacity>
+            </View>
+
+            {paymentMode === 'online' && (
+              <View style={styles.onlinePaymentContainer}>
+                <View style={styles.qrPlaceholder}>
+                  <Ionicons name="qr-code" size={40} color="#00B894" />
+                  <Text style={styles.qrText}>nextgenpayments@ybl</Text>
+                </View>
+                
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="UPI Transaction ID *"
+                  value={transactionId}
+                  onChangeText={setTransactionId}
+                  placeholderTextColor="#9CA3AF"
+                />
+
+                <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
+                  <Ionicons name="image-outline" size={20} color="#374151" />
+                  <Text style={styles.uploadBtnText}>Upload Screenshot</Text>
+                </TouchableOpacity>
+
+                {screenshotUri && (
+                  <Image source={{ uri: screenshotUri }} style={styles.screenshotPreview} />
+                )}
+              </View>
+            )}
 
             <TouchableOpacity 
               style={styles.sheetConfirmBtnWrapper}
               onPress={handleConfirmBooking}
-              activeOpacity={0.8}
+              disabled={uploadingImage}
             >
               <LinearGradient
                 colors={['#00C853', '#0091EA']}
@@ -541,9 +678,15 @@ export default function SlotsScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Text style={styles.sheetConfirmBtnText}>Confirm subscription</Text>
+                {uploadingImage ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.sheetConfirmBtnText}>Submit Request</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
+            <View style={{height: 20}} />
+            </ScrollView>
           </View>
         </View>
       )}
@@ -763,6 +906,220 @@ const styles = StyleSheet.create({
   banIcon: {
     fontSize: 12,
   },
+  dropdownModalBg: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+    zIndex: 100,
+  },
+  dropdownModalDismiss: {
+    flex: 1,
+  },
+  dropdownListContainer: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '60%',
+    paddingBottom: 20,
+  },
+  dropdownListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  dropdownListTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  dropdownListScroll: {
+    paddingHorizontal: 10,
+  },
+  dropdownListItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F9FAFB',
+  },
+  dropdownListItemText: {
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    justifyContent: 'flex-end',
+    zIndex: 50,
+  },
+  modalDismissArea: {
+    flex: 1,
+  },
+  bottomSheet: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  sheetLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  sheetSlotNumber: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#111827',
+    marginVertical: 4,
+  },
+  sheetCloseBtn: {
+    padding: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+  },
+  subInfoCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 24,
+  },
+  subInfoLabel: {
+    fontSize: 13,
+    color: '#4B5563',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  subInfoPrice: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  unlimitedBadge: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  unlimitedText: {
+    color: '#00C853',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  paymentHeading: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  paymentBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    gap: 8,
+  },
+  paymentBtnActive: {
+    borderColor: '#00B894',
+    backgroundColor: '#F0FDF4',
+  },
+  paymentBtnText: {
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  paymentBtnTextActive: {
+    color: '#00B894',
+  },
+  onlinePaymentContainer: {
+    marginBottom: 20,
+  },
+  qrPlaceholder: {
+    alignSelf: 'center',
+    alignItems: 'center',
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    marginBottom: 12,
+    width: '100%',
+  },
+  qrText: {
+    marginTop: 8,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  uploadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 12,
+  },
+  uploadBtnText: {
+    fontWeight: '600',
+    color: '#374151',
+  },
+  screenshotPreview: {
+    width: '100%',
+    height: 150,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  sheetConfirmBtnWrapper: {
+    shadowColor: '#0091EA',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  sheetConfirmBtn: {
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  sheetConfirmBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
   successGradientCard: {
     borderRadius: 24,
     padding: 24,
@@ -799,71 +1156,70 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 14,
     fontWeight: '500',
-    marginBottom: 16,
     textAlign: 'center',
+    marginBottom: 20,
   },
   subscriptionActiveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 100,
   },
   subscriptionActiveText: {
     color: '#FFF',
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '750',
   },
   slotDetailCard: {
     backgroundColor: '#FFF',
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 24,
-    marginTop: 20,
+    marginTop: -20,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 5,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
   },
   slotDetailHeader: {
+    fontSize: 12,
+    fontWeight: '750',
     color: '#6B7280',
-    fontSize: 13,
-    fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 8,
   },
   slotDetailNumber: {
-    color: '#00B894',
     fontSize: 48,
-    fontWeight: '800',
-    marginBottom: 8,
+    fontWeight: '900',
+    color: '#111827',
+    marginBottom: 4,
   },
   slotDetailFooter: {
-    color: '#6B7280',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#00C853',
+    fontWeight: '600',
   },
   infoList: {
     backgroundColor: '#FFF',
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 20,
-    marginTop: 20,
+    marginTop: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
   },
   infoIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -872,206 +1228,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
-    color: '#6B7280',
     fontSize: 12,
+    color: '#6B7280',
     fontWeight: '600',
+    marginBottom: 2,
   },
   infoValue: {
-    color: '#111827',
     fontSize: 15,
+    color: '#111827',
     fontWeight: '700',
-    marginTop: 2,
   },
   rowDivider: {
     height: 1,
     backgroundColor: '#F3F4F6',
-    marginVertical: 8,
+    marginVertical: 16,
+    marginLeft: 56,
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 16,
+    marginTop: 24,
     paddingVertical: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
   },
   cancelButtonText: {
     color: '#EF4444',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  modalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 1000,
-    justifyContent: 'flex-end',
-  },
-  modalDismissArea: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  bottomSheet: {
-    backgroundColor: '#FFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 36,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 20,
-  },
-  sheetLabel: {
-    color: '#6B7280',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  sheetSlotNumber: {
-    color: '#111827',
-    fontSize: 32,
-    fontWeight: '800',
-    marginTop: 4,
-  },
-  sheetSubLabel: {
-    color: '#00B894',
     fontSize: 14,
     fontWeight: '700',
-    marginTop: 2,
-  },
-  sheetCloseBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  subInfoCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    marginBottom: 24,
-  },
-  subInfoLabel: {
-    color: '#4B5563',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  subInfoPrice: {
-    color: '#00B894',
-    fontSize: 20,
-    fontWeight: '850',
-    marginTop: 2,
-  },
-  unlimitedBadge: {
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 100,
-  },
-  unlimitedText: {
-    color: '#047857',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  sheetConfirmBtnWrapper: {
-    shadowColor: '#00C853',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  sheetConfirmBtn: {
-    borderRadius: 100,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sheetConfirmBtnText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  // Modal styles for selectors
-  dropdownModalBg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    zIndex: 2000,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  dropdownModalDismiss: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  dropdownListContainer: {
-    backgroundColor: '#FFF',
-    borderRadius: 24,
-    width: '100%',
-    maxHeight: '60%',
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  dropdownListHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderColor: '#F3F4F6',
-  },
-  dropdownListTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#111827',
-  },
-  dropdownListScroll: {
-    flexGrow: 0,
-  },
-  dropdownListItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#F9FAFB',
-  },
-  dropdownListItemText: {
-    fontSize: 15,
-    color: '#374151',
-    fontWeight: '600',
   },
 });

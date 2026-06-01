@@ -183,9 +183,17 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const bookSlot = async (districtId, mandalId, slotNumber, eventName) => {
+  const bookSlot = async (districtId, mandalId, eventId, slotNumber, paymentMode, transactionId, screenshotUrl) => {
     try {
-      const res = await api.post('/subscription/book', { districtId, mandalId, slotNumber, eventName });
+      const res = await api.post('/subscription/book', { 
+        districtId, 
+        mandalId, 
+        eventId, 
+        slotNumber, 
+        paymentMode, 
+        transactionId, 
+        screenshotUrl 
+      });
       if (res.success) {
         await loadAppData();
         await fetchDbBookedSlots();

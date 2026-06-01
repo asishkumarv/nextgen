@@ -9,7 +9,7 @@ const createTables = async (dropExisting = false) => {
     if (dropExisting) {
       // Drop existing tables to perform clean migration
       console.log('Dropping existing tables to migrate schema...');
-      await client.query('DROP TABLE IF EXISTS bookings, subscriptions, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, users, admins CASCADE;');
+      await client.query('DROP TABLE IF EXISTS bookings, subscriptions, events, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, users, admins CASCADE;');
     }
 
     // Create Districts Table
@@ -26,11 +26,21 @@ const createTables = async (dropExisting = false) => {
         id SERIAL PRIMARY KEY,
         district_id INTEGER REFERENCES districts(id) ON DELETE CASCADE,
         name VARCHAR(100) NOT NULL,
-        event_names TEXT NOT NULL,
-        slots TEXT NOT NULL,
-        subscription_price NUMERIC(10, 2) NOT NULL DEFAULT 2999.00,
-        booking_price NUMERIC(10, 2) NOT NULL DEFAULT 199.00,
         UNIQUE(district_id, name)
+      );
+    `);
+
+    // Create Events Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        mandal_id INTEGER REFERENCES mandals(id) ON DELETE CASCADE,
+        event_name VARCHAR(100) NOT NULL,
+        description TEXT DEFAULT '',
+        slots TEXT NOT NULL,
+        price NUMERIC(10, 2) NOT NULL DEFAULT 2999.00,
+        booking_price NUMERIC(10, 2) NOT NULL DEFAULT 199.00,
+        UNIQUE(mandal_id, event_name)
       );
     `);
 
@@ -52,13 +62,18 @@ const createTables = async (dropExisting = false) => {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         district_id INTEGER REFERENCES districts(id) ON DELETE SET NULL,
         mandal_id INTEGER REFERENCES mandals(id) ON DELETE SET NULL,
+        event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
         event_name VARCHAR(100) NOT NULL,
         slot_number VARCHAR(50) NOT NULL,
         plan VARCHAR(100) NOT NULL,
         price NUMERIC(10, 2) NOT NULL,
+        payment_mode VARCHAR(20) DEFAULT 'offline',
+        transaction_id VARCHAR(100),
+        screenshot_url TEXT,
+        status VARCHAR(20) DEFAULT 'Pending',
         valid_till TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(mandal_id, slot_number)
+        UNIQUE(event_id, slot_number)
       );
     `);
 
@@ -128,6 +143,7 @@ const createTables = async (dropExisting = false) => {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         district_id INTEGER REFERENCES districts(id) ON DELETE SET NULL,
         mandal_id INTEGER REFERENCES mandals(id) ON DELETE SET NULL,
+        event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
         event_name VARCHAR(100),
         slot_number VARCHAR(50),
         service_name VARCHAR(100) NOT NULL,
@@ -190,127 +206,140 @@ const createTables = async (dropExisting = false) => {
 
     if (dropExisting) {
       // Seed Districts and Mandals
-      console.log('Seeding Districts and Mandals...');
-    const district1 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Krishna']);
-    const district2 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Guntur']);
-    const district3 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Visakhapatnam']);
+      console.log('Seeding Districts, Mandals and Events...');
+      const district1 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Krishna']);
+      const district2 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Guntur']);
+      const district3 = await client.query('INSERT INTO districts (name) VALUES ($1) RETURNING id, name', ['Visakhapatnam']);
 
-    const krishnaId = district1.rows[0].id;
-    const gunturId = district2.rows[0].id;
-    const vizagId = district3.rows[0].id;
+      const krishnaId = district1.rows[0].id;
+      const gunturId = district2.rows[0].id;
+      const vizagId = district3.rows[0].id;
 
-    // Seed Mandals under Krishna
-    const mandal1 = await client.query(
-      `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [krishnaId, 'Vijayawada Urban', 'AC Service, Wiring Repair, General Checkup', '101, 102, 103, 104, 105', 2499.00, 149.00]
-    );
-    const mandal2 = await client.query(
-      `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [krishnaId, 'Vijayawada Rural', 'General Checkup, Fan Repair, Switchboard Fix', '201, 202, 203', 1999.00, 99.00]
-    );
-
-    // Seed Mandals under Guntur
-    const mandal3 = await client.query(
-      `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [gunturId, 'Guntur Urban', 'Wiring Audit, Appliance Repair, Lighting Install', '301, 302, 303, 304, 305', 2799.00, 179.00]
-    );
-    const mandal4 = await client.query(
-      `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [gunturId, 'Tenali', 'Motor Repair, Fan Fix, Socket Replacement', '401, 402, 403', 2199.00, 129.00]
-    );
-
-    // Seed Technician John (Vendor)
-    console.log('Seeding mock approved vendor Technician John...');
-    const vendorPasswordHash = bcrypt.hashSync('password123', 10);
-    const vendorRes = await client.query(
-      `INSERT INTO vendors (name, phone, password, district_id, mandal_id, status) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      ['Technician John', '+91 99999 88888', vendorPasswordHash, krishnaId, mandal1.rows[0].id, 'Approved']
-    );
-    const vendorId = vendorRes.rows[0].id;
-
-    // Link the seeded vendor to default services
-    console.log('Linking vendor to default services...');
-    const servicesRes = await client.query('SELECT id FROM services');
-    for (const serviceRow of servicesRes.rows) {
-      await client.query(
-        'INSERT INTO vendor_services (vendor_id, service_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-        [vendorId, serviceRow.id]
+      // Seed Mandals under Krishna
+      const mandal1 = await client.query(
+        `INSERT INTO mandals (district_id, name) VALUES ($1, $2) RETURNING id`,
+        [krishnaId, 'Vijayawada Urban']
       );
-    }
-
-    // Seed mock Users, Subscriptions, and Bookings
-    console.log('Seeding mock users, subscriptions, and bookings...');
-    const p1 = bcrypt.hashSync('password123', 10);
-    const usersData = [
-      ['Ravi Kumar', '+91 98765 43210', p1],
-      ['Anjali Sharma', '+91 91234 56789', p1],
-      ['Vikram Singh', '+91 98123 45678', p1],
-      ['Priya Patel', '+91 99887 76655', p1],
-      ['Siddharth Rao', '+91 97654 32109', p1]
-    ];
-    
-    const insertedUsers = [];
-    for (const userData of usersData) {
-      const res = await client.query(
-        'INSERT INTO users (name, phone, password) VALUES ($1, $2, $3) RETURNING id, name',
-        userData
+      const mandal2 = await client.query(
+        `INSERT INTO mandals (district_id, name) VALUES ($1, $2) RETURNING id`,
+        [krishnaId, 'Vijayawada Rural']
       );
-      insertedUsers.push(res.rows[0]);
-    }
 
-    // Insert subscriptions
-    const nextYear = new Date();
-    nextYear.setFullYear(nextYear.getFullYear() + 1);
+      // Seed Mandals under Guntur
+      const mandal3 = await client.query(
+        `INSERT INTO mandals (district_id, name) VALUES ($1, $2) RETURNING id`,
+        [gunturId, 'Guntur Urban']
+      );
+      const mandal4 = await client.query(
+        `INSERT INTO mandals (district_id, name) VALUES ($1, $2) RETURNING id`,
+        [gunturId, 'Tenali']
+      );
 
-    // Ravi -> Vijayawada Urban (slot 101)
-    await client.query(
-      `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_name, slot_number, plan, price, valid_till) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      ['NGPC-114920', insertedUsers[0].id, krishnaId, mandal1.rows[0].id, 'AC Service', '101', 'Annual · ₹2499/year', 2499.00, nextYear]
-    );
+      // Seed Events
+      const event1 = await client.query(
+        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [mandal1.rows[0].id, 'AC Service Plan', 'Comprehensive AC maintenance covering cleaning and gas checkups.', '101, 102, 103', 2499.00, 149.00]
+      );
+      const event2 = await client.query(
+        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [mandal1.rows[0].id, 'General Electrical', 'Wiring repair and general checkup for all household electricals.', '104, 105', 1999.00, 99.00]
+      );
 
-    // Anjali -> Guntur Urban (slot 301)
-    await client.query(
-      `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_name, slot_number, plan, price, valid_till) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      ['NGPC-502187', insertedUsers[1].id, gunturId, mandal3.rows[0].id, 'Wiring Audit', '301', 'Annual · ₹2799/year', 2799.00, nextYear]
-    );
+      const event3 = await client.query(
+        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [mandal3.rows[0].id, 'Wiring Audit', 'Complete home wiring audit and fix.', '301, 302, 303', 2799.00, 179.00]
+      );
 
-    // Vikram -> Tenali (slot 401)
-    await client.query(
-      `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_name, slot_number, plan, price, valid_till) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      ['NGPC-187745', insertedUsers[2].id, gunturId, mandal4.rows[0].id, 'Motor Repair', '401', 'Annual · ₹2199/year', 2199.00, nextYear]
-    );
+      const event4 = await client.query(
+        `INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [mandal4.rows[0].id, 'Motor Repair', 'Repairs and servicing for domestic water motors.', '401, 402', 2199.00, 129.00]
+      );
 
-    // Insert mock bookings (referencing districts/mandals)
-    const bookingsData = [
-      // Ravi Bookings
-      ['B-1042', insertedUsers[0].id, krishnaId, mandal1.rows[0].id, 'AC Service', '101', 'Fan Repair', '12 Apr 2026 (Morning)', 0.00, 'Completed', 'sync-outline', 'Flat 405, Block B, Green Glen Layout, Near Central Mall - 560103'],
-      ['B-1031', insertedUsers[0].id, krishnaId, mandal1.rows[0].id, 'AC Service', '101', 'Switchboard Repair', '28 Mar 2026 (Afternoon)', 0.00, 'Completed', 'toggle-outline', 'Flat 405, Block B, Green Glen Layout, Near Central Mall - 560103'],
+      // Seed Technician John (Vendor)
+      console.log('Seeding mock approved vendor Technician John...');
+      const vendorPasswordHash = bcrypt.hashSync('password123', 10);
+      const vendorRes = await client.query(
+        `INSERT INTO vendors (name, phone, password, district_id, mandal_id, status) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        ['Technician John', '+91 99999 88888', vendorPasswordHash, krishnaId, mandal1.rows[0].id, 'Approved']
+      );
+      const vendorId = vendorRes.rows[0].id;
+
+      // Link the seeded vendor to default services
+      console.log('Linking vendor to default services...');
+      const servicesRes = await client.query('SELECT id FROM services');
+      for (const serviceRow of servicesRes.rows) {
+        await client.query(
+          'INSERT INTO vendor_services (vendor_id, service_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [vendorId, serviceRow.id]
+        );
+      }
+
+      // Seed mock Users, Subscriptions, and Bookings
+      console.log('Seeding mock users, subscriptions, and bookings...');
+      const p1 = bcrypt.hashSync('password123', 10);
+      const usersData = [
+        ['Ravi Kumar', '+91 98765 43210', p1],
+        ['Anjali Sharma', '+91 91234 56789', p1],
+        ['Vikram Singh', '+91 98123 45678', p1],
+        ['Priya Patel', '+91 99887 76655', p1],
+        ['Siddharth Rao', '+91 97654 32109', p1]
+      ];
       
-      // Anjali Bookings
-      ['B-1051', insertedUsers[1].id, gunturId, mandal3.rows[0].id, 'Wiring Audit', '301', 'Wiring Issue', '22 May 2026 (Morning)', 0.00, 'Booked', 'flash-outline', 'Apt 12A, Sunset Heights, Whitefield - 560066'],
-      
-      // Vikram Bookings
-      ['B-1055', insertedUsers[2].id, gunturId, mandal4.rows[0].id, 'Motor Repair', '401', 'Fan Repair', '24 May 2026 (Afternoon)', 0.00, 'Booked', 'sync-outline', 'House 78, 4th Cross, Indiranagar - 560038'],
+      const insertedUsers = [];
+      for (const userData of usersData) {
+        const res = await client.query(
+          'INSERT INTO users (name, phone, password) VALUES ($1, $2, $3) RETURNING id, name',
+          userData
+        );
+        insertedUsers.push(res.rows[0]);
+      }
 
-      // Priya Bookings (Non-subscriber booking - Guntur Urban, Wiring Audit, slot 302, Guntur Urban booking price: 179)
-      ['B-1056', insertedUsers[3].id, gunturId, mandal3.rows[0].id, 'Wiring Audit', '302', 'Wiring Issue', '25 May 2026 (Morning)', 179.00, 'Booked', 'flash-outline', 'Villa 9, Prestige Lakeview, Outer Ring Road - 560103']
-    ];
+      // Insert subscriptions
+      const nextYear = new Date();
+      nextYear.setFullYear(nextYear.getFullYear() + 1);
 
-    for (const booking of bookingsData) {
+      // Ravi -> Vijayawada Urban (slot 101, event 1)
       await client.query(
-        `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_name, slot_number, service_name, date, price, status, icon, address) 
+        `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_id, event_name, slot_number, plan, price, status, payment_mode, valid_till) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-        booking
+        ['NGPC-114920', insertedUsers[0].id, krishnaId, mandal1.rows[0].id, event1.rows[0].id, 'AC Service Plan', '101', 'Annual · ₹2499/year', 2499.00, 'Active', 'offline', nextYear]
       );
-    }
+
+      // Anjali -> Guntur Urban (slot 301, event 3)
+      await client.query(
+        `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_id, event_name, slot_number, plan, price, status, payment_mode, valid_till) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        ['NGPC-502187', insertedUsers[1].id, gunturId, mandal3.rows[0].id, event3.rows[0].id, 'Wiring Audit', '301', 'Annual · ₹2799/year', 2799.00, 'Active', 'offline', nextYear]
+      );
+
+      // Vikram -> Tenali (slot 401, event 4)
+      await client.query(
+        `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_id, event_name, slot_number, plan, price, status, payment_mode, valid_till) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        ['NGPC-187745', insertedUsers[2].id, gunturId, mandal4.rows[0].id, event4.rows[0].id, 'Motor Repair', '401', 'Annual · ₹2199/year', 2199.00, 'Active', 'offline', nextYear]
+      );
+
+      // Insert mock bookings
+      const bookingsData = [
+        ['B-1042', insertedUsers[0].id, krishnaId, mandal1.rows[0].id, event1.rows[0].id, 'AC Service Plan', '101', 'Fan Repair', '12 Apr 2026 (Morning)', 0.00, 'Completed', 'sync-outline', 'Flat 405, Block B, Green Glen Layout, Near Central Mall - 560103'],
+        ['B-1031', insertedUsers[0].id, krishnaId, mandal1.rows[0].id, event1.rows[0].id, 'AC Service Plan', '101', 'Switchboard Repair', '28 Mar 2026 (Afternoon)', 0.00, 'Completed', 'toggle-outline', 'Flat 405, Block B, Green Glen Layout, Near Central Mall - 560103'],
+        ['B-1051', insertedUsers[1].id, gunturId, mandal3.rows[0].id, event3.rows[0].id, 'Wiring Audit', '301', 'Wiring Issue', '22 May 2026 (Morning)', 0.00, 'Booked', 'flash-outline', 'Apt 12A, Sunset Heights, Whitefield - 560066'],
+        ['B-1055', insertedUsers[2].id, gunturId, mandal4.rows[0].id, event4.rows[0].id, 'Motor Repair', '401', 'Fan Repair', '24 May 2026 (Afternoon)', 0.00, 'Booked', 'sync-outline', 'House 78, 4th Cross, Indiranagar - 560038'],
+        ['B-1056', insertedUsers[3].id, gunturId, mandal3.rows[0].id, event3.rows[0].id, 'Wiring Audit', '302', 'Wiring Issue', '25 May 2026 (Morning)', 179.00, 'Booked', 'flash-outline', 'Villa 9, Prestige Lakeview, Outer Ring Road - 560103']
+      ];
+
+      for (const booking of bookingsData) {
+        await client.query(
+          `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_id, event_name, slot_number, service_name, date, price, status, icon, address) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          booking
+        );
+      }
 
       console.log('Seeded database successfully.');
     }

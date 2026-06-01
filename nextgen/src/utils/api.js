@@ -143,4 +143,23 @@ export const api = {
   post: (endpoint, body, options) => request(endpoint, { method: 'POST', body: JSON.stringify(body), ...options }),
   put: (endpoint, body, options) => request(endpoint, { method: 'PUT', body: JSON.stringify(body), ...options }),
   delete: (endpoint, options) => request(endpoint, { method: 'DELETE', ...options }),
+  upload: async (endpoint, formData) => {
+    const token = await getAuthToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    let data;
+    try { data = await response.json(); } catch (_e) { data = {}; }
+    if (!response.ok) {
+      const err = new Error(data.message || 'Upload failed');
+      err.status = response.status;
+      throw err;
+    }
+    return data;
+  }
 };

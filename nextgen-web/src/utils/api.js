@@ -71,4 +71,18 @@ export const api = {
     });
     return handleResponse(response);
   },
+
+  upload: async (endpoint, formData) => {
+    const headers = {};
+    const token = localStorage.getItem('nextgen_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: headers, // fetch will auto-set Content-Type with boundary
+      body: formData,
+    });
+    return handleResponse(response);
+  }
 };

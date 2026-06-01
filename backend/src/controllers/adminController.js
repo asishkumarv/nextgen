@@ -191,6 +191,10 @@ const getSubscribers = async (req, res) => {
         s.price,
         s.valid_till AS "validTill",
         s.created_at AS "subscribedAt",
+        s.status,
+        s.payment_mode AS "paymentMode",
+        s.transaction_id AS "transactionId",
+        s.screenshot_url AS "screenshotUrl",
         u.id AS "userId",
         u.name,
         u.phone,
@@ -753,7 +757,16 @@ const adminGetMandals = async (req, res) => {
       JOIN districts d ON m.district_id = d.id
       ORDER BY d.name ASC, m.name ASC
     `);
-    res.json(result.rows);
+    
+    const mandals = [];
+    for (let m of result.rows) {
+      const eventsRes = await pool.query('SELECT * FROM events WHERE mandal_id = $1 ORDER BY event_name ASC', [m.id]);
+      mandals.push({
+        ...m,
+        events: eventsRes.rows
+      });
+    }
+    res.json(mandals);
   } catch (error) {
     console.error('Error getting mandals:', error);
     res.status(500).json({ message: 'Server error retrieving mandals' });
@@ -761,25 +774,23 @@ const adminGetMandals = async (req, res) => {
 };
 
 const adminAddMandal = async (req, res) => {
-  const { district_id, name, event_names, slots, subscription_price, booking_price } = req.body;
-  if (!district_id || !name || !event_names || !slots || subscription_price === undefined) {
-    return res.status(400).json({ message: 'Please enter all fields' });
+  const { district_id, name } = req.body;
+  if (!district_id || !name) {
+    return res.status(400).json({ message: 'Please enter district and mandal name' });
   }
   try {
     const check = await pool.query('SELECT * FROM mandals WHERE LOWER(name) = LOWER($1) AND district_id = $2', [name, district_id]);
     if (check.rows.length > 0) {
       return res.status(400).json({ message: 'Mandal already exists in this district' });
     }
-    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
-    const expandedSlots = parseSlotsRange(slots);
     const result = await pool.query(
-      `INSERT INTO mandals (district_id, name, event_names, slots, subscription_price, booking_price) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [district_id, name, event_names, expandedSlots, parseFloat(subscription_price), bookPrice]
+      `INSERT INTO mandals (district_id, name) VALUES ($1, $2) RETURNING *`,
+      [district_id, name]
     );
     const createdMandal = result.rows[0];
     const dNameRes = await pool.query('SELECT name FROM districts WHERE id = $1', [district_id]);
     createdMandal.districtName = dNameRes.rows[0].name;
+    createdMandal.events = [];
     res.status(201).json(createdMandal);
   } catch (error) {
     console.error('Error adding mandal:', error);
@@ -789,8 +800,8 @@ const adminAddMandal = async (req, res) => {
 
 const adminUpdateMandal = async (req, res) => {
   const { id } = req.params;
-  const { district_id, name, event_names, slots, subscription_price, booking_price } = req.body;
-  if (!district_id || !name || !event_names || !slots || subscription_price === undefined) {
+  const { district_id, name } = req.body;
+  if (!district_id || !name) {
     return res.status(400).json({ message: 'Please enter all fields' });
   }
   try {
@@ -798,13 +809,9 @@ const adminUpdateMandal = async (req, res) => {
     if (check.rows.length > 0) {
       return res.status(400).json({ message: 'Another mandal with this name already exists in this district' });
     }
-    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
-    const expandedSlots = parseSlotsRange(slots);
     const result = await pool.query(
-      `UPDATE mandals 
-       SET district_id = $1, name = $2, event_names = $3, slots = $4, subscription_price = $5, booking_price = $6 
-       WHERE id = $7 RETURNING *`,
-      [district_id, name, event_names, expandedSlots, parseFloat(subscription_price), bookPrice, id]
+      `UPDATE mandals SET district_id = $1, name = $2 WHERE id = $3 RETURNING *`,
+      [district_id, name, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Mandal not found' });
@@ -812,6 +819,10 @@ const adminUpdateMandal = async (req, res) => {
     const updatedMandal = result.rows[0];
     const dNameRes = await pool.query('SELECT name FROM districts WHERE id = $1', [district_id]);
     updatedMandal.districtName = dNameRes.rows[0].name;
+    
+    const eventsRes = await pool.query('SELECT * FROM events WHERE mandal_id = $1 ORDER BY event_name ASC', [updatedMandal.id]);
+    updatedMandal.events = eventsRes.rows;
+
     res.json(updatedMandal);
   } catch (error) {
     console.error('Error updating mandal:', error);
@@ -830,6 +841,135 @@ const adminDeleteMandal = async (req, res) => {
   } catch (error) {
     console.error('Error deleting mandal:', error);
     res.status(500).json({ message: 'Server error deleting mandal' });
+  }
+};
+
+// Events CRUD Handlers
+const adminAddEvent = async (req, res) => {
+  const { mandal_id, event_name, description, slots, price, booking_price } = req.body;
+  if (!mandal_id || !event_name || !slots || price === undefined) {
+    return res.status(400).json({ message: 'Please enter all required event fields' });
+  }
+  try {
+    const check = await pool.query('SELECT * FROM events WHERE LOWER(event_name) = LOWER($1) AND mandal_id = $2', [event_name, mandal_id]);
+    if (check.rows.length > 0) {
+      return res.status(400).json({ message: 'Event already exists in this mandal' });
+    }
+    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
+    const expandedSlots = parseSlotsRange(slots);
+    
+    const result = await pool.query(
+      \`INSERT INTO events (mandal_id, event_name, description, slots, price, booking_price) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *\`,
+      [mandal_id, event_name, description || '', expandedSlots, parseFloat(price), bookPrice]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error adding event:', error);
+    res.status(500).json({ message: 'Server error adding event' });
+  }
+};
+
+const adminUpdateEvent = async (req, res) => {
+  const { id } = req.params;
+  const { event_name, description, slots, price, booking_price } = req.body;
+  if (!event_name || !slots || price === undefined) {
+    return res.status(400).json({ message: 'Please enter all required event fields' });
+  }
+  try {
+    // Check if another event in the same mandal has this name
+    const currentEventRes = await pool.query('SELECT mandal_id FROM events WHERE id = $1', [id]);
+    if(currentEventRes.rows.length === 0) return res.status(404).json({ message: 'Event not found' });
+    const mandal_id = currentEventRes.rows[0].mandal_id;
+
+    const check = await pool.query('SELECT * FROM events WHERE LOWER(event_name) = LOWER($1) AND mandal_id = $2 AND id != $3', [event_name, mandal_id, id]);
+    if (check.rows.length > 0) {
+      return res.status(400).json({ message: 'Another event with this name already exists in this mandal' });
+    }
+
+    const bookPrice = booking_price !== undefined ? parseFloat(booking_price) : 199.00;
+    const expandedSlots = parseSlotsRange(slots);
+
+    const result = await pool.query(
+      \`UPDATE events SET event_name = $1, description = $2, slots = $3, price = $4, booking_price = $5 WHERE id = $6 RETURNING *\`,
+      [event_name, description || '', expandedSlots, parseFloat(price), bookPrice, id]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error updating event:', error);
+    res.status(500).json({ message: 'Server error updating event' });
+  }
+};
+
+const adminDeleteEvent = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    res.json({ success: true, message: 'Event deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ message: 'Server error deleting event' });
+  }
+};
+
+const getSubscriptionRequests = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        s.id AS "subId",
+        s.slot_number AS "slotNumber",
+        s.plan,
+        s.price,
+        s.valid_till AS "validTill",
+        s.created_at AS "subscribedAt",
+        s.status,
+        s.payment_mode AS "paymentMode",
+        s.transaction_id AS "transactionId",
+        s.screenshot_url AS "screenshotUrl",
+        u.id AS "userId",
+        u.name,
+        u.phone,
+        d.name AS "districtName",
+        m.name AS "mandalName",
+        s.event_name AS "eventName"
+      FROM subscriptions s
+      JOIN users u ON s.user_id = u.id
+      LEFT JOIN districts d ON s.district_id = d.id
+      LEFT JOIN mandals m ON s.mandal_id = m.id
+      WHERE s.status = 'Pending'
+      ORDER BY s.created_at ASC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting subscription requests:', error);
+    res.status(500).json({ message: 'Server error retrieving requests' });
+  }
+};
+
+const approveSubscription = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query("UPDATE subscriptions SET status = 'Active' WHERE id = $1 RETURNING *", [id]);
+    if(result.rows.length === 0) return res.status(404).json({ message: 'Subscription not found' });
+    res.json({ success: true, message: 'Subscription approved', subscription: result.rows[0] });
+  } catch (error) {
+    console.error('Error approving subscription:', error);
+    res.status(500).json({ message: 'Server error approving subscription' });
+  }
+};
+
+const rejectSubscription = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query("UPDATE subscriptions SET status = 'Rejected' WHERE id = $1 RETURNING *", [id]);
+    if(result.rows.length === 0) return res.status(404).json({ message: 'Subscription not found' });
+    res.json({ success: true, message: 'Subscription rejected', subscription: result.rows[0] });
+  } catch (error) {
+    console.error('Error rejecting subscription:', error);
+    res.status(500).json({ message: 'Server error rejecting subscription' });
   }
 };
 
@@ -863,5 +1003,11 @@ module.exports = {
   adminGetMandals,
   adminAddMandal,
   adminUpdateMandal,
-  adminDeleteMandal
+  adminDeleteMandal,
+  adminAddEvent,
+  adminUpdateEvent,
+  adminDeleteEvent,
+  getSubscriptionRequests,
+  approveSubscription,
+  rejectSubscription
 };
