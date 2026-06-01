@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard';
 import Services from './pages/Services';
 import Slots from './pages/Slots';
 import Profile from './pages/Profile';
+import Referrals from './pages/Referrals';
 
 import './App.css';
 
@@ -79,6 +80,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/referrals"
+              element={
+                <ProtectedRoute>
+                  <Referrals />
                 </ProtectedRoute>
               }
             />

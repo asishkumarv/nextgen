@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, LogOut, LayoutDashboard, Calendar, Wrench, Shield, Home, Info, PhoneCall, Sun, Moon, User } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Calendar, Wrench, Shield, Home, Info, PhoneCall, Sun, Moon, User, Wallet } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
 export default function Navbar() {
@@ -38,6 +38,7 @@ export default function Navbar() {
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { name: 'Book Service', path: '/services', icon: <Wrench size={18} /> },
     { name: 'Subscription Slots', path: '/slots', icon: <Calendar size={18} /> },
+    { name: 'Wallet & Referrals', path: '/referrals', icon: <Wallet size={18} /> },
   ];
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
@@ -80,6 +81,10 @@ export default function Navbar() {
           </button>
           {token ? (
             <div className="user-menu">
+              <Link to="/referrals" className="user-profile-link" title="My Wallet" style={{ marginRight: '8px' }}>
+                <Wallet size={16} style={{ color: 'var(--primary)' }} />
+                <span>₹{user?.wallet_balance || 0}</span>
+              </Link>
               <Link to="/profile" className="user-profile-link" title="My Profile">
                 <User size={16} style={{ color: 'var(--primary)' }} />
                 <span>{user?.name || 'Profile'}</span>

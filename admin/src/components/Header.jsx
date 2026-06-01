@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Calendar, Bell, RotateCw } from 'lucide-react';
+import { Menu, Calendar, Bell, RotateCw, LogOut } from 'lucide-react';
 
 export default function Header({ activeView, sidebarOpen, onToggleSidebar, adminName, onRefresh }) {
   const getPageTitle = () => {
@@ -62,6 +62,16 @@ export default function Header({ activeView, sidebarOpen, onToggleSidebar, admin
           <span className="admin-header-user-name">{adminName || 'Admin'}</span>
           <span className="admin-header-status">Online</span>
         </div>
+
+        <button onClick={() => {
+          if(window.confirm('Are you sure you want to log out?')) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminProfile');
+            window.location.reload();
+          }
+        }} className="admin-header-notification" title="Logout" style={{ marginLeft: '12px' }}>
+          <LogOut size={18} color="#EF4444" />
+        </button>
       </div>
     </header>
   );

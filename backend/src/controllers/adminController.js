@@ -960,14 +960,84 @@ const approveSubscription = async (req, res) => {
 };
 
 const rejectSubscription = async (req, res) => {
-  const { id } = req.params;
+  const subId = req.params.id;
   try {
-    const result = await pool.query("UPDATE subscriptions SET status = 'Rejected' WHERE id = $1 RETURNING *", [id]);
-    if(result.rows.length === 0) return res.status(404).json({ message: 'Subscription not found' });
-    res.json({ success: true, message: 'Subscription rejected', subscription: result.rows[0] });
+    const updated = await pool.query(
+      "UPDATE subscriptions SET status = 'Rejected' WHERE id = $1 RETURNING *",
+      [subId]
+    );
+
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ message: 'Subscription request not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Subscription rejected',
+      subscription: updated.rows[0]
+    });
   } catch (error) {
     console.error('Error rejecting subscription:', error);
-    res.status(500).json({ message: 'Server error rejecting subscription' });
+    res.status(500).json({ message: 'Server error rejecting subscription request' });
+  }
+};
+
+// Withdrawal Management
+const getWithdrawals = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT w.*, u.name as "userName", u.phone as "userPhone" 
+      FROM withdrawals w
+      JOIN users u ON w.user_id = u.id
+      ORDER BY w.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting withdrawals:', error);
+    res.status(500).json({ message: 'Server error retrieving withdrawals' });
+  }
+};
+
+const updateWithdrawalStatus = async (req, res) => {
+  const withdrawId = req.params.id;
+  const { status } = req.body; // 'In Progress', 'Paid', 'Rejected'
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    // Get current withdrawal
+    const wRes = await client.query('SELECT * FROM withdrawals WHERE id = $1 FOR UPDATE', [withdrawId]);
+    if (wRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Withdrawal not found' });
+    }
+    const withdrawal = wRes.rows[0];
+
+    // If it was already terminal, don't allow change
+    if (withdrawal.status === 'Paid' || withdrawal.status === 'Rejected') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: 'Withdrawal status is already finalized' });
+    }
+
+    // If changing to Rejected, refund wallet
+    if (status === 'Rejected') {
+      await client.query('UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2', [withdrawal.amount, withdrawal.user_id]);
+    }
+
+    const updated = await client.query(
+      'UPDATE withdrawals SET status = $1 WHERE id = $2 RETURNING *',
+      [status, withdrawId]
+    );
+
+    await client.query('COMMIT');
+    res.json({ success: true, message: 'Withdrawal status updated', withdrawal: updated.rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error updating withdrawal:', error);
+    res.status(500).json({ message: 'Server error updating withdrawal' });
+  } finally {
+    client.release();
   }
 };
 
@@ -1007,5 +1077,7 @@ module.exports = {
   adminDeleteEvent,
   getSubscriptionRequests,
   approveSubscription,
-  rejectSubscription
+  rejectSubscription,
+  getWithdrawals,
+  updateWithdrawalStatus
 };

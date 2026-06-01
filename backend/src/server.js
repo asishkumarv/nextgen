@@ -9,6 +9,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const servicesRoutes = require('./routes/servicesRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const walletRoutes = require('./routes/walletRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,6 +32,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/vendor', vendorRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/wallet', walletRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -36,7 +36,9 @@ const {
   adminDeleteEvent,
   getSubscriptionRequests,
   approveSubscription,
-  rejectSubscription
+  rejectSubscription,
+  getWithdrawals,
+  updateWithdrawalStatus
 } = require('../controllers/adminController');
 const { authenticateAdmin } = require('../middleware/auth');
 
@@ -92,5 +94,9 @@ router.delete('/events/:id', authenticateAdmin, adminDeleteEvent);
 router.get('/subscription-requests', authenticateAdmin, getSubscriptionRequests);
 router.put('/subscription-requests/:id/approve', authenticateAdmin, approveSubscription);
 router.put('/subscription-requests/:id/reject', authenticateAdmin, rejectSubscription);
+
+// Withdrawals routes
+router.get('/withdrawals', authenticateAdmin, getWithdrawals);
+router.put('/withdrawals/:id/status', authenticateAdmin, updateWithdrawalStatus);
 
 module.exports = router;

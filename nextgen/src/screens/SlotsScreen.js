@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
   TextInput,
   Image,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -47,6 +48,7 @@ export default function SlotsScreen() {
   const [paymentMode, setPaymentMode] = useState('offline'); // offline or online
   const [transactionId, setTransactionId] = useState('');
   const [screenshotUri, setScreenshotUri] = useState(null);
+  const [screenshotWebFile, setScreenshotWebFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -175,6 +177,9 @@ export default function SlotsScreen() {
 
     if (!result.canceled) {
       setScreenshotUri(result.assets[0].uri);
+      if (Platform.OS === 'web' && result.assets[0].file) {
+        setScreenshotWebFile(result.assets[0].file);
+      }
     }
   };
 
@@ -196,11 +201,21 @@ export default function SlotsScreen() {
       setUploadingImage(true);
       try {
         const formData = new FormData();
-        const filename = screenshotUri.split('/').pop();
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : `image`;
-
-        formData.append('image', { uri: screenshotUri, name: filename, type });
+        
+        if (Platform.OS === 'web' && screenshotWebFile) {
+          formData.append('image', screenshotWebFile);
+        } else if (Platform.OS === 'web' && screenshotUri.startsWith('data:')) {
+          // Convert base64 to blob
+          const response = await fetch(screenshotUri);
+          const blob = await response.blob();
+          formData.append('image', blob, 'upload.jpg');
+        } else {
+          let filename = screenshotUri.split('/').pop();
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : `image/jpeg`;
+          if (!match) filename += '.jpg';
+          formData.append('image', { uri: screenshotUri, name: filename, type });
+        }
 
         const uploadRes = await api.upload('/upload', formData);
         if (uploadRes && uploadRes.url) {
@@ -610,7 +625,7 @@ export default function SlotsScreen() {
       )}
 
       {/* Bottom Sheet for Payment */}
-      {!bookedSlot && selectedLocalSlot && selectedEvent && (
+      {(!bookedSlot || bookingDetails?.status === 'Rejected') && selectedLocalSlot && selectedEvent && (
         <View style={styles.modalBackdrop}>
           <TouchableOpacity 
             style={styles.modalDismissArea} 

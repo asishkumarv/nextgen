@@ -25,6 +25,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [nameError, setNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
@@ -105,7 +106,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     }
 
     setLoading(true);
-    const result = await register(name.trim(), phone.trim(), password);
+    const result = await register(name.trim(), phone.trim(), password, referralCode ? referralCode.toUpperCase() : undefined);
     setLoading(false);
 
     if (!result.success) {
@@ -247,6 +248,23 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <Text style={styles.fieldErrorText}>{confirmError}</Text>
                 </View>
               ) : null}
+            </View>
+
+            {/* Referral Code Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Referral Code (Optional)</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons name="people-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter 7-digit code"
+                  placeholderTextColor="#9CA3AF"
+                  value={referralCode}
+                  onChangeText={(t) => setReferralCode(t.toUpperCase())}
+                  maxLength={7}
+                  editable={!loading}
+                />
+              </View>
             </View>
 
             {/* Action Button */}

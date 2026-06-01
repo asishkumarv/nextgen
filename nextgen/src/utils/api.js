@@ -150,8 +150,16 @@ export const api = {
       body: formData,
     });
     let data;
-    try { data = await response.json(); } catch (_e) { data = {}; }
+    let errorText = '';
+    try { 
+      const text = await response.text();
+      errorText = text;
+      data = JSON.parse(text); 
+    } catch (_e) { 
+      data = {}; 
+    }
     if (!response.ok) {
+      console.error('Upload Error Text:', errorText);
       const err = new Error(data.message || 'Upload failed');
       err.status = response.status;
       throw err;

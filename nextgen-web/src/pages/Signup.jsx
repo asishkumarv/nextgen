@@ -11,6 +11,7 @@ export default function Signup() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +33,7 @@ export default function Signup() {
     setError('');
     setLoading(true);
     try {
-      await signup(name, phone, password);
+      await signup(name, phone, password, referralCode || undefined);
       // Success, route to dashboard
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -114,6 +115,21 @@ export default function Signup() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Retype password"
                 required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="referralCode">Referral Code (Optional)</label>
+            <div className="input-with-icon">
+              <UserPlus className="input-icon" size={16} />
+              <input
+                type="text"
+                id="referralCode"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="Enter 7-digit code"
+                maxLength={7}
               />
             </div>
           </div>

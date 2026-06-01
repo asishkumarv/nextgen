@@ -15,6 +15,7 @@ export default function Sidebar({ activeView, onViewChange, onLogout, adminName 
     { id: 'services', label: 'Services Manager', icon: Wrench },
     { id: 'vendors', label: 'Vendors Manager', icon: Briefcase },
     { id: 'settlements', label: 'Payment Settlements', icon: Coins },
+    { id: 'withdrawals', label: 'Referral Withdrawals', icon: Coins },
   ];
 
   const handleLogoutClick = () => {

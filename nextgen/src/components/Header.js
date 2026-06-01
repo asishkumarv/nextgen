@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Header() {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
@@ -15,11 +17,20 @@ export default function Header() {
           <Text style={styles.subTitle}>Power Care</Text>
         </View>
       </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <TouchableOpacity 
+          style={styles.bellButton} 
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Referrals')}
+        >
+          <Ionicons name="wallet-outline" size={22} color="#111827" />
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
-        <Ionicons name="notifications-outline" size={22} color="#111827" />
-        <View style={styles.redBadge} />
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
+          <Ionicons name="notifications-outline" size={22} color="#111827" />
+          <View style={styles.redBadge} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

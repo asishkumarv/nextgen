@@ -14,6 +14,7 @@ import Settlements from './pages/Settlements';
 import Districts from './pages/Districts';
 import Mandals from './pages/Mandals';
 import SubscriptionRequests from './pages/SubscriptionRequests';
+import Withdrawals from './pages/Withdrawals';
 
 export default function App() {
   const [admin, setAdmin] = useState(null);
@@ -63,6 +64,8 @@ export default function App() {
         return <Vendors key={refreshKey} />;
       case 'settlements':
         return <Settlements key={refreshKey} />;
+      case 'withdrawals':
+        return <Withdrawals key={refreshKey} />;
       default:
         return <Dashboard key={refreshKey} onNavigateToView={setActiveView} />;
     }

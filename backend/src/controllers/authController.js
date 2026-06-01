@@ -4,17 +4,58 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const register = async (req, res) => {
-  const { name, phone, password } = req.body;
+  const { name, phone, password, referralCode } = req.body;
 
   if (!name || !phone || !password) {
     return res.status(400).json({ message: 'Please enter all fields' });
   }
 
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
+    
     // Check if phone number exists
-    const userExist = await pool.query('SELECT * FROM users WHERE phone = $1', [phone]);
+    const userExist = await client.query('SELECT * FROM users WHERE phone = $1', [phone]);
     if (userExist.rows.length > 0) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ message: 'User with this phone number already exists' });
+    }
+
+    // Process Referral Code
+    let referredById = null;
+    if (referralCode) {
+      const referrerQuery = await client.query('SELECT id FROM users WHERE referral_code = $1', [referralCode]);
+      if (referrerQuery.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'Invalid referral code' });
+      }
+      referredById = referrerQuery.rows[0].id;
+
+      // Calculate reward amount
+      const refCountQuery = await client.query('SELECT COUNT(*) FROM users WHERE referred_by = $1', [referredById]);
+      const refCount = parseInt(refCountQuery.rows[0].count);
+      const reward = Math.max(50, 100 - (refCount * 5));
+
+      // Update referrer wallet
+      await client.query('UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2', [reward, referredById]);
+    }
+
+    // Generate unique referral code for new user
+    const generateCode = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 7; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    };
+    
+    let unique = false;
+    let newReferralCode;
+    while(!unique) {
+      newReferralCode = generateCode();
+      const check = await client.query('SELECT id FROM users WHERE referral_code = $1', [newReferralCode]);
+      if(check.rows.length === 0) unique = true;
     }
 
     // Hash password
@@ -22,10 +63,12 @@ const register = async (req, res) => {
     const passwordHash = bcrypt.hashSync(password, salt);
 
     // Insert user
-    const newUser = await pool.query(
-      'INSERT INTO users (name, phone, password) VALUES ($1, $2, $3) RETURNING id, name, phone',
-      [name, phone, passwordHash]
+    const newUser = await client.query(
+      'INSERT INTO users (name, phone, password, referral_code, referred_by) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, phone, referral_code, wallet_balance',
+      [name, phone, passwordHash, newReferralCode, referredById]
     );
+
+    await client.query('COMMIT');
 
     const user = newUser.rows[0];
 
@@ -41,13 +84,18 @@ const register = async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        phone: user.phone
+        phone: user.phone,
+        referral_code: user.referral_code,
+        wallet_balance: user.wallet_balance
       }
     });
 
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error during registration:', error);
     res.status(500).json({ message: 'Server error during registration' });
+  } finally {
+    client.release();
   }
 };
 
@@ -85,7 +133,10 @@ const login = async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        phone: user.phone
+        phone: user.phone,
+        referral_code: user.referral_code,
+        wallet_balance: user.wallet_balance,
+        subscription: null
       }
     });
 
@@ -100,7 +151,10 @@ const getMe = async (req, res) => {
     const userId = req.user.id;
 
     // Fetch user details
-    const userRes = await pool.query('SELECT id, name, phone, created_at FROM users WHERE id = $1', [userId]);
+    const userRes = await pool.query(
+      'SELECT id, name, phone, referral_code, wallet_balance FROM users WHERE id = $1',
+      [req.user.id]
+    );
     if (userRes.rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }

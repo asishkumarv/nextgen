@@ -12,6 +12,7 @@ import ServicesScreen from '../screens/ServicesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import ReferralScreen from '../screens/ReferralScreen';
 import { useApp } from '../context/AppContext';
 
 const Tab = createBottomTabNavigator();
@@ -102,6 +103,15 @@ export default function AppNavigator() {
             name="Profile"
             component={ProfileScreen}
             options={{ title: 'Profile' }}
+          />
+
+          <Tab.Screen
+            name="Referrals"
+            component={ReferralScreen}
+            options={{ 
+              title: 'Wallet', 
+              tabBarButton: () => null 
+            }}
           />
         </Tab.Navigator>
       </NavigationContainer>

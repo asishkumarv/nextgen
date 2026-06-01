@@ -9,6 +9,8 @@ export default function Slots() {
   const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const selectionRef = useRef(null);
+  const paymentRef = useRef(null);
 
   // Filter States
   const [districts, setDistricts] = useState([]);
@@ -148,6 +150,15 @@ export default function Slots() {
     }
     return expanded;
   };
+
+  // Effect: Scroll to top of payment section when a slot is selected
+  useEffect(() => {
+    if (selectedSlot && paymentRef.current) {
+      setTimeout(() => {
+        paymentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  }, [selectedSlot]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -343,7 +354,7 @@ export default function Slots() {
         </div>
 
         {/* Right Side: Grid Selector & Payment */}
-        <div className="slots-selection-content">
+        <div className="slots-selection-content" ref={selectionRef}>
           <div className="slots-grid-card glass-card">
             <h3>Step 2: Choose Slot Number</h3>
             
@@ -361,6 +372,25 @@ export default function Slots() {
               <div className="empty-slots-placeholder text-danger">
                 <AlertTriangle size={36} className="placeholder-icon" />
                 <p>No slots configured for Event: <strong>{activeEvent?.event_name}</strong>. Please contact admin.</p>
+              </div>
+            ) : selectedSlot ? (
+              <div className="selected-slot-summary" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F0F9FF', padding: '16px', borderRadius: '12px', border: '1px solid #BAE6FD', marginTop: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ backgroundColor: '#0EA5E9', color: '#FFF', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                    #{selectedSlot}
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, color: '#0369A1' }}>Slot Selected</h4>
+                    <span style={{ fontSize: '0.85rem', color: '#0284C7' }}>You have reserved this slot for booking.</span>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setSelectedSlot(null)}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #0EA5E9', color: '#0EA5E9', backgroundColor: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Change Slot
+                </button>
               </div>
             ) : (
               <>
@@ -390,7 +420,7 @@ export default function Slots() {
 
           {/* Payment Method Panel */}
           {selectedSlot && activeEvent && (!user?.subscription || user.subscription.status === 'Rejected') && (
-            <div className="payment-method-card glass-card animate-slide-up" style={{ marginTop: '20px' }}>
+            <div className="payment-method-card glass-card animate-slide-up" style={{ marginTop: '20px' }} ref={paymentRef}>
               <h3>Step 3: Payment Details</h3>
               <div className="payment-options">
                 <label className={`payment-option ${paymentMode === 'offline' ? 'active' : ''}`}>

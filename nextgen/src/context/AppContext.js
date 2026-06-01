@@ -55,6 +55,8 @@ export const AppProvider = ({ children }) => {
       setUser({
         name: profile.name,
         phone: profile.phone,
+        walletBalance: profile.wallet_balance || 0,
+        referralCode: profile.referral_code || ''
       });
 
       if (profile.subscription) {
@@ -126,9 +128,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, phone, password) => {
+  const register = async (name, phone, password, referralCode) => {
     try {
-      const data = await api.post('/auth/register', { name, phone, password });
+      const data = await api.post('/auth/register', { name, phone, password, referralCode });
       await setAuthToken(data.token);
       
       // Load all data before setting token state so transition is instant

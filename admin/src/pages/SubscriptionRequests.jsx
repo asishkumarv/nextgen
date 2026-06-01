@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../utils/api';
 import { CheckCircle, XCircle, FileImage, CreditCard, X } from 'lucide-react';
 
@@ -133,8 +134,8 @@ export default function SubscriptionRequests() {
         </div>
       )}
 
-      {/* Image Modal */}
-      {selectedImage && (
+      {/* Image Modal using Portal to escape parent container bounds */}
+      {selectedImage && createPortal(
         <div style={styles.modalOverlay} onClick={() => setSelectedImage(null)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setSelectedImage(null)} style={styles.closeBtn}>
@@ -142,7 +143,8 @@ export default function SubscriptionRequests() {
             </button>
             <img src={selectedImage} alt="Payment Screenshot" style={styles.modalImage} />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -202,29 +204,29 @@ const styles = {
   modalOverlay: {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)',
-    display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999
+    display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999,
+    padding: '20px'
   },
   modalContent: {
     position: 'relative',
-    backgroundColor: '#FFF',
-    padding: '16px',
-    borderRadius: '12px',
-    maxWidth: '90vw',
-    maxHeight: '90vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center'
+    display: 'inline-flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    maxWidth: '100%',
+    maxHeight: '100%'
   },
   closeBtn: {
-    position: 'absolute', top: '-12px', right: '-12px',
+    position: 'absolute', top: '-16px', right: '-16px',
     backgroundColor: '#FFF', border: 'none', borderRadius: '50%',
-    width: '32px', height: '32px', display: 'flex', justifyContent: 'center', alignItems: 'center',
-    cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', color: '#111827'
+    width: '36px', height: '36px', display: 'flex', justifyContent: 'center', alignItems: 'center',
+    cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: '#111827', zIndex: 10
   },
   modalImage: {
     maxWidth: '100%',
-    maxHeight: 'calc(90vh - 32px)',
+    maxHeight: '85vh',
     objectFit: 'contain',
-    borderRadius: '8px'
+    borderRadius: '12px',
+    display: 'block',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
   }
 };
