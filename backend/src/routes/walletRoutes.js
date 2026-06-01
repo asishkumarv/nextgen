@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { getWalletStats, requestWithdrawal } = require('../controllers/walletController');
-const { protect } = require('../middleware/auth');
+const { authenticateUser } = require('../middleware/auth');
 
-router.get('/', protect, getWalletStats);
-router.post('/withdraw', protect, requestWithdrawal);
+router.get('/', authenticateUser, getWalletStats);
+router.post('/withdraw', authenticateUser, requestWithdrawal);
 
 module.exports = router;
