@@ -12,6 +12,10 @@ export default function Dashboard({ onNavigateToView }) {
     bookingRevenue: 0
   });
   const [recentBookings, setRecentBookings] = useState([]);
+  const [pendingSubscriptions, setPendingSubscriptions] = useState([]);
+  const [pendingVendors, setPendingVendors] = useState([]);
+  const [pendingSettlements, setPendingSettlements] = useState([]);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showRevenueModal, setShowRevenueModal] = useState(false);
@@ -20,7 +24,11 @@ export default function Dashboard({ onNavigateToView }) {
     try {
       const data = await api.get('/admin/dashboard-stats');
       setStats(data.stats);
-      setRecentBookings(data.recentBookings);
+      setRecentBookings(data.recentBookings || []);
+      setPendingSubscriptions(data.pendingSubscriptions || []);
+      setPendingVendors(data.pendingVendors || []);
+      setPendingSettlements(data.pendingSettlements || []);
+      setPendingWithdrawals(data.pendingWithdrawals || []);
     } catch (err) {
       setError(err.message || 'Failed to load dashboard statistics');
     } finally {
@@ -149,6 +157,167 @@ export default function Dashboard({ onNavigateToView }) {
                           <span style={{ fontSize: '0.8rem', color: '#9CA3AF', fontWeight: '600' }}>Closed</span>
                         )}
                       </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Pending Subscriptions */}
+        <div className="dashboard-table-box" style={{ marginTop: '24px' }}>
+          <div style={styles.boxHeader}>
+            <h2 style={styles.boxTitle}>Pending Subscription Requests</h2>
+            <button onClick={() => onNavigateToView('subscriptions')} style={styles.boxLink}>
+              View All Subscriptions
+            </button>
+          </div>
+          <div className="table-container" style={{ marginTop: '0px', boxShadow: 'none', border: 'none' }}>
+            {pendingSubscriptions.length === 0 ? (
+              <div style={styles.empty}>No pending subscriptions.</div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Plan</th>
+                    <th>Price</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingSubscriptions.map((s) => (
+                    <tr key={s.id}>
+                      <td style={{ fontWeight: '700', color: '#111827' }}>{s.id}</td>
+                      <td>
+                        <div style={styles.customerCell}>
+                          <span style={styles.customerName}>{s.userName}</span>
+                          <span style={styles.customerPhone}>{s.userPhone}</span>
+                        </div>
+                      </td>
+                      <td>{s.plan}</td>
+                      <td>₹{s.price}</td>
+                      <td>{new Date(s.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Pending Vendors */}
+        <div className="dashboard-table-box" style={{ marginTop: '24px' }}>
+          <div style={styles.boxHeader}>
+            <h2 style={styles.boxTitle}>Pending Vendor Applications</h2>
+            <button onClick={() => onNavigateToView('vendors')} style={styles.boxLink}>
+              View All Vendors
+            </button>
+          </div>
+          <div className="table-container" style={{ marginTop: '0px', boxShadow: 'none', border: 'none' }}>
+            {pendingVendors.length === 0 ? (
+              <div style={styles.empty}>No pending vendor applications.</div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Vendor Name</th>
+                    <th>Phone</th>
+                    <th>Applied On</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingVendors.map((v) => (
+                    <tr key={v.id}>
+                      <td style={{ fontWeight: '700', color: '#111827' }}>{v.id}</td>
+                      <td style={styles.customerName}>{v.name}</td>
+                      <td style={styles.customerPhone}>{v.phone}</td>
+                      <td>{new Date(v.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Pending Settlements */}
+        <div className="dashboard-table-box" style={{ marginTop: '24px' }}>
+          <div style={styles.boxHeader}>
+            <h2 style={styles.boxTitle}>Pending Payment Settlements</h2>
+            <button onClick={() => onNavigateToView('settlements')} style={styles.boxLink}>
+              View All Settlements
+            </button>
+          </div>
+          <div className="table-container" style={{ marginTop: '0px', boxShadow: 'none', border: 'none' }}>
+            {pendingSettlements.length === 0 ? (
+              <div style={styles.empty}>No pending payment settlements.</div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Vendor</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingSettlements.map((s) => (
+                    <tr key={s.id}>
+                      <td style={{ fontWeight: '700', color: '#111827' }}>{s.id}</td>
+                      <td>
+                        <div style={styles.customerCell}>
+                          <span style={styles.customerName}>{s.vendorName}</span>
+                          <span style={styles.customerPhone}>{s.vendorPhone}</span>
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: '600', color: '#059669' }}>₹{s.amount}</td>
+                      <td>{new Date(s.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Pending Withdrawals */}
+        <div className="dashboard-table-box" style={{ marginTop: '24px' }}>
+          <div style={styles.boxHeader}>
+            <h2 style={styles.boxTitle}>Pending Referral Withdrawals</h2>
+            <button onClick={() => onNavigateToView('withdrawals')} style={styles.boxLink}>
+              View All Withdrawals
+            </button>
+          </div>
+          <div className="table-container" style={{ marginTop: '0px', boxShadow: 'none', border: 'none' }}>
+            {pendingWithdrawals.length === 0 ? (
+              <div style={styles.empty}>No pending referral withdrawals.</div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingWithdrawals.map((w) => (
+                    <tr key={w.id}>
+                      <td style={{ fontWeight: '700', color: '#111827' }}>{w.id}</td>
+                      <td>
+                        <div style={styles.customerCell}>
+                          <span style={styles.customerName}>{w.userName}</span>
+                          <span style={styles.customerPhone}>{w.userPhone}</span>
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: '600', color: '#059669' }}>₹{w.amount}</td>
+                      <td>{new Date(w.created_at).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>

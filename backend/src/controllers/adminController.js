@@ -112,23 +112,42 @@ const getDashboardStats = async (req, res) => {
 
     const totalRevenue = subRevenue + bookingRevenue;
 
-    // 5. Recent Bookings (limit to 5)
+    // 5. Recent Bookings (limit to 3)
     const recentBookingsRes = await pool.query(`
       SELECT 
-        b.id,
-        b.service_name AS "serviceName",
-        b.date,
-        b.price,
-        b.status,
-        b.icon,
-        b.address,
-        b.created_at,
-        u.name AS "userName",
-        u.phone AS "userPhone"
+        b.id, b.service_name AS "serviceName", b.date, b.price, b.status, b.icon, b.address, b.created_at,
+        u.name AS "userName", u.phone AS "userPhone"
       FROM bookings b
       JOIN users u ON b.user_id = u.id
       ORDER BY b.created_at DESC, b.id DESC
-      LIMIT 5
+      LIMIT 3
+    `);
+
+    // 6. Pending Subscription Requests
+    const pendingSubscriptionsRes = await pool.query(`
+      SELECT s.id, s.plan, s.price, s.created_at, u.name AS "userName", u.phone AS "userPhone"
+      FROM subscriptions s JOIN users u ON s.user_id = u.id
+      WHERE s.status = 'Pending' ORDER BY s.created_at DESC LIMIT 3
+    `);
+
+    // 7. Pending Vendor Requests
+    const pendingVendorsRes = await pool.query(`
+      SELECT id, name, phone, created_at
+      FROM vendors WHERE status = 'Pending' ORDER BY created_at DESC LIMIT 3
+    `);
+
+    // 8. Pending Payment Settlements
+    const pendingSettlementsRes = await pool.query(`
+      SELECT s.id, s.amount, s.created_at, v.name AS "vendorName", v.phone AS "vendorPhone"
+      FROM settlements s JOIN vendors v ON s.vendor_id = v.id
+      WHERE s.status = 'Pending' ORDER BY s.created_at DESC LIMIT 3
+    `);
+
+    // 9. Pending Referral Withdrawals
+    const pendingWithdrawalsRes = await pool.query(`
+      SELECT w.id, w.amount, w.created_at, u.name AS "userName", u.phone AS "userPhone"
+      FROM withdrawals w JOIN users u ON w.user_id = u.id
+      WHERE w.status = 'In Progress' ORDER BY w.created_at DESC LIMIT 3
     `);
 
     res.json({
@@ -140,7 +159,11 @@ const getDashboardStats = async (req, res) => {
         subscriptionRevenue: subRevenue,
         bookingRevenue: bookingRevenue
       },
-      recentBookings: recentBookingsRes.rows
+      recentBookings: recentBookingsRes.rows,
+      pendingSubscriptions: pendingSubscriptionsRes.rows,
+      pendingVendors: pendingVendorsRes.rows,
+      pendingSettlements: pendingSettlementsRes.rows,
+      pendingWithdrawals: pendingWithdrawalsRes.rows
     });
 
   } catch (error) {

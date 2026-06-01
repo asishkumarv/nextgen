@@ -5,6 +5,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
+import Sidebar from './components/Sidebar';
+import { useAuth } from './context/AuthContext';
 
 // Pages
 import Home from './pages/Home';
@@ -20,81 +22,96 @@ import Referrals from './pages/Referrals';
 
 import './App.css';
 
+const MainLayout = ({ children }) => {
+  const { token } = useAuth();
+  
+  return (
+    <div className="main-layout-wrapper">
+      {token && <Sidebar />}
+      <div className="main-layout-content">
+        {children}
+      </div>
+    </div>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Navbar />
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+          <MainLayout>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
 
-            {/* Auth routes guarded against authenticated users */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicRoute>
-                  <Signup />
-                </PublicRoute>
-              }
-            />
+              {/* Auth routes guarded against authenticated users */}
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <PublicRoute>
+                    <Signup />
+                  </PublicRoute>
+                }
+              />
 
-            {/* Private/Protected routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/services"
-              element={
-                <ProtectedRoute>
-                  <Services />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/slots"
-              element={
-                <ProtectedRoute>
-                  <Slots />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/referrals"
-              element={
-                <ProtectedRoute>
-                  <Referrals />
-                </ProtectedRoute>
-              }
-            />
+              {/* Private/Protected routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/services"
+                element={
+                  <ProtectedRoute>
+                    <Services />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/slots"
+                element={
+                  <ProtectedRoute>
+                    <Slots />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/referrals"
+                element={
+                  <ProtectedRoute>
+                    <Referrals />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Fallback redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* Fallback redirect */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </MainLayout>
         </main>
         <Footer />
       </Router>

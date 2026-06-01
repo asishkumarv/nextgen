@@ -14,6 +14,17 @@ export default function Navbar() {
     localStorage.setItem('nextgen_theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [mobileMenuOpen]);
+
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
@@ -39,6 +50,7 @@ export default function Navbar() {
     { name: 'Book Service', path: '/services', icon: <Wrench size={18} /> },
     { name: 'Subscription Slots', path: '/slots', icon: <Calendar size={18} /> },
     { name: 'Wallet & Referrals', path: '/referrals', icon: <Wallet size={18} /> },
+    { name: 'My Profile', path: '/profile', icon: <User size={18} /> },
   ];
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
@@ -62,16 +74,6 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
-
-          {token && protectedLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`navbar-link ${isActive(link.path) ? 'active' : ''}`}
-            >
-              {link.name}
-            </Link>
-          ))}
         </div>
 
         {/* Desktop CTA / Auth buttons */}
@@ -85,9 +87,9 @@ export default function Navbar() {
                 <Wallet size={16} style={{ color: 'var(--primary)' }} />
                 <span>₹{user?.wallet_balance || 0}</span>
               </Link>
-              <Link to="/profile" className="user-profile-link" title="My Profile">
+              <Link to="/dashboard" className="user-profile-link" title="Dashboard">
                 <User size={16} style={{ color: 'var(--primary)' }} />
-                <span>{user?.name || 'Profile'}</span>
+                <span>{user?.name || 'Dashboard'}</span>
                 {user?.subscription?.status === 'Active' && <span className="badge-member">PRO</span>}
               </Link>
               <button onClick={handleLogout} className="btn-logout" title="Log Out">

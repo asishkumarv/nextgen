@@ -527,6 +527,8 @@
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
   z-index: 99;
+  max-height: calc(100vh - 70px);
+  overflow-y: auto;
 }
 
 .mobile-drawer-links {
@@ -747,6 +749,78 @@
 
 .bullet {
   color: var(--border-color);
+}
+
+/* --- SIDEBAR LAYOUT --- */
+.main-layout-wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  flex: 1;
+}
+
+.main-layout-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.desktop-sidebar {
+  width: 250px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  flex-shrink: 0;
+  display: none;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  position: sticky;
+  top: 70px; /* offset for navbar */
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05rem;
+  margin-bottom: 16px;
+  padding-left: 12px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.sidebar-link:hover {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.sidebar-link.active {
+  background-color: var(--primary-glow);
+  color: var(--primary);
+}
+
+@media (min-width: 1024px) {
+  .desktop-sidebar {
+    display: block;
+  }
 }
 
 /* --- HOME PAGE --- */
@@ -2910,22 +2984,21 @@
   }
 }
 
- / *   P a y m e n t   M e t h o d   S t y l e s   * / 
- . p a y m e n t - m e t h o d - c a r d   {   p a d d i n g :   2 4 p x ;   } 
- . p a y m e n t - o p t i o n s   {   d i s p l a y :   f l e x ;   f l e x - d i r e c t i o n :   c o l u m n ;   g a p :   1 2 p x ;   m a r g i n - t o p :   1 6 p x ;   } 
- . p a y m e n t - o p t i o n   {   d i s p l a y :   f l e x ;   a l i g n - i t e m s :   f l e x - s t a r t ;   g a p :   1 2 p x ;   p a d d i n g :   1 6 p x ;   b o r d e r :   1 p x   s o l i d   # E 5 E 7 E B ;   b o r d e r - r a d i u s :   1 2 p x ;   c u r s o r :   p o i n t e r ;   t r a n s i t i o n :   a l l   0 . 2 s   e a s e ;   b a c k g r o u n d - c o l o r :   # F A F B F C ;   } 
- . p a y m e n t - o p t i o n . a c t i v e   {   b o r d e r - c o l o r :   # 0 0 B 8 9 4 ;   b a c k g r o u n d - c o l o r :   # F 0 F D F 4 ;   } 
- . p a y m e n t - o p t i o n   i n p u t [ t y p e = " r a d i o " ]   {   m a r g i n - t o p :   4 p x ;   a c c e n t - c o l o r :   # 0 0 B 8 9 4 ;   } 
- . o p t i o n - c o n t e n t   {   d i s p l a y :   f l e x ;   f l e x - d i r e c t i o n :   c o l u m n ;   g a p :   4 p x ;   } 
- . o p t i o n - c o n t e n t   s t r o n g   {   c o l o r :   # 1 1 1 8 2 7 ;   f o n t - s i z e :   0 . 9 5 r e m ;   } 
- . o p t i o n - c o n t e n t   s p a n   {   c o l o r :   # 6 B 7 2 8 0 ;   f o n t - s i z e :   0 . 8 r e m ;   } 
- . o n l i n e - p a y m e n t - d e t a i l s   {   d i s p l a y :   f l e x ;   g a p :   2 4 p x ;   m a r g i n - t o p :   2 4 p x ;   p a d d i n g - t o p :   2 4 p x ;   b o r d e r - t o p :   1 p x   s o l i d   # E 5 E 7 E B ;   f l e x - w r a p :   w r a p ;   } 
- . q r - s e c t i o n   {   f l e x :   0   0   a u t o ;   } 
- . u p l o a d - s e c t i o n   {   f l e x :   1 ;   m i n - w i d t h :   2 5 0 p x ;   } 
- . u p l o a d - b t n - c u s t o m   {   d i s p l a y :   i n l i n e - f l e x ;   a l i g n - i t e m s :   c e n t e r ;   g a p :   8 p x ;   p a d d i n g :   1 0 p x   2 0 p x ;   b a c k g r o u n d - c o l o r :   # F 3 F 4 F 6 ;   b o r d e r :   1 p x   d a s h e d   # 9 C A 3 A F ;   b o r d e r - r a d i u s :   8 p x ;   c o l o r :   # 3 7 4 1 5 1 ;   f o n t - w e i g h t :   6 0 0 ;   c u r s o r :   p o i n t e r ;   t r a n s i t i o n :   a l l   0 . 2 s ;   } 
- . u p l o a d - b t n - c u s t o m : h o v e r   {   b a c k g r o u n d - c o l o r :   # E 5 E 7 E B ;   b o r d e r - c o l o r :   # 6 B 7 2 8 0 ;   } 
- . s c r e e n s h o t - p r e v i e w - c o n t a i n e r   {   d i s p l a y :   f l e x ;   f l e x - d i r e c t i o n :   c o l u m n ;   a l i g n - i t e m s :   f l e x - s t a r t ;   g a p :   8 p x ;   } 
- . s c r e e n s h o t - i m g   {   m a x - w i d t h :   1 5 0 p x ;   m a x - h e i g h t :   1 5 0 p x ;   b o r d e r - r a d i u s :   8 p x ;   b o r d e r :   1 p x   s o l i d   # E 5 E 7 E B ;   o b j e c t - f i t :   c o v e r ;   } 
- . c h a n g e - i m g - b t n   {   b a c k g r o u n d :   n o n e ;   b o r d e r :   n o n e ;   c o l o r :   # 0 9 8 4 E 3 ;   f o n t - s i z e :   0 . 8 r e m ;   f o n t - w e i g h t :   6 0 0 ;   c u r s o r :   p o i n t e r ;   p a d d i n g :   0 ;   } 
-  
- 
+/* Payment Method Styles */
+.payment-method-card { padding: 24px; }
+.payment-options { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.payment-option { display: flex; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid #E5E7EB; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; background-color: #FAFBFC; }
+.payment-option.active { border-color: #00B894; background-color: #F0FDF4; }
+.payment-option input[type="radio"] { margin-top: 4px; accent-color: #00B894; }
+.option-content { display: flex; flex-direction: column; gap: 4px; }
+.option-content strong { color: #111827; font-size: 0.95rem; }
+.option-content span { color: #6B7280; font-size: 0.8rem; }
+.online-payment-details { display: flex; gap: 24px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #E5E7EB; flex-wrap: wrap; }
+.qr-section { flex: 0 0 auto; }
+.upload-section { flex: 1; min-width: 250px; }
+.upload-btn-custom { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background-color: #F3F4F6; border: 1px dashed #9CA3AF; border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.upload-btn-custom:hover { background-color: #E5E7EB; border-color: #6B7280; }
+.screenshot-preview-container { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.screenshot-img { max-width: 150px; max-height: 150px; border-radius: 8px; border: 1px solid #E5E7EB; object-fit: cover; }
+.change-img-btn { background: none; border: none; color: #0984E3; font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 0; }
+

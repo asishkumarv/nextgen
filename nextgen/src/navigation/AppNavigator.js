@@ -110,7 +110,7 @@ export default function AppNavigator() {
             component={ReferralScreen}
             options={{ 
               title: 'Wallet', 
-              tabBarButton: () => null 
+              tabBarItemStyle: { display: 'none' }
             }}
           />
         </Tab.Navigator>
