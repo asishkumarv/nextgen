@@ -394,23 +394,51 @@ export default function SlotsScreen() {
       </View>
 
       {/* Success Banner */}
-      <LinearGradient
-        colors={['#00C853', '#00B0FF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.successGradientCard}
-      >
-        <View style={styles.checkCircle}>
-          <Ionicons name="checkmark" size={40} color="#00C853" />
-        </View>
-        <Text style={styles.successTitle}>Active Subscription</Text>
-        <Text style={styles.successSubtitle}>Welcome to Next Gen Power Care</Text>
+      {bookingDetails?.status === 'Pending' ? (
+        <View style={[styles.successGradientCard, { backgroundColor: '#FFFBEB', borderColor: '#FCD34D', borderWidth: 1 }]}>
+          <View style={[styles.checkCircle, { backgroundColor: '#FEF3C7' }]}>
+            <Ionicons name="time" size={40} color="#F59E0B" />
+          </View>
+          <Text style={[styles.successTitle, { color: '#B45309' }]}>Request Pending</Text>
+          <Text style={[styles.successSubtitle, { color: '#92400E' }]}>Your request is awaiting admin approval</Text>
 
-        <View style={styles.subscriptionActiveBadge}>
-          <Ionicons name="sparkles" size={12} color="#FFF" style={{ marginRight: 6 }} />
-          <Text style={styles.subscriptionActiveText}>Active</Text>
+          <View style={[styles.subscriptionActiveBadge, { backgroundColor: '#F59E0B' }]}>
+            <Ionicons name="hourglass" size={12} color="#FFF" style={{ marginRight: 6 }} />
+            <Text style={styles.subscriptionActiveText}>Pending</Text>
+          </View>
         </View>
-      </LinearGradient>
+      ) : bookingDetails?.status === 'Rejected' ? (
+        <View style={[styles.successGradientCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
+          <View style={[styles.checkCircle, { backgroundColor: '#FEE2E2' }]}>
+            <Ionicons name="close-circle" size={40} color="#DC2626" />
+          </View>
+          <Text style={[styles.successTitle, { color: '#B91C1C' }]}>Request Rejected</Text>
+          <Text style={[styles.successSubtitle, { color: '#991B1B' }]}>Please choose another slot</Text>
+
+          <View style={[styles.subscriptionActiveBadge, { backgroundColor: '#DC2626' }]}>
+            <Ionicons name="close" size={12} color="#FFF" style={{ marginRight: 6 }} />
+            <Text style={styles.subscriptionActiveText}>Rejected</Text>
+          </View>
+        </View>
+      ) : (
+        <LinearGradient
+          colors={['#00C853', '#00B0FF']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.successGradientCard}
+        >
+          <View style={styles.checkCircle}>
+            <Ionicons name="checkmark" size={40} color="#00C853" />
+          </View>
+          <Text style={styles.successTitle}>Active Subscription</Text>
+          <Text style={styles.successSubtitle}>Welcome to Next Gen Power Care</Text>
+
+          <View style={styles.subscriptionActiveBadge}>
+            <Ionicons name="sparkles" size={12} color="#FFF" style={{ marginRight: 6 }} />
+            <Text style={styles.subscriptionActiveText}>Active</Text>
+          </View>
+        </LinearGradient>
+      )}
 
       {/* Reserved Slot details */}
       <View style={styles.slotDetailCard}>

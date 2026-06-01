@@ -78,6 +78,8 @@ export const AppProvider = ({ children }) => {
           districtName: profile.subscription.districtName,
           mandalName: profile.subscription.mandalName,
           eventName: profile.subscription.eventName,
+          status: profile.subscription.status,
+          paymentMode: profile.subscription.paymentMode,
         });
       } else {
         setBookedSlot(null);

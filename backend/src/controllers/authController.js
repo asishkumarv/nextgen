@@ -111,7 +111,7 @@ const getMe = async (req, res) => {
     const subRes = await pool.query(
       `SELECT s.id, s.slot_number, s.plan, s.valid_till, s.event_name as "eventName",
               s.district_id as "districtId", s.mandal_id as "mandalId",
-              d.name AS "districtName", m.name AS "mandalName"
+              d.name AS "districtName", m.name AS "mandalName", s.status, s.payment_mode
        FROM subscriptions s
        LEFT JOIN districts d ON s.district_id = d.id
        LEFT JOIN mandals m ON s.mandal_id = m.id
@@ -128,7 +128,9 @@ const getMe = async (req, res) => {
       districtId: subRes.rows[0].districtId,
       mandalId: subRes.rows[0].mandalId,
       districtName: subRes.rows[0].districtName,
-      mandalName: subRes.rows[0].mandalName
+      mandalName: subRes.rows[0].mandalName,
+      status: subRes.rows[0].status,
+      paymentMode: subRes.rows[0].payment_mode
     } : null;
 
     res.json({

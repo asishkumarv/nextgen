@@ -1,9 +1,8 @@
 const getApiUrl = () => {
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return 'http://localhost:5000/api';
-  }
+  // Always point to production since the backend is not running locally
   return import.meta.env.VITE_API_URL || 'https://nextgen-8hi5.onrender.com/api';
 };
+
 
 const BASE_URL = getApiUrl();
 
