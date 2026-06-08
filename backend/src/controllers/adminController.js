@@ -201,6 +201,42 @@ const getUsers = async (req, res) => {
   }
 };
 
+const getUserReferrals = async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Get direct referrals
+    const directReferralsRes = await pool.query('SELECT name, created_at FROM users WHERE referred_by = $1 ORDER BY created_at ASC', [userId]);
+    const referralRewards = [200, 230, 260, 290, 320, 350, 380, 410, 450, 500];
+    
+    const directReferrals = directReferralsRes.rows.map((ref, index) => {
+      const amount = index < referralRewards.length ? referralRewards[index] : 500;
+      return { ...ref, type: 'Direct', amount };
+    });
+
+    // Get indirect (sub) referrals
+    const indirectReferralsRes = await pool.query(`
+      SELECT u2.name, u2.created_at 
+      FROM users u1
+      JOIN users u2 ON u2.referred_by = u1.id
+      WHERE u1.referred_by = $1
+      ORDER BY u2.created_at ASC
+    `, [userId]);
+
+    const indirectReferrals = indirectReferralsRes.rows.map(ref => ({
+      ...ref, type: 'Indirect', amount: 100
+    }));
+
+    // Combine and sort by date descending
+    const referrals = [...directReferrals, ...indirectReferrals].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    res.json(referrals);
+  } catch (error) {
+    console.error('Error getting user referrals:', error);
+    res.status(500).json({ message: 'Server error retrieving user referrals' });
+  }
+};
+
 const getSubscribers = async (req, res) => {
   const search = req.query.search || '';
   const searchPattern = `%${search}%`;
@@ -1108,5 +1144,6 @@ module.exports = {
   approveSubscription,
   rejectSubscription,
   getWithdrawals,
-  updateWithdrawalStatus
+  updateWithdrawalStatus,
+  getUserReferrals
 };

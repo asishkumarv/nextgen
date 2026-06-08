@@ -38,7 +38,8 @@ const {
   approveSubscription,
   rejectSubscription,
   getWithdrawals,
-  updateWithdrawalStatus
+  updateWithdrawalStatus,
+  getUserReferrals
 } = require('../controllers/adminController');
 const { authenticateAdmin } = require('../middleware/auth');
 
@@ -46,6 +47,7 @@ router.post('/login', adminLogin);
 router.get('/me', authenticateAdmin, getAdminMe);
 router.get('/dashboard-stats', authenticateAdmin, getDashboardStats);
 router.get('/users', authenticateAdmin, getUsers);
+router.get('/users/:id/referrals', authenticateAdmin, getUserReferrals);
 router.get('/subscribers', authenticateAdmin, getSubscribers);
 router.get('/bookings', authenticateAdmin, getBookings);
 router.put('/bookings/:id/complete', authenticateAdmin, completeBooking);

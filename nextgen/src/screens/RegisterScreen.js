@@ -25,6 +25,8 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [nameError, setNameError] = useState('');
@@ -204,11 +206,14 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   style={styles.textInput}
                   placeholder="Min. 6 characters"
                   placeholderTextColor="#9CA3AF"
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
                   editable={!loading}
                 />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#6B7280" />
+                </TouchableOpacity>
               </View>
               {/* Password strength bar */}
               {password.length > 0 && (
@@ -236,11 +241,14 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   style={styles.textInput}
                   placeholder="Confirm your password"
                   placeholderTextColor="#9CA3AF"
-                  secureTextEntry
+                  secureTextEntry={!showConfirmPassword}
                   value={confirmPassword}
                   onChangeText={(t) => { setConfirmPassword(t); setConfirmError(''); }}
                   editable={!loading}
                 />
+                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={{ padding: 4 }}>
+                  <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#6B7280" />
+                </TouchableOpacity>
               </View>
               {confirmError ? (
                 <View style={styles.fieldErrorRow}>

@@ -165,8 +165,24 @@ export default function ReferralScreen({ navigation }) {
           ) : (
             stats.referrals.map((ref, idx) => (
               <View key={idx} style={styles.listItem}>
-                <Text style={styles.listMain}>{ref.name}</Text>
-                <Text style={styles.listSub}>{new Date(ref.created_at).toLocaleDateString()}</Text>
+                <View>
+                  <Text style={styles.listMain}>{ref.name}</Text>
+                  <Text style={styles.listSub}>{new Date(ref.created_at).toLocaleDateString()}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#00B894' }}>+₹{ref.amount}</Text>
+                  <View style={{ 
+                    backgroundColor: ref.type === 'Direct' ? '#D1FAE5' : '#DBEAFE',
+                    paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginTop: 4
+                  }}>
+                    <Text style={{ 
+                      fontSize: 10, fontWeight: '600', 
+                      color: ref.type === 'Direct' ? '#047857' : '#1D4ED8' 
+                    }}>
+                      {ref.type}
+                    </Text>
+                  </View>
+                </View>
               </View>
             ))
           )}
@@ -246,13 +262,13 @@ export default function ReferralScreen({ navigation }) {
             </View>
             <Text style={{ color: '#4B5563', marginBottom: 12 }}>Invite your friends and earn money!</Text>
             <View style={{ backgroundColor: '#F3F4F6', padding: 12, borderRadius: 8, marginBottom: 16 }}>
-              <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Reward Tiers:</Text>
-              <Text style={styles.tierText}>• 1st Referral: ₹100</Text>
-              <Text style={styles.tierText}>• 2nd Referral: ₹95</Text>
-              <Text style={styles.tierText}>• 3rd Referral: ₹90</Text>
-              <Text style={styles.tierText}>• ... Decreases by ₹5 ...</Text>
-              <Text style={styles.tierText}>• 10th Referral: ₹55</Text>
-              <Text style={styles.tierText}>• 11th Referral onwards: ₹50 Flat</Text>
+              <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Direct Referrals:</Text>
+              <Text style={styles.tierText}>• 1st: ₹200, 2nd: ₹230, 3rd: ₹260</Text>
+              <Text style={styles.tierText}>• ... Increases by ₹30 until the 8th referral</Text>
+              <Text style={styles.tierText}>• 9th referral: ₹450</Text>
+              <Text style={styles.tierText}>• 10th and onwards: ₹500 Flat</Text>
+              <Text style={{ fontWeight: 'bold', marginTop: 8, marginBottom: 8 }}>2nd Level Referrals:</Text>
+              <Text style={styles.tierText}>• Flat ₹100 for every sub-referral</Text>
             </View>
             <Text style={{ color: '#6B7280', fontSize: 13, marginBottom: 4 }}>• Min withdrawal is ₹100.</Text>
             <Text style={{ color: '#6B7280', fontSize: 13 }}>• Processed within 2-3 business days.</Text>

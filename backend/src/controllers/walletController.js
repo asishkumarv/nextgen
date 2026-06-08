@@ -10,9 +10,30 @@ const getWalletStats = async (req, res) => {
     if (userRes.rows.length === 0) return res.status(404).json({ message: 'User not found' });
     const { wallet_balance, referral_code } = userRes.rows[0];
 
-    // Get referrals
-    const referralsRes = await pool.query('SELECT name, created_at FROM users WHERE referred_by = $1 ORDER BY created_at DESC', [userId]);
-    const referrals = referralsRes.rows;
+    // Get direct referrals
+    const directReferralsRes = await pool.query('SELECT name, created_at FROM users WHERE referred_by = $1 ORDER BY created_at ASC', [userId]);
+    const referralRewards = [200, 230, 260, 290, 320, 350, 380, 410, 450, 500];
+    
+    const directReferrals = directReferralsRes.rows.map((ref, index) => {
+      const amount = index < referralRewards.length ? referralRewards[index] : 500;
+      return { ...ref, type: 'Direct', amount };
+    });
+
+    // Get indirect (sub) referrals
+    const indirectReferralsRes = await pool.query(`
+      SELECT u2.name, u2.created_at 
+      FROM users u1
+      JOIN users u2 ON u2.referred_by = u1.id
+      WHERE u1.referred_by = $1
+      ORDER BY u2.created_at ASC
+    `, [userId]);
+
+    const indirectReferrals = indirectReferralsRes.rows.map(ref => ({
+      ...ref, type: 'Indirect', amount: 100
+    }));
+
+    // Combine and sort by date descending
+    const referrals = [...directReferrals, ...indirectReferrals].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     // Get withdrawals
     const withdrawalsRes = await pool.query('SELECT id, amount, status, created_at FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC', [userId]);

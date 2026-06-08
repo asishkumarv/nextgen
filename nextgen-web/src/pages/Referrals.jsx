@@ -218,9 +218,24 @@ export default function Referrals() {
           ) : (
             <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
               {stats.referrals.map((ref, idx) => (
-                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-color)' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ref.name}</span>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{new Date(ref.created_at).toLocaleDateString()}</span>
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border-color)' }}>
+                  <div>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>{ref.name}</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{new Date(ref.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--primary)', display: 'block' }}>+₹{ref.amount}</span>
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: 600, 
+                      backgroundColor: ref.type === 'Direct' ? '#d1fae5' : '#dbeafe',
+                      color: ref.type === 'Direct' ? '#047857' : '#1d4ed8',
+                      padding: '2px 6px',
+                      borderRadius: '8px'
+                    }}>
+                      {ref.type}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -280,12 +295,13 @@ export default function Referrals() {
             <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
               <h4 style={{ margin: '0 0 12px', color: 'var(--primary)' }}>Reward Tiers</h4>
               <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-primary)', lineHeight: 1.6 }}>
-                <li><strong>1st Referral:</strong> ₹100</li>
-                <li><strong>2nd Referral:</strong> ₹95</li>
-                <li><strong>3rd Referral:</strong> ₹90</li>
-                <li>... Decreases by ₹5 each time ...</li>
-                <li><strong>10th Referral:</strong> ₹55</li>
-                <li><strong>11th Referral onwards:</strong> ₹50 Flat</li>
+                <li><strong>Direct Referrals:</strong></li>
+                <li>&nbsp;&nbsp;1st: ₹200, 2nd: ₹230, 3rd: ₹260</li>
+                <li>&nbsp;&nbsp;... Increases by ₹30 until the 8th referral</li>
+                <li>&nbsp;&nbsp;9th referral: ₹450</li>
+                <li>&nbsp;&nbsp;10th and onwards: ₹500 Flat</li>
+                <li style={{ marginTop: '8px' }}><strong>2nd Level Referrals (Sub-referrals):</strong></li>
+                <li>&nbsp;&nbsp;Flat ₹100 for every referral made by your direct referrals</li>
               </ul>
             </div>
 

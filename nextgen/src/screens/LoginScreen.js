@@ -23,6 +23,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
   const { login } = useApp();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -148,11 +149,14 @@ export default function LoginScreen({ onNavigateToRegister }) {
                   style={styles.textInput}
                   placeholder="Enter your password"
                   placeholderTextColor="#9CA3AF"
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
                   editable={!loading}
                 />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#6B7280" />
+                </TouchableOpacity>
               </View>
               {passwordError && passwordError.trim() ? (
                 <View style={styles.fieldErrorRow}>
