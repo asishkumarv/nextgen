@@ -35,6 +35,7 @@ const {
   adminUpdateEvent,
   adminDeleteEvent,
   getSubscriptionRequests,
+  getSubscriptionHistory,
   approveSubscription,
   rejectSubscription,
   getWithdrawals,
@@ -48,7 +49,6 @@ router.get('/me', authenticateAdmin, getAdminMe);
 router.get('/dashboard-stats', authenticateAdmin, getDashboardStats);
 router.get('/users', authenticateAdmin, getUsers);
 router.get('/users/:id/referrals', authenticateAdmin, getUserReferrals);
-router.get('/subscribers', authenticateAdmin, getSubscribers);
 router.get('/bookings', authenticateAdmin, getBookings);
 router.put('/bookings/:id/complete', authenticateAdmin, completeBooking);
 router.delete('/bookings/:id', authenticateAdmin, cancelBooking);
@@ -92,8 +92,10 @@ router.post('/events', authenticateAdmin, adminAddEvent);
 router.put('/events/:id', authenticateAdmin, adminUpdateEvent);
 router.delete('/events/:id', authenticateAdmin, adminDeleteEvent);
 
-// Subscription Requests routes
+// Subscription Management
+router.get('/subscribers', authenticateAdmin, getSubscribers);
 router.get('/subscription-requests', authenticateAdmin, getSubscriptionRequests);
+router.get('/subscription-history', authenticateAdmin, getSubscriptionHistory);
 router.put('/subscription-requests/:id/approve', authenticateAdmin, approveSubscription);
 router.put('/subscription-requests/:id/reject', authenticateAdmin, rejectSubscription);
 

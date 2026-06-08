@@ -1006,6 +1006,37 @@ const getSubscriptionRequests = async (req, res) => {
   }
 };
 
+const getSubscriptionHistory = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        s.id as "subId",
+        s.plan,
+        s.price,
+        s.payment_mode as "paymentMode",
+        s.transaction_id as "transactionId",
+        s.status,
+        s.created_at as "createdAt",
+        s.slot_number as "slotNumber",
+        u.name,
+        u.phone,
+        d.name as "districtName",
+        m.name as "mandalName",
+        s.event_name as "eventName"
+      FROM subscriptions s
+      JOIN users u ON s.user_id = u.id
+      LEFT JOIN districts d ON s.district_id = d.id
+      LEFT JOIN mandals m ON s.mandal_id = m.id
+      WHERE s.status IN ('Active', 'Rejected')
+      ORDER BY s.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error getting subscription history:', error);
+    res.status(500).json({ message: 'Server error retrieving subscription history' });
+  }
+};
+
 const approveSubscription = async (req, res) => {
   const { id } = req.params;
   try {
@@ -1141,6 +1172,7 @@ module.exports = {
   adminUpdateEvent,
   adminDeleteEvent,
   getSubscriptionRequests,
+  getSubscriptionHistory,
   approveSubscription,
   rejectSubscription,
   getWithdrawals,
