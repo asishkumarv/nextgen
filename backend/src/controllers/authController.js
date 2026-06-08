@@ -34,7 +34,9 @@ const register = async (req, res) => {
       // Calculate reward amount
       const refCountQuery = await client.query('SELECT COUNT(*) FROM users WHERE referred_by = $1', [referredById]);
       const refCount = parseInt(refCountQuery.rows[0].count);
-      const reward = Math.max(50, 100 - (refCount * 5));
+      
+      const referralRewards = [200, 230, 260, 290, 320, 350, 380, 410, 450, 500];
+      const reward = refCount < referralRewards.length ? referralRewards[refCount] : 500;
 
       // Update referrer wallet
       await client.query('UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2', [reward, referredById]);
