@@ -1022,7 +1022,7 @@ const rejectSubscription = async (req, res) => {
   const subId = req.params.id;
   try {
     const updated = await pool.query(
-      "UPDATE subscriptions SET status = 'Rejected' WHERE id = $1 RETURNING *",
+      "UPDATE subscriptions SET status = 'Rejected', slot_number = slot_number || '-REJECTED-' || id WHERE id = $1 RETURNING *",
       [subId]
     );
 

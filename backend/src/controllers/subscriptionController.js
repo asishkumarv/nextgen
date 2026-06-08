@@ -51,6 +51,9 @@ const bookSlot = async (req, res) => {
 
     const status = paymentMode === 'online' ? 'Pending' : 'Active'; // For now, offline is auto-active. We could make offline 'Pending' too if cash collection is verified later. Assuming offline is immediate or handled differently. Let's make everything offline 'Pending' too unless admin approves? The user said "after submitting it should refelct in the admin and admin should accept the subscription after that subscription plan should reflect to user for offline and online also". OK, both are Pending!
     
+    // Clean up any previously rejected subscriptions for this user to avoid DB unique constraint conflicts
+    await pool.query("DELETE FROM subscriptions WHERE user_id = $1 AND status = 'Rejected'", [userId]);
+
     // Insert subscription
     const newSub = await pool.query(
       `INSERT INTO subscriptions (id, user_id, district_id, mandal_id, event_id, event_name, slot_number, plan, price, payment_mode, transaction_id, screenshot_url, status, valid_till) 
