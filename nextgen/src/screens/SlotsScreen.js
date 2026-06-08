@@ -514,13 +514,15 @@ export default function SlotsScreen() {
         </View>
       </View>
 
-      <TouchableOpacity 
-        style={styles.cancelButton}
-        onPress={cancelSlot}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.cancelButtonText}>Cancel / Change Subscription</Text>
-      </TouchableOpacity>
+      {bookingDetails?.status === 'Pending' && (
+        <TouchableOpacity 
+          style={styles.cancelButton}
+          onPress={cancelSlot}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.cancelButtonText}>Cancel / Change Subscription</Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 

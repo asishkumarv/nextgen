@@ -34,8 +34,8 @@ const bookSlot = async (req, res) => {
 
     // Check if slot number is already taken for this event
     const slotCheck = await pool.query(
-      "SELECT * FROM subscriptions WHERE event_id = $1 AND slot_number = $2 AND status != 'Rejected'",
-      [eventId, slotNumber]
+      "SELECT * FROM subscriptions WHERE event_id = $1 AND TRIM(slot_number::text) = TRIM($2::text) AND status != 'Rejected'",
+      [eventId, String(slotNumber)]
     );
     if (slotCheck.rows.length > 0) {
       return res.status(400).json({ message: `Slot #${slotNumber} is already booked for this event` });

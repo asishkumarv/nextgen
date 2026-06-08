@@ -249,6 +249,30 @@ export default function Slots() {
 
   return (
     <div className="slots-page container">
+      {/* Fullscreen Loading Overlay */}
+      {(submitting || success) && (
+        <div className="fullscreen-loader-overlay">
+          <div className="loader-content animate-slide-up">
+            {success ? (
+              <>
+                <CheckCircle2 size={64} color="#10B981" className="success-icon-animate" />
+                <h2 style={{ marginTop: '20px', color: '#111827', fontWeight: '800' }}>Request Submitted!</h2>
+                <p style={{ color: '#6B7280', marginTop: '10px' }}>Waiting for admin approval. Redirecting to your dashboard...</p>
+              </>
+            ) : (
+              <>
+                <div className="spinner-large"></div>
+                <h2 style={{ marginTop: '24px', color: '#111827', fontWeight: '800' }}>Processing Request</h2>
+                <p style={{ color: '#6B7280', marginTop: '12px' }}>
+                  {uploadingImage ? 'Securely uploading your payment screenshot...' : 'Finalizing your subscription slot...'}
+                </p>
+                <p style={{ color: '#0984E3', marginTop: '16px', fontSize: '0.85rem', fontWeight: '700' }}>Please do not close or refresh this page.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <section className="slots-hero text-center">
         <h1 className="slots-title">Priority Care <span className="text-gradient">Annual Slots</span></h1>
         <p className="slots-subtitle">
@@ -397,7 +421,7 @@ export default function Slots() {
                 <p className="slots-helper-text">Select a green slot to book. Red slots are already taken.</p>
                 <div className="slots-grid">
                   {eventSlots.map((slotNum) => {
-                    const isBooked = bookedSlots.includes(slotNum);
+                    const isBooked = bookedSlots.some(s => String(s).trim() === String(slotNum).trim());
                     const isSelected = selectedSlot === slotNum;
                     
                     return (

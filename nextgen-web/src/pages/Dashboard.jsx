@@ -199,13 +199,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={handleCancelSubscription}
-                    disabled={actionLoading}
-                    className="btn btn-danger-outline btn-block btn-cancel-sub"
-                  >
-                    Cancel Annual Slot
-                  </button>
                 </div>
               )
             ) : (
