@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../utils/api';
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles, FileImage, X } from 'lucide-react';
 
 export default function Subscribers() {
   const [subscribers, setSubscribers] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const fetchSubscribers = async () => {
     try {
@@ -76,6 +78,7 @@ export default function Subscribers() {
                   <th>Purchased Date</th>
                   <th>Expiry Date</th>
                   <th>Plan Tier</th>
+                  <th>Payment Proof</th>
                 </tr>
               </thead>
               <tbody>
@@ -104,12 +107,34 @@ export default function Subscribers() {
                         {s.plan.split('·')[0].trim()}
                       </span>
                     </td>
+                    <td>
+                      {s.screenshotUrl ? (
+                        <button onClick={() => setSelectedImage(s.screenshotUrl)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '600', color: '#0984E3', backgroundColor: '#F0F9FF', padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>
+                          <FileImage size={14} /> View Screenshot
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#9CA3AF', fontStyle: 'italic' }}>{s.paymentMode === 'online' ? 'No Image' : 'Offline'}</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
         </div>
+      )}
+
+      {/* Image Modal using Portal */}
+      {selectedImage && createPortal(
+        <div style={styles.modalOverlay} onClick={() => setSelectedImage(null)}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setSelectedImage(null)} style={styles.closeBtn}>
+              <X size={24} />
+            </button>
+            <img src={selectedImage} alt="Payment Screenshot" style={styles.modalImage} />
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -177,5 +202,24 @@ const styles = {
     borderRadius: '12px',
     fontWeight: '600',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)',
+    display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '20px'
+  },
+  modalContent: {
+    position: 'relative', display: 'inline-flex', justifyContent: 'center',
+    alignItems: 'center', maxWidth: '100%', maxHeight: '100%'
+  },
+  closeBtn: {
+    position: 'absolute', top: '-16px', right: '-16px',
+    backgroundColor: '#FFF', border: 'none', borderRadius: '50%',
+    width: '36px', height: '36px', display: 'flex', justifyContent: 'center', alignItems: 'center',
+    cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: '#111827', zIndex: 10
+  },
+  modalImage: {
+    maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain',
+    borderRadius: '12px', display: 'block', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
   }
 };
