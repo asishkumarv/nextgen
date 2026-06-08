@@ -117,7 +117,7 @@ export default function SubscriptionRequests() {
                 <th>Mandal / Event</th>
                 <th>Plan Details</th>
                 <th>Payment Mode</th>
-                {activeTab === 'pending' ? <th>Payment Proof</th> : <th>Date Processed</th>}
+                {activeTab === 'pending' ? <th>Payment Proof</th> : <th>Processed & Proof</th>}
                 {activeTab === 'pending' ? <th>Actions</th> : <th>Status</th>}
               </tr>
             </thead>
@@ -168,9 +168,16 @@ export default function SubscriptionRequests() {
                     </td>
                   ) : (
                     <td>
-                      <div style={styles.userInfo}>
-                        <strong>{formatDate(req.createdAt)}</strong>
-                        {req.paymentMode === 'online' && <span style={styles.metaText}>Txn: {req.transactionId || 'N/A'}</span>}
+                      <div style={styles.proofContainer}>
+                        <div style={styles.userInfo}>
+                          <strong>{formatDate(req.createdAt)}</strong>
+                          {req.paymentMode === 'online' && <span style={styles.metaText}>Txn: {req.transactionId || 'N/A'}</span>}
+                        </div>
+                        {req.paymentMode === 'online' && req.screenshotUrl && (
+                          <button onClick={() => setSelectedImage(req.screenshotUrl)} style={{ ...styles.viewProofBtn, marginTop: '4px' }}>
+                            <FileImage size={14} /> View Screenshot
+                          </button>
+                        )}
                       </div>
                     </td>
                   )}

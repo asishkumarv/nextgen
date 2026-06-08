@@ -1015,6 +1015,7 @@ const getSubscriptionHistory = async (req, res) => {
         s.price,
         s.payment_mode as "paymentMode",
         s.transaction_id as "transactionId",
+        s.screenshot_url as "screenshotUrl",
         s.status,
         s.created_at as "createdAt",
         s.slot_number as "slotNumber",
