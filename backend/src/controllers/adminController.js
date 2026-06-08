@@ -264,7 +264,7 @@ const getSubscribers = async (req, res) => {
       JOIN users u ON s.user_id = u.id
       LEFT JOIN districts d ON s.district_id = d.id
       LEFT JOIN mandals m ON s.mandal_id = m.id
-      WHERE u.name ILIKE $1 OR u.phone ILIKE $1 OR CAST(s.slot_number AS VARCHAR) ILIKE $1 OR d.name ILIKE $1 OR m.name ILIKE $1
+      WHERE s.status = 'Active' AND (u.name ILIKE $1 OR u.phone ILIKE $1 OR CAST(s.slot_number AS VARCHAR) ILIKE $1 OR d.name ILIKE $1 OR m.name ILIKE $1)
       ORDER BY s.created_at DESC
     `, [searchPattern]);
 
