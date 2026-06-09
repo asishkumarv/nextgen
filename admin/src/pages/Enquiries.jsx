@@ -58,25 +58,30 @@ export default function Enquiries() {
   }
 
   return (
-    <div className="admin-page">
+    <div style={styles.container} className="animate-fade-in">
       <div className="page-header">
         <h2>Customer Enquiries</h2>
       </div>
 
-      <div className="controls-bar">
-        <div className="search-box">
-          <Search size={20} className="search-icon" />
+      <div style={styles.filterBar}>
+        <div style={styles.searchContainer}>
+          <Search size={18} color="#9CA3AF" style={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search by name, email or message..."
+            style={styles.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <div className="filter-box">
-          <Filter size={20} className="filter-icon" />
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+        <div style={styles.filterContainer}>
+          <Filter size={18} color="#9CA3AF" style={styles.searchIcon} />
+          <select 
+            style={styles.filterSelect}
+            value={filterStatus} 
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
             <option value="All">All Statuses</option>
             <option value="New">New</option>
             <option value="Resolved">Resolved</option>
@@ -124,11 +129,11 @@ export default function Enquiries() {
                   <td>
                     {enq.status !== 'Resolved' && (
                       <button 
-                        className="btn-icon text-success"
+                        style={styles.resolveBtn}
                         onClick={() => handleMarkResolved(enq.id)}
                         title="Mark as Resolved"
                       >
-                        <CheckCircle2 size={18} />
+                        <CheckCircle2 size={16} /> Resolve
                       </button>
                     )}
                   </td>
@@ -170,3 +175,74 @@ export default function Enquiries() {
     </div>
   );
 }
+
+const styles = {
+  container: {
+    padding: '24px',
+  },
+  filterBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    gap: '16px',
+    flexWrap: 'wrap',
+  },
+  searchContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #E5E7EB',
+    borderRadius: '12px',
+    padding: '0 16px',
+    width: '100%',
+    maxWidth: '400px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+  },
+  searchIcon: {
+    marginRight: '10px',
+    flexShrink: 0,
+  },
+  searchInput: {
+    border: 'none',
+    outline: 'none',
+    padding: '12px 0',
+    width: '100%',
+    fontSize: '0.92rem',
+    color: '#374151',
+    fontWeight: '500',
+  },
+  filterContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #E5E7EB',
+    borderRadius: '12px',
+    padding: '0 16px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+  },
+  filterSelect: {
+    border: 'none',
+    outline: 'none',
+    padding: '12px 0',
+    fontSize: '0.92rem',
+    color: '#374151',
+    fontWeight: '500',
+    backgroundColor: 'transparent',
+    cursor: 'pointer'
+  },
+  resolveBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 12px',
+    backgroundColor: '#10b981',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: '600',
+    transition: 'background-color 0.2s'
+  }
+};
