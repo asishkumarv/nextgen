@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
-import { Wallet, Users, Copy, CheckCircle, Info, Landmark, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Wallet, Users, Copy, CheckCircle, Info, Landmark, ArrowRight, ShieldAlert, Share2 } from 'lucide-react';
 
 export default function Referrals() {
   const { user, refreshProfile } = useAuth();
@@ -41,6 +41,22 @@ export default function Referrals() {
       navigator.clipboard.writeText(stats.referralCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleShareCode = () => {
+    if (stats?.referralCode) {
+      const shareUrl = `${window.location.origin}/signup?ref=${stats.referralCode}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'NextGen PowerCare',
+          text: `Use my referral code ${stats.referralCode} to sign up for NextGen PowerCare!`,
+          url: shareUrl
+        }).catch(err => console.log('Error sharing:', err));
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        alert('Share link copied to clipboard!');
+      }
     }
   };
 
@@ -196,13 +212,22 @@ export default function Referrals() {
             marginBottom: '16px'
           }}>
             {stats.referralCode}
-            <button 
-              onClick={handleCopyCode} 
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--primary)' : 'var(--text-secondary)' }}
-              title="Copy Code"
-            >
-              {copied ? <CheckCircle size={24} /> : <Copy size={24} />}
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={handleCopyCode} 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--primary)' : 'var(--text-secondary)' }}
+                title="Copy Code"
+              >
+                {copied ? <CheckCircle size={24} /> : <Copy size={24} />}
+              </button>
+              <button 
+                onClick={handleShareCode} 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                title="Share Link"
+              >
+                <Share2 size={24} />
+              </button>
+            </div>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Share this code with friends to earn wallet money!</p>
         </div>

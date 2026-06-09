@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import { Calendar, Shield, CreditCard, CheckCircle2, ChevronRight, AlertTriangle, QrCode, Upload, Info } from 'lucide-react';
+import nextgenQr from '../assets/nextgenQr.jpeg';
 import './Slots.css';
 
 export default function Slots() {
@@ -242,7 +243,7 @@ export default function Slots() {
   };
 
   const eventSlots = getEventSlots();
-  const mockUpiId = "nextgenpayments@ybl";
+  const mockUpiId = "Vyapar.175693314872@hdfcbank";
 
   return (
     <div className="slots-page container">
@@ -463,9 +464,9 @@ export default function Slots() {
               {paymentMode === 'online' && (
                 <div className="online-payment-details">
                   <div className="qr-section">
-                    <div className="qr-placeholder" style={{ backgroundColor: '#fff', border: '2px dashed #D1D5DB', borderRadius: '12px', padding: '20px', textAlign: 'center', width: '200px', height: '200px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <QrCode size={48} color="#00B894" />
-                      <span style={{ fontSize: '0.8rem', marginTop: '10px', color: '#6B7280' }}>Pay to UPI ID:</span>
+                    <div className="qr-placeholder" style={{ backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px', textAlign: 'center', width: '200px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                      <img src={nextgenQr} alt="Payment QR Code" style={{ width: '100%', height: 'auto', borderRadius: '8px', marginBottom: '12px' }} />
+                      <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>Pay to UPI ID:</span>
                       <strong style={{ fontSize: '0.9rem', color: '#111827' }}>{mockUpiId}</strong>
                     </div>
                   </div>
