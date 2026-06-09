@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import { Mail, CheckCircle2, Search, Filter } from 'lucide-react';
-import Toast from '../components/Toast';
 
 export default function Enquiries() {
   const [enquiries, setEnquiries] = useState([]);
@@ -145,11 +144,28 @@ export default function Enquiries() {
       </div>
 
       {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          backgroundColor: toast.type === 'error' ? '#ef4444' : '#10b981',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <span>{toast.message}</span>
+          <button 
+            onClick={() => setToast(null)}
+            style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '18px' }}
+          >
+            ×
+          </button>
+        </div>
       )}
     </div>
   );
