@@ -40,7 +40,6 @@ const {
   rejectSubscription,
   getWithdrawals,
   updateWithdrawalStatus,
-  updateWithdrawalStatus,
   getUserReferrals,
   getPendingNotifications,
   getEnquiries,
