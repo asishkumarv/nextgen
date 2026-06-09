@@ -40,13 +40,15 @@ const {
   rejectSubscription,
   getWithdrawals,
   updateWithdrawalStatus,
-  getUserReferrals
+  getUserReferrals,
+  getPendingNotifications
 } = require('../controllers/adminController');
 const { authenticateAdmin } = require('../middleware/auth');
 
 router.post('/login', adminLogin);
 router.get('/me', authenticateAdmin, getAdminMe);
 router.get('/dashboard-stats', authenticateAdmin, getDashboardStats);
+router.get('/notifications', authenticateAdmin, getPendingNotifications);
 router.get('/users', authenticateAdmin, getUsers);
 router.get('/users/:id/referrals', authenticateAdmin, getUserReferrals);
 router.get('/bookings', authenticateAdmin, getBookings);

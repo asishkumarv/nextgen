@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 const getApiUrl = () => {
   // Always point to production since the backend is not running locally
-  return 'https://nextgen-8hi5.onrender.com/api';
+  return 'https://api.nextgenpowercare.com/api';
 };
 
 

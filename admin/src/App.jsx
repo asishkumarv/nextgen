@@ -100,6 +100,7 @@ export default function App() {
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           adminName={admin.name}
           onRefresh={() => setRefreshKey(prev => prev + 1)}
+          onNavigateToView={setActiveView}
         />
         
         <div className="view-container">

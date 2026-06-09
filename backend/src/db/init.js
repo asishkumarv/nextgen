@@ -9,7 +9,7 @@ const createTables = async (dropExisting = false) => {
     if (dropExisting) {
       // Drop existing tables to perform clean migration
       console.log('Dropping existing tables to migrate schema...');
-      await client.query('DROP TABLE IF EXISTS bookings, subscriptions, events, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, users, admins CASCADE;');
+      await client.query('DROP TABLE IF EXISTS bookings, subscriptions, events, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, withdrawals, users, admins CASCADE;');
     }
 
     // Create Districts Table
@@ -50,7 +50,25 @@ const createTables = async (dropExisting = false) => {
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        wallet_balance NUMERIC(10, 2) DEFAULT 0.00,
+        referral_code VARCHAR(20) UNIQUE,
+        referred_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Create Withdrawals Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS withdrawals (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        amount NUMERIC(10, 2) NOT NULL,
+        account_name VARCHAR(100) NOT NULL,
+        account_number VARCHAR(50) NOT NULL,
+        ifsc_code VARCHAR(20) NOT NULL,
+        status VARCHAR(20) DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        approved_at TIMESTAMP
       );
     `);
 

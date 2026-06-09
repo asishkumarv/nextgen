@@ -1,7 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, Calendar, Bell, RotateCw, LogOut } from 'lucide-react';
+import { api } from '../utils/api';
 
-export default function Header({ activeView, sidebarOpen, onToggleSidebar, adminName, onRefresh }) {
+export default function Header({ activeView, sidebarOpen, onToggleSidebar, adminName, onRefresh, onNavigateToView }) {
+  const [notifications, setNotifications] = useState({ vendors: 0, settlements: 0, withdrawals: 0, subscriptions: 0 });
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await api.get('/notifications');
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleRefresh = () => {
+    fetchNotifications();
+    if (onRefresh) onRefresh();
+  };
+
+  const handleNotificationClick = (view) => {
+    if (onNavigateToView) {
+      onNavigateToView(view);
+      setShowDropdown(false);
+    }
+  };
+
+  const totalNotifications = Object.values(notifications).reduce((a, b) => a + b, 0);
+
   const getPageTitle = () => {
     switch (activeView) {
       case 'dashboard':
@@ -47,14 +87,72 @@ export default function Header({ activeView, sidebarOpen, onToggleSidebar, admin
           <span>{getTodayDate()}</span>
         </div>
 
-        <button onClick={onRefresh} className="admin-header-notification" title="Refresh Page Data">
+        <button onClick={handleRefresh} className="admin-header-notification" title="Refresh Page Data">
           <RotateCw size={18} color="#4B5563" />
         </button>
 
-        <button className="admin-header-notification" title="System Logs">
-          <Bell size={18} color="#4B5563" />
-          <span className="admin-header-badge-dot" />
-        </button>
+        <div className="notification-wrapper" ref={dropdownRef}>
+          <button 
+            className="admin-header-notification" 
+            title="Notifications"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            <Bell size={18} color="#4B5563" />
+            {totalNotifications > 0 && <span className="admin-header-badge-dot" />}
+          </button>
+          
+          {showDropdown && (
+            <div className="notification-dropdown">
+              <div className="notification-dropdown-header">
+                <h4>Notifications</h4>
+                <span>{totalNotifications} New</span>
+              </div>
+              <div className="notification-dropdown-body">
+                {notifications.vendors > 0 && (
+                  <div className="notification-item" onClick={() => handleNotificationClick('vendors')}>
+                    <span className="notification-icon vendor">V</span>
+                    <div className="notification-content">
+                      <p>Vendor Registrations</p>
+                      <span>{notifications.vendors} pending</span>
+                    </div>
+                  </div>
+                )}
+                {notifications.settlements > 0 && (
+                  <div className="notification-item" onClick={() => handleNotificationClick('settlements')}>
+                    <span className="notification-icon settlement">$</span>
+                    <div className="notification-content">
+                      <p>Payment Requests</p>
+                      <span>{notifications.settlements} pending</span>
+                    </div>
+                  </div>
+                )}
+                {notifications.withdrawals > 0 && (
+                  <div className="notification-item" onClick={() => handleNotificationClick('withdrawals')}>
+                    <span className="notification-icon withdrawal">W</span>
+                    <div className="notification-content">
+                      <p>Referral Withdrawals</p>
+                      <span>{notifications.withdrawals} pending</span>
+                    </div>
+                  </div>
+                )}
+                {notifications.subscriptions > 0 && (
+                  <div className="notification-item" onClick={() => handleNotificationClick('requests')}>
+                    <span className="notification-icon subscription">S</span>
+                    <div className="notification-content">
+                      <p>Subscription Requests</p>
+                      <span>{notifications.subscriptions} pending</span>
+                    </div>
+                  </div>
+                )}
+                {totalNotifications === 0 && (
+                  <div className="notification-empty">
+                    <p>No new notifications</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="admin-header-divider" />
 

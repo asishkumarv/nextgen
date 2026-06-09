@@ -1138,6 +1138,25 @@ const updateWithdrawalStatus = async (req, res) => {
   }
 };
 
+const getPendingNotifications = async (req, res) => {
+  try {
+    const vendorsRes = await pool.query("SELECT COUNT(*) FROM vendors WHERE status = 'Pending'");
+    const settlementsRes = await pool.query("SELECT COUNT(*) FROM settlements WHERE status = 'Pending'");
+    const withdrawalsRes = await pool.query("SELECT COUNT(*) FROM withdrawals WHERE status = 'Pending'");
+    const subscriptionsRes = await pool.query("SELECT COUNT(*) FROM subscriptions WHERE status = 'Pending'");
+
+    res.json({
+      vendors: parseInt(vendorsRes.rows[0].count),
+      settlements: parseInt(settlementsRes.rows[0].count),
+      withdrawals: parseInt(withdrawalsRes.rows[0].count),
+      subscriptions: parseInt(subscriptionsRes.rows[0].count)
+    });
+  } catch (error) {
+    console.error('Error fetching pending notifications:', error);
+    res.status(500).json({ message: 'Server error fetching notifications' });
+  }
+};
+
 module.exports = {
   adminLogin,
   getAdminMe,
@@ -1178,5 +1197,6 @@ module.exports = {
   rejectSubscription,
   getWithdrawals,
   updateWithdrawalStatus,
-  getUserReferrals
+  getUserReferrals,
+  getPendingNotifications
 };

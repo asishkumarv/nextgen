@@ -223,10 +223,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.6,
-    shadowRadius: 22,
+    boxShadow: '0px 12px 22px rgba(0, 0, 0, 0.6)',
     elevation: 20,
   },
   accentBar: {
