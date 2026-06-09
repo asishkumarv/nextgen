@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, CreditCard, CalendarRange, Wrench, LogOut, Briefcase, Coins, Map, MapPin } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, CalendarRange, Wrench, LogOut, Briefcase, Coins, Map, MapPin, Mail } from 'lucide-react';
 import { removeAuthToken, removeAdminProfile } from '../utils/api';
 import logo from '../assets/logo.png';
 
@@ -16,6 +16,7 @@ export default function Sidebar({ activeView, onViewChange, onLogout, adminName 
     { id: 'vendors', label: 'Vendors Manager', icon: Briefcase },
     { id: 'settlements', label: 'Payment Settlements', icon: Coins },
     { id: 'withdrawals', label: 'Referral Withdrawals', icon: Coins },
+    { id: 'enquiries', label: 'User Enquiries', icon: Mail },
   ];
 
   const handleLogoutClick = () => {

@@ -15,6 +15,7 @@ import Districts from './pages/Districts';
 import Mandals from './pages/Mandals';
 import SubscriptionRequests from './pages/SubscriptionRequests';
 import Withdrawals from './pages/Withdrawals';
+import Enquiries from './pages/Enquiries';
 
 export default function App() {
   const [admin, setAdmin] = useState(null);
@@ -66,6 +67,8 @@ export default function App() {
         return <Settlements key={refreshKey} />;
       case 'withdrawals':
         return <Withdrawals key={refreshKey} />;
+      case 'enquiries':
+        return <Enquiries key={refreshKey} />;
       default:
         return <Dashboard key={refreshKey} onNavigateToView={setActiveView} />;
     }

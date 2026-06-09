@@ -58,6 +58,8 @@ export default function Header({ activeView, sidebarOpen, onToggleSidebar, admin
         return 'Vendors Manager';
       case 'settlements':
         return 'Payment Settlements';
+      case 'enquiries':
+        return 'Customer Enquiries';
       default:
         return 'Admin Panel';
     }

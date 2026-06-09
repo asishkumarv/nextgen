@@ -20,7 +20,7 @@ export default function Contact() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
       setError('Please fill in all required fields (Name, Email, Message).');
@@ -28,12 +28,27 @@ export default function Contact() {
     }
     setError('');
     setLoading(true);
-    // Simulate API request
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      const response = await fetch('https://api.nextgenpowercare.com/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+      
       setSubmitted(true);
       setFormData({ name: '', email: '', phone: '', subject: 'support', message: '' });
-    }, 1500);
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

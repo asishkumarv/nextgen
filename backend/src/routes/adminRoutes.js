@@ -40,8 +40,11 @@ const {
   rejectSubscription,
   getWithdrawals,
   updateWithdrawalStatus,
+  updateWithdrawalStatus,
   getUserReferrals,
-  getPendingNotifications
+  getPendingNotifications,
+  getEnquiries,
+  updateEnquiryStatus
 } = require('../controllers/adminController');
 const { authenticateAdmin } = require('../middleware/auth');
 
@@ -104,5 +107,9 @@ router.put('/subscription-requests/:id/reject', authenticateAdmin, rejectSubscri
 // Withdrawals routes
 router.get('/withdrawals', authenticateAdmin, getWithdrawals);
 router.put('/withdrawals/:id/status', authenticateAdmin, updateWithdrawalStatus);
+
+// Enquiries routes
+router.get('/enquiries', authenticateAdmin, getEnquiries);
+router.put('/enquiries/:id/status', authenticateAdmin, updateEnquiryStatus);
 
 module.exports = router;

@@ -1157,6 +1157,41 @@ const getPendingNotifications = async (req, res) => {
   }
 };
 
+const getEnquiries = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM enquiries ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching enquiries:', error);
+    res.status(500).json({ message: 'Server error retrieving enquiries list' });
+  }
+};
+
+const updateEnquiryStatus = async (req, res) => {
+  const enquiryId = req.params.id;
+  const { status } = req.body;
+
+  try {
+    const result = await pool.query(
+      'UPDATE enquiries SET status = $1 WHERE id = $2 RETURNING *',
+      [status, enquiryId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Enquiry not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Enquiry status updated successfully',
+      enquiry: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error updating enquiry status:', error);
+    res.status(500).json({ message: 'Server error updating enquiry status' });
+  }
+};
+
 module.exports = {
   adminLogin,
   getAdminMe,
@@ -1198,5 +1233,7 @@ module.exports = {
   getWithdrawals,
   updateWithdrawalStatus,
   getUserReferrals,
-  getPendingNotifications
+  getPendingNotifications,
+  getEnquiries,
+  updateEnquiryStatus
 };
