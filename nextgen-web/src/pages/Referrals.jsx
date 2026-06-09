@@ -294,14 +294,15 @@ export default function Referrals() {
             
             <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>
               <h4 style={{ margin: '0 0 12px', color: 'var(--primary)' }}>Reward Tiers</h4>
-              <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-primary)', lineHeight: 1.6 }}>
+              <ul style={{ paddingLeft: '20px', margin: 0, color: '#4B5563', lineHeight: '1.6', fontSize: '0.9rem' }}>
                 <li><strong>Direct Referrals:</strong></li>
-                <li>&nbsp;&nbsp;1st: ₹200, 2nd: ₹230, 3rd: ₹260</li>
+                <li>&nbsp;&nbsp;1st referral: ₹200 <span style={{ color: '#047857', fontWeight: '600' }}>(Awarded after they purchase a subscription)</span></li>
+                <li>&nbsp;&nbsp;2nd referral: ₹230</li>
                 <li>&nbsp;&nbsp;... Increases by ₹30 until the 8th referral</li>
                 <li>&nbsp;&nbsp;9th referral: ₹450</li>
-                <li>&nbsp;&nbsp;10th and onwards: ₹500 Flat</li>
+                <li>&nbsp;&nbsp;10th+ referrals: ₹500 each</li>
                 <li style={{ marginTop: '8px' }}><strong>2nd Level Referrals (Sub-referrals):</strong></li>
-                <li>&nbsp;&nbsp;Flat ₹100 for every referral made by your direct referrals</li>
+                <li>&nbsp;&nbsp;Flat ₹100 for every referral made by your direct referrals <span style={{ color: '#047857', fontWeight: '600' }}>(Awarded after they purchase a subscription)</span></li>
               </ul>
             </div>
 

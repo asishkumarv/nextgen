@@ -1043,7 +1043,43 @@ const approveSubscription = async (req, res) => {
   try {
     const result = await pool.query("UPDATE subscriptions SET status = 'Active' WHERE id = $1 RETURNING *", [id]);
     if(result.rows.length === 0) return res.status(404).json({ message: 'Subscription not found' });
-    res.json({ success: true, message: 'Subscription approved', subscription: result.rows[0] });
+    
+    const sub = result.rows[0];
+
+    // REFERRAL REWARD LOGIC
+    // Check if the user who just subscribed was referred by someone and hasn't triggered a reward yet
+    const userQuery = await pool.query('SELECT referred_by, referral_paid FROM users WHERE id = $1', [sub.user_id]);
+    if (userQuery.rows.length > 0) {
+      const user = userQuery.rows[0];
+      
+      if (user.referred_by && !user.referral_paid) {
+        const referredById = user.referred_by;
+        
+        // Find indirect referrer
+        const referrerQuery = await pool.query('SELECT referred_by FROM users WHERE id = $1', [referredById]);
+        const indirectReferrerId = referrerQuery.rows.length > 0 ? referrerQuery.rows[0].referred_by : null;
+
+        // Calculate reward amount based on the number of PREVIOUSLY PAID referrals
+        const refCountQuery = await pool.query('SELECT COUNT(*) FROM users WHERE referred_by = $1 AND referral_paid = TRUE', [referredById]);
+        const refCount = parseInt(refCountQuery.rows[0].count);
+        
+        const referralRewards = [200, 230, 260, 290, 320, 350, 380, 410, 450, 500];
+        const reward = refCount < referralRewards.length ? referralRewards[refCount] : 500;
+
+        // Update direct referrer wallet
+        await pool.query('UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2', [reward, referredById]);
+        
+        // Update indirect referrer wallet (if exists) with second-level ₹100 bonus
+        if (indirectReferrerId) {
+          await pool.query('UPDATE users SET wallet_balance = wallet_balance + 100 WHERE id = $1', [indirectReferrerId]);
+        }
+
+        // Mark this user as having paid out their referral bonus
+        await pool.query('UPDATE users SET referral_paid = TRUE WHERE id = $1', [sub.user_id]);
+      }
+    }
+
+    res.json({ success: true, message: 'Subscription approved and rewards processed if applicable', subscription: sub });
   } catch (error) {
     console.error('Error approving subscription:', error);
     res.status(500).json({ message: 'Server error approving subscription' });

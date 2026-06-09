@@ -30,22 +30,6 @@ const register = async (req, res) => {
         return res.status(400).json({ message: 'Invalid referral code' });
       }
       referredById = referrerQuery.rows[0].id;
-      const indirectReferrerId = referrerQuery.rows[0].referred_by;
-
-      // Calculate reward amount based on the number of previous referrals
-      const refCountQuery = await client.query('SELECT COUNT(*) FROM users WHERE referred_by = $1', [referredById]);
-      const refCount = parseInt(refCountQuery.rows[0].count);
-      
-      const referralRewards = [200, 230, 260, 290, 320, 350, 380, 410, 450, 500];
-      const reward = refCount < referralRewards.length ? referralRewards[refCount] : 500;
-
-      // Update direct referrer wallet
-      await client.query('UPDATE users SET wallet_balance = wallet_balance + $1 WHERE id = $2', [reward, referredById]);
-      
-      // Update indirect referrer wallet (if exists) with second-level ₹100 bonus
-      if (indirectReferrerId) {
-        await client.query('UPDATE users SET wallet_balance = wallet_balance + 100 WHERE id = $1', [indirectReferrerId]);
-      }
     }
 
     // Generate unique referral code for new user
