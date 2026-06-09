@@ -9,7 +9,7 @@ export default function Header({ activeView, sidebarOpen, onToggleSidebar, admin
 
   const fetchNotifications = async () => {
     try {
-      const data = await api.get('/notifications');
+      const data = await api.get('/admin/notifications');
       setNotifications(data);
     } catch (error) {
       console.error('Error fetching notifications:', error);
