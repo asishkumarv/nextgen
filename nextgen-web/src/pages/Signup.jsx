@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { KeyRound, Phone, User, UserPlus, ShieldAlert, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Phone, User, UserPlus, ShieldAlert, Eye, EyeOff, Mail, MapPin, Map } from 'lucide-react';
+import { api } from '../utils/api';
 
 export default function Signup() {
   const { signup } = useAuth();
@@ -14,6 +15,12 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [referralCode, setReferralCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [districtId, setDistrictId] = useState('');
+  const [mandalId, setMandalId] = useState('');
+  const [districts, setDistricts] = useState([]);
+  const [mandals, setMandals] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +32,33 @@ export default function Signup() {
     if (ref) {
       setReferralCode(ref.toUpperCase());
     }
+
+    const fetchDistricts = async () => {
+      try {
+        const data = await api.get('/subscription/districts');
+        setDistricts(data);
+      } catch (err) {
+        console.error('Failed to load districts:', err);
+      }
+    };
+    fetchDistricts();
   }, [location.search]);
+
+  React.useEffect(() => {
+    const fetchMandals = async () => {
+      if (!districtId) {
+        setMandals([]);
+        return;
+      }
+      try {
+        const data = await api.get(`/subscription/mandals?districtId=${districtId}`);
+        setMandals(data);
+      } catch (err) {
+        console.error('Failed to load mandals:', err);
+      }
+    };
+    fetchMandals();
+  }, [districtId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +78,7 @@ export default function Signup() {
     setError('');
     setLoading(true);
     try {
-      await signup(name, phone, password, referralCode || undefined);
+      await signup(name, phone, password, referralCode || undefined, districtId || null, mandalId || null, address || null, email || null);
       // Success, route to dashboard
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -97,6 +130,76 @@ export default function Signup() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter phone number"
                 required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <div className="input-with-icon">
+              <Mail className="input-icon" size={16} />
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email address (optional)"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="district">District</label>
+            <div className="input-with-icon">
+              <Map className="input-icon" size={16} />
+              <select
+                id="district"
+                value={districtId}
+                onChange={(e) => {
+                  setDistrictId(e.target.value);
+                  setMandalId(''); // Reset mandal when district changes
+                }}
+                className="form-control"
+                style={{ paddingLeft: '40px', width: '100%', height: '42px', borderRadius: '8px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB' }}
+              >
+                <option value="">Select District (Optional)</option>
+                {districts.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="mandal">Mandal</label>
+            <div className="input-with-icon">
+              <MapPin className="input-icon" size={16} />
+              <select
+                id="mandal"
+                value={mandalId}
+                onChange={(e) => setMandalId(e.target.value)}
+                disabled={!districtId}
+                className="form-control"
+                style={{ paddingLeft: '40px', width: '100%', height: '42px', borderRadius: '8px', border: '1px solid #D1D5DB', backgroundColor: !districtId ? '#E5E7EB' : '#F9FAFB' }}
+              >
+                <option value="">Select Mandal (Optional)</option>
+                {mandals.map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="address">Address</label>
+            <div className="input-with-icon">
+              <MapPin className="input-icon" size={16} />
+              <input
+                type="text"
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Enter your address (optional)"
               />
             </div>
           </div>

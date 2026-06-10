@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const register = async (req, res) => {
-  const { name, phone, password, referralCode } = req.body;
+  const { name, phone, password, referralCode, district_id, mandal_id, address, email } = req.body;
 
   if (!name || !phone || !password) {
     return res.status(400).json({ message: 'Please enter all fields' });
@@ -56,8 +56,8 @@ const register = async (req, res) => {
 
     // Insert user
     const newUser = await client.query(
-      'INSERT INTO users (name, phone, password, referral_code, referred_by) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, phone, referral_code, wallet_balance',
-      [name, phone, passwordHash, newReferralCode, referredById]
+      'INSERT INTO users (name, phone, password, referral_code, referred_by, district_id, mandal_id, address, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, phone, referral_code, wallet_balance, district_id, mandal_id, address, email',
+      [name, phone, passwordHash, newReferralCode, referredById, district_id || null, mandal_id || null, address || null, email || null]
     );
 
     await client.query('COMMIT');
@@ -77,6 +77,10 @@ const register = async (req, res) => {
         id: user.id,
         name: user.name,
         phone: user.phone,
+        email: user.email,
+        address: user.address,
+        district_id: user.district_id,
+        mandal_id: user.mandal_id,
         referral_code: user.referral_code,
         wallet_balance: user.wallet_balance
       }
@@ -126,6 +130,10 @@ const login = async (req, res) => {
         id: user.id,
         name: user.name,
         phone: user.phone,
+        email: user.email,
+        address: user.address,
+        district_id: user.district_id,
+        mandal_id: user.mandal_id,
         referral_code: user.referral_code,
         wallet_balance: user.wallet_balance,
         subscription: null
@@ -144,7 +152,7 @@ const getMe = async (req, res) => {
 
     // Fetch user details
     const userRes = await pool.query(
-      'SELECT id, name, phone, referral_code, wallet_balance FROM users WHERE id = $1',
+      'SELECT id, name, phone, email, address, district_id, mandal_id, referral_code, wallet_balance FROM users WHERE id = $1',
       [req.user.id]
     );
     if (userRes.rows.length === 0) {

@@ -72,7 +72,7 @@ export default function Contact() {
                 <Phone className="detail-icon" size={20} />
                 <div>
                   <h4>Call Us</h4>
-                  <p>+1 (800) 555-POWER</p>
+                  <p>9703054527</p>
                 </div>
               </div>
 
@@ -80,7 +80,7 @@ export default function Contact() {
                 <Mail className="detail-icon" size={20} />
                 <div>
                   <h4>Email Us</h4>
-                  <p>support@nextgenpowercare.com</p>
+                  <p>nextgenpowecarenpc@gmail.com</p>
                 </div>
               </div>
 
@@ -88,7 +88,7 @@ export default function Contact() {
                 <MapPin className="detail-icon" size={20} />
                 <div>
                   <h4>Corporate Office</h4>
-                  <p>100 Technology Plaza, Suite 400, Silicon Valley</p>
+                  <p>1/57,kalekanpet,jalalpet, machilipatnam, andhra Pradesh,521004,india.</p>
                 </div>
               </div>
             </div>

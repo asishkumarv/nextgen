@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 const User = {
   async findById(id) {
-    const res = await pool.query('SELECT id, name, phone, created_at FROM users WHERE id = $1', [id]);
+    const res = await pool.query('SELECT id, name, phone, district_id, mandal_id, address, email, created_at FROM users WHERE id = $1', [id]);
     return res.rows[0] || null;
   },
 
@@ -11,10 +11,10 @@ const User = {
     return res.rows[0] || null;
   },
 
-  async create(name, phone, passwordHash) {
+  async create(name, phone, passwordHash, district_id = null, mandal_id = null, address = null, email = null) {
     const res = await pool.query(
-      'INSERT INTO users (name, phone, password) VALUES ($1, $2, $3) RETURNING id, name, phone, created_at',
-      [name, phone, passwordHash]
+      'INSERT INTO users (name, phone, password, district_id, mandal_id, address, email) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, phone, district_id, mandal_id, address, email, created_at',
+      [name, phone, passwordHash, district_id, mandal_id, address, email]
     );
     return res.rows[0];
   },
@@ -39,7 +39,7 @@ const User = {
   },
 
   async getAll() {
-    const res = await pool.query('SELECT id, name, phone, created_at FROM users ORDER BY created_at DESC');
+    const res = await pool.query('SELECT id, name, phone, district_id, mandal_id, address, email, created_at FROM users ORDER BY created_at DESC');
     return res.rows;
   },
 

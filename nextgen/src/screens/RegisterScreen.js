@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
+import { api } from '../utils/api';
 import Toast from '../components/Toast';
 
 export default function RegisterScreen({ onNavigateToLogin }) {
@@ -28,6 +29,14 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [referralCode, setReferralCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [districtId, setDistrictId] = useState('');
+  const [mandalId, setMandalId] = useState('');
+  const [districts, setDistricts] = useState([]);
+  const [mandals, setMandals] = useState([]);
+  const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
+  const [mandalDropdownOpen, setMandalDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nameError, setNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
@@ -42,6 +51,34 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     setToastType(type);
     setToastVisible(true);
   };
+
+  React.useEffect(() => {
+    const fetchDistricts = async () => {
+      try {
+        const data = await api.get('/subscription/districts');
+        setDistricts(data);
+      } catch (err) {
+        console.error('Failed to load districts:', err);
+      }
+    };
+    fetchDistricts();
+  }, []);
+
+  React.useEffect(() => {
+    const fetchMandals = async () => {
+      if (!districtId) {
+        setMandals([]);
+        return;
+      }
+      try {
+        const data = await api.get(`/subscription/mandals?districtId=${districtId}`);
+        setMandals(data);
+      } catch (err) {
+        console.error('Failed to load mandals:', err);
+      }
+    };
+    fetchMandals();
+  }, [districtId]);
 
   // Password strength: 0=empty,1=weak,2=medium,3=strong
   const getPasswordStrength = (p) => {
@@ -108,7 +145,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     }
 
     setLoading(true);
-    const result = await register(name.trim(), phone.trim(), password, referralCode ? referralCode.toUpperCase() : undefined);
+    const result = await register(name.trim(), phone.trim(), password, referralCode ? referralCode.toUpperCase() : undefined, districtId || null, mandalId || null, address || null, email || null);
     setLoading(false);
 
     if (!result.success) {
@@ -195,6 +232,109 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <Text style={styles.fieldErrorText}>{phoneError}</Text>
                 </View>
               ) : null}
+            </View>
+
+            {/* Email Address Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons name="mail-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter email address (optional)"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={(t) => setEmail(t)}
+                  editable={!loading}
+                />
+              </View>
+            </View>
+
+            {/* District Dropdown */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>District</Text>
+              <TouchableOpacity 
+                style={[styles.inputWrapper, { paddingVertical: 12 }]}
+                onPress={() => setDistrictDropdownOpen(!districtDropdownOpen)}
+                disabled={loading}
+              >
+                <Ionicons name="map-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <Text style={[styles.textInput, { color: districtId ? '#111827' : '#9CA3AF' }]}>
+                  {districts.find(d => d.id === districtId)?.name || 'Select District (Optional)'}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+              {districtDropdownOpen && (
+                <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, marginTop: 4, maxHeight: 150 }}>
+                  <ScrollView nestedScrollEnabled>
+                    {districts.map(opt => (
+                      <TouchableOpacity 
+                        key={opt.id} 
+                        style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
+                        onPress={() => {
+                          setDistrictId(opt.id);
+                          setMandalId(''); // reset mandal
+                          setDistrictDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={{ color: '#374151' }}>{opt.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* Mandal Dropdown */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Mandal</Text>
+              <TouchableOpacity 
+                style={[styles.inputWrapper, { paddingVertical: 12, backgroundColor: !districtId ? '#E5E7EB' : '#F9FAFB' }]}
+                onPress={() => setMandalDropdownOpen(!mandalDropdownOpen)}
+                disabled={!districtId || loading}
+              >
+                <Ionicons name="location-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <Text style={[styles.textInput, { color: mandalId ? '#111827' : '#9CA3AF' }]}>
+                  {mandals.find(m => m.id === mandalId)?.name || 'Select Mandal (Optional)'}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+              {mandalDropdownOpen && (
+                <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, marginTop: 4, maxHeight: 150 }}>
+                  <ScrollView nestedScrollEnabled>
+                    {mandals.map(opt => (
+                      <TouchableOpacity 
+                        key={opt.id} 
+                        style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
+                        onPress={() => {
+                          setMandalId(opt.id);
+                          setMandalDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={{ color: '#374151' }}>{opt.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
+            {/* Address Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Address</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons name="home-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter your address (optional)"
+                  placeholderTextColor="#9CA3AF"
+                  value={address}
+                  onChangeText={(t) => setAddress(t)}
+                  editable={!loading}
+                />
+              </View>
             </View>
 
             {/* Password Input */}

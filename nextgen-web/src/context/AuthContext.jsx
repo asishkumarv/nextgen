@@ -50,11 +50,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, phone, password, referralCode) => {
+  const signup = async (name, phone, password, referralCode, district_id, mandal_id, address, email) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.post('/auth/register', { name, phone, password, referralCode });
+      const data = await api.post('/auth/register', { name, phone, password, referralCode, district_id, mandal_id, address, email });
       localStorage.setItem('nextgen_token', data.token);
       setToken(data.token);
       return data;

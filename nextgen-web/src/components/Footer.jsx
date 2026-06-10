@@ -44,15 +44,15 @@ export default function Footer() {
             <h3>Contact Us</h3>
             <div className="contact-item">
               <Phone size={16} className="contact-icon" />
-              <span>+1 (800) 555-POWER</span>
+              <span>9703054527</span>
             </div>
             <div className="contact-item">
               <Mail size={16} className="contact-icon" />
-              <span>support@nextgenpowercare.com</span>
+              <span>nextgenpowecarenpc@gmail.com</span>
             </div>
             <div className="contact-item">
               <MapPin size={16} className="contact-icon" />
-              <span>100 Technology Plaza, Suite 400</span>
+              <span>1/57,kalekanpet,jalalpet, machilipatnam, andhra Pradesh,521004,india.</span>
             </div>
           </div>
         </div>

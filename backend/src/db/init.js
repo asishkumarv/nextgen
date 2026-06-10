@@ -53,6 +53,10 @@ const createTables = async (dropExisting = false) => {
         wallet_balance NUMERIC(10, 2) DEFAULT 0.00,
         referral_code VARCHAR(20) UNIQUE,
         referred_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        district_id INTEGER REFERENCES districts(id) ON DELETE SET NULL,
+        mandal_id INTEGER REFERENCES mandals(id) ON DELETE SET NULL,
+        address TEXT,
+        email VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

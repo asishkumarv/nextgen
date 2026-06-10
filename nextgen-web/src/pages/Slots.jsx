@@ -23,6 +23,7 @@ export default function Slots() {
   const [selectedMandalId, setSelectedMandalId] = useState('');
   const [selectedEventId, setSelectedEventId] = useState('');
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [slotSearchQuery, setSlotSearchQuery] = useState('');
 
   // Payment States
   const [paymentMode, setPaymentMode] = useState('offline'); // 'online' or 'offline'
@@ -110,6 +111,7 @@ export default function Slots() {
     if (!selectedEventId) {
       setBookedSlots([]);
       setSelectedSlot(null);
+      setSlotSearchQuery('');
       return;
     }
     const fetchBookedSlots = async () => {
@@ -118,6 +120,7 @@ export default function Slots() {
         const data = await api.get(`/subscription/booked?eventId=${selectedEventId}`);
         setBookedSlots(data.bookedSlots || []);
         setSelectedSlot(null);
+        setSlotSearchQuery('');
       } catch (err) {
         console.error('Error fetching booked slots:', err);
         setError('Failed to load reserved slots list.');
@@ -243,6 +246,7 @@ export default function Slots() {
   };
 
   const eventSlots = getEventSlots();
+  const filteredSlots = eventSlots.filter(slot => slot.toString().includes(slotSearchQuery.trim()));
   const mockUpiId = "Vyapar.175693314872@hdfcbank";
 
   return (
@@ -417,8 +421,18 @@ export default function Slots() {
             ) : (
               <>
                 <p className="slots-helper-text">Select a green slot to book. Red slots are already taken.</p>
+                <div className="slots-search-container" style={{ marginBottom: '16px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search slot number..."
+                    value={slotSearchQuery}
+                    onChange={(e) => setSlotSearchQuery(e.target.value)}
+                    className="form-control"
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB' }}
+                  />
+                </div>
                 <div className="slots-grid">
-                  {eventSlots.map((slotNum) => {
+                  {filteredSlots.map((slotNum) => {
                     const isBooked = bookedSlots.some(s => String(s).trim() === String(slotNum).trim());
                     const isSelected = selectedSlot === slotNum;
                     
@@ -435,6 +449,11 @@ export default function Slots() {
                       </button>
                     );
                   })}
+                  {filteredSlots.length === 0 && (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280', gridColumn: '1 / -1' }}>
+                      No slots found matching "{slotSearchQuery}"
+                    </div>
+                  )}
                 </div>
               </>
             )}

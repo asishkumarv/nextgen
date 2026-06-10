@@ -18,6 +18,13 @@ const migrate = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    // Add new columns to users table
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS district_id INTEGER REFERENCES districts(id) ON DELETE SET NULL;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS mandal_id INTEGER REFERENCES mandals(id) ON DELETE SET NULL;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+    `);
     
     console.log('Successfully migrated database tables.');
   } catch (error) {

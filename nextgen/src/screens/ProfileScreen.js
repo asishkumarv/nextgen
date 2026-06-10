@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import Header from '../components/Header';
 import Toast from '../components/Toast';
+import { api } from '../utils/api';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -59,6 +60,50 @@ export default function ProfileScreen() {
     setToastMsg(msg);
     setToastType(type);
     setToastVisible(true);
+  };
+
+  // Contact Form States
+  const [contactModalVisible, setContactModalVisible] = useState(false);
+  const [contactData, setContactData] = useState({
+    name: user?.name || '',
+    email: '',
+    phone: user?.phone || '',
+    subject: 'support',
+    message: ''
+  });
+  const [contactLoading, setContactLoading] = useState(false);
+  const [subjectDropdownOpen, setSubjectDropdownOpen] = useState(false);
+
+  const subjectOptions = [
+    { label: 'Technical Support', value: 'support' },
+    { label: 'Billing & Subscriptions', value: 'billing' },
+    { label: 'Vendor Inquiries', value: 'vendor' },
+    { label: 'Other Inquiry', value: 'other' }
+  ];
+
+  const handleContactSubmit = async () => {
+    if (!contactData.name.trim() || !contactData.email.trim() || !contactData.message.trim()) {
+      showToast('Please fill all required fields.', 'warning');
+      return;
+    }
+    
+    setContactLoading(true);
+    try {
+      await api.post('/contact', contactData);
+      showToast('Message sent successfully!', 'success');
+      setContactModalVisible(false);
+      setContactData({
+        name: user?.name || '',
+        email: '',
+        phone: user?.phone || '',
+        subject: 'support',
+        message: ''
+      });
+    } catch (error) {
+      showToast(error.message || 'Failed to send message.', 'error');
+    } finally {
+      setContactLoading(false);
+    }
   };
 
   const handleCancelBooking = async (bookingId) => {
@@ -440,7 +485,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Contact Support Section */}
-        <TouchableOpacity style={styles.supportRow} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.supportRow} activeOpacity={0.7} onPress={() => setContactModalVisible(true)}>
           <View style={styles.supportLeft}>
             <View style={styles.supportIconBg}>
               <Ionicons name="call" size={18} color="#00B894" />
@@ -525,6 +570,125 @@ export default function ProfileScreen() {
                 <Text style={styles.saveButtonText}>Save Changes</Text>
               </LinearGradient>
             </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Contact Support Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={contactModalVisible}
+        onRequestClose={() => setContactModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalBg}
+        >
+          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20, maxHeight: '90%' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Contact Support</Text>
+              <TouchableOpacity onPress={() => setContactModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Name <Text style={{color: 'red'}}>*</Text></Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={contactData.name}
+                  onChangeText={(text) => setContactData({...contactData, name: text})}
+                  placeholder="Enter your name"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email <Text style={{color: 'red'}}>*</Text></Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={contactData.email}
+                  onChangeText={(text) => setContactData({...contactData, email: text})}
+                  placeholder="Enter your email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Phone</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={contactData.phone}
+                  onChangeText={(text) => setContactData({...contactData, phone: text})}
+                  placeholder="Enter your phone number"
+                  keyboardType="phone-pad"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Subject</Text>
+                <TouchableOpacity 
+                  style={[styles.textInput, { justifyContent: 'center' }]}
+                  onPress={() => setSubjectDropdownOpen(!subjectDropdownOpen)}
+                >
+                  <Text style={{ color: contactData.subject ? '#111827' : '#9CA3AF' }}>
+                    {subjectOptions.find(o => o.value === contactData.subject)?.label || 'Select subject'}
+                  </Text>
+                </TouchableOpacity>
+                {subjectDropdownOpen && (
+                  <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, marginTop: 4 }}>
+                    {subjectOptions.map(opt => (
+                      <TouchableOpacity 
+                        key={opt.value} 
+                        style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}
+                        onPress={() => {
+                          setContactData({...contactData, subject: opt.value});
+                          setSubjectDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={{ color: '#374151' }}>{opt.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Message <Text style={{color: 'red'}}>*</Text></Text>
+                <TextInput
+                  style={[styles.textInput, { height: 100, textAlignVertical: 'top' }]}
+                  value={contactData.message}
+                  onChangeText={(text) => setContactData({...contactData, message: text})}
+                  placeholder="How can we help?"
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                />
+              </View>
+
+              <TouchableOpacity 
+                style={styles.saveButton} 
+                onPress={handleContactSubmit}
+                disabled={contactLoading}
+              >
+                <LinearGradient
+                  colors={['#00B894', '#0091EA']}
+                  style={styles.saveButtonGrad}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {contactLoading ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Send Message</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>

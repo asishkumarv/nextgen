@@ -21,6 +21,7 @@ import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 import Header from '../components/Header';
 import * as ImagePicker from 'expo-image-picker';
+import nextgenQr from '../assets/nextgenQr.jpeg';
 
 const { width } = Dimensions.get('window');
 const SLOT_SIZE = (width - 104) / 5;
@@ -43,6 +44,7 @@ export default function SlotsScreen() {
   const [districtDropdownOpen, setDistrictDropdownOpen] = useState(false);
   const [mandalDropdownOpen, setMandalDropdownOpen] = useState(false);
   const [eventDropdownOpen, setEventDropdownOpen] = useState(false);
+  const [slotSearchQuery, setSlotSearchQuery] = useState('');
 
   // Payment States
   const [paymentMode, setPaymentMode] = useState('offline'); // offline or online
@@ -251,6 +253,7 @@ export default function SlotsScreen() {
   };
 
   const configuredSlots = getEventSlots();
+  const filteredSlots = configuredSlots.filter(slot => slot.toString().includes(slotSearchQuery.trim()));
 
   // Rendering Case A: No Active Subscription (District/Mandal/Event selection and slots grid)
   const renderSlotGrid = () => (
@@ -365,10 +368,34 @@ export default function SlotsScreen() {
               <Text style={styles.noSlotsText}>No slots configured for this event.</Text>
             </View>
           ) : (
-            <View style={styles.gridBody}>
-              {configuredSlots.map((num) => {
-                const isBooked = isSlotBooked(num);
-                const isSelected = num === selectedLocalSlot;
+            <View>
+              <TextInput
+                style={{
+                  backgroundColor: '#F9FAFB',
+                  borderWidth: 1,
+                  borderColor: '#E5E7EB',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  marginBottom: 16,
+                  fontSize: 14,
+                  color: '#111827'
+                }}
+                placeholder="Search slot number..."
+                placeholderTextColor="#9CA3AF"
+                value={slotSearchQuery}
+                onChangeText={setSlotSearchQuery}
+                keyboardType="numeric"
+              />
+              {filteredSlots.length === 0 ? (
+                <View style={styles.noSlotsContainer}>
+                  <Text style={styles.noSlotsText}>No slots found matching "{slotSearchQuery}"</Text>
+                </View>
+              ) : (
+                <View style={styles.gridBody}>
+                  {filteredSlots.map((num) => {
+                    const isBooked = isSlotBooked(num);
+                    const isSelected = num === selectedLocalSlot;
                 
                 let slotStyle = styles.slotAvailable;
                 let textStyle = styles.slotTextAvailable;
@@ -397,6 +424,8 @@ export default function SlotsScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+          )}
             </View>
           )}
         </View>
@@ -686,8 +715,9 @@ export default function SlotsScreen() {
             {paymentMode === 'online' && (
               <View style={styles.onlinePaymentContainer}>
                 <View style={styles.qrPlaceholder}>
-                  <Ionicons name="qr-code" size={40} color="#00B894" />
-                  <Text style={styles.qrText}>nextgenpayments@ybl</Text>
+                  <Image source={nextgenQr} style={{ width: 160, height: 160, borderRadius: 8, marginBottom: 12 }} resizeMode="contain" />
+                  <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 4 }}>Pay to UPI ID:</Text>
+                  <Text style={styles.qrText}>Vyapar.175693314872@hdfcbank</Text>
                 </View>
                 
                 <TextInput
@@ -1105,16 +1135,20 @@ const styles = StyleSheet.create({
   qrPlaceholder: {
     alignSelf: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
     borderRadius: 12,
     marginBottom: 12,
-    width: '100%',
+    backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    width: 200,
   },
   qrText: {
-    marginTop: 8,
     fontWeight: '600',
     color: '#111827',
   },
