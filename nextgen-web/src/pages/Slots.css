@@ -19,12 +19,13 @@
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: #FAFBFC;
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
 }
 
 .payment-option.active {
-  border-color: #00B894;
-  background-color: #F0FDF4;
+  border-color: var(--primary);
+  background-color: var(--primary-glow);
 }
 
 .payment-option input[type="radio"] {
@@ -39,12 +40,12 @@
 }
 
 .option-content strong {
-  color: #111827;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
 .option-content span {
-  color: #6B7280;
+  color: var(--text-secondary);
   font-size: 0.8rem;
 }
 

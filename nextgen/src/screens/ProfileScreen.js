@@ -201,6 +201,7 @@ export default function ProfileScreen() {
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{user?.name || 'User'}</Text>
             <Text style={styles.userPhone}>{user?.phone || ''}</Text>
+            {user?.id && <Text style={[styles.userPhone, { marginTop: 2, fontSize: 13, opacity: 0.8 }]}>ID: {user.id}</Text>}
           </View>
 
           <TouchableOpacity style={styles.editButton} onPress={handleOpenEdit}>
@@ -261,7 +262,7 @@ export default function ProfileScreen() {
 
                   <Text style={styles.subTitle}>{sub.plan || 'Power Care Annual'}</Text>
                   <Text style={styles.subInfo}>
-                    Slot #{sub.slotNumber} · Valid till {sub.date || '28 Apr 2027'}
+                    Slot #{sub.slotNumber} · Valid till {sub.validTill ? new Date(sub.validTill).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                   </Text>
 
                   <View style={styles.badgeRow}>
@@ -566,12 +567,13 @@ export default function ProfileScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Phone Number</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: '#F3F4F6', color: '#6B7280' }]}
                 value={editPhone}
                 onChangeText={setEditPhone}
                 placeholder="Enter phone number"
                 keyboardType="phone-pad"
                 placeholderTextColor="#9CA3AF"
+                editable={false}
               />
             </View>
 

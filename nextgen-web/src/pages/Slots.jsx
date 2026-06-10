@@ -391,10 +391,10 @@ export default function Slots() {
             {activeEvent && (
               <div className="pricing-indicator-box animate-fade-in" style={{ marginTop: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                  <Info size={18} color="#0984E3" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <Info size={18} color="var(--secondary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <strong style={{ display: 'block', fontSize: '0.95rem', color: '#111827' }}>Event Details</strong>
-                    <span style={{ fontSize: '0.85rem', color: '#4B5563', lineHeight: '1.4' }}>
+                    <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-primary)' }}>Event Details</strong>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                       {activeEvent.description || 'No description provided.'}
                     </span>
                   </div>
@@ -426,20 +426,20 @@ export default function Slots() {
                 <p>No slots configured for Event: <strong>{activeEvent?.event_name}</strong>. Please contact admin.</p>
               </div>
             ) : selectedSlot ? (
-              <div className="selected-slot-summary" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F0F9FF', padding: '16px', borderRadius: '12px', border: '1px solid #BAE6FD', marginTop: '10px' }}>
+              <div className="selected-slot-summary" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-tertiary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', marginTop: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ backgroundColor: '#0EA5E9', color: '#FFF', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                  <div style={{ backgroundColor: 'var(--secondary)', color: '#FFF', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
                     #{selectedSlot}
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, color: '#0369A1' }}>Slot Selected</h4>
-                    <span style={{ fontSize: '0.85rem', color: '#0284C7' }}>You have reserved this slot for booking.</span>
+                    <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>Slot Selected</h4>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>You have reserved this slot for booking.</span>
                   </div>
                 </div>
                 <button 
                   type="button"
                   onClick={() => setSelectedSlot(null)}
-                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #0EA5E9', color: '#0EA5E9', backgroundColor: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--secondary)', color: 'var(--secondary)', backgroundColor: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   Change Slot
                 </button>
@@ -490,18 +490,30 @@ export default function Slots() {
             <div className="payment-method-card glass-card animate-slide-up" style={{ marginTop: '20px' }} ref={paymentRef}>
               <h3>Step 3: Payment Details</h3>
               <div className="payment-options">
-                <label className={`payment-option ${paymentMode === 'offline' ? 'active' : ''}`}>
+                <label 
+                  className={`payment-option ${paymentMode === 'offline' ? 'active' : ''}`}
+                  style={{ 
+                    backgroundColor: paymentMode === 'offline' ? 'var(--primary-glow)' : 'var(--bg-tertiary)',
+                    borderColor: paymentMode === 'offline' ? 'var(--primary)' : 'var(--border-color)'
+                  }}
+                >
                   <input type="radio" name="paymentMode" value="offline" checked={paymentMode === 'offline'} onChange={(e) => setPaymentMode(e.target.value)} />
                   <div className="option-content">
-                    <strong>Pay Offline / Cash Collection</strong>
-                    <span>An agent will collect cash or you can pay at the office.</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>Pay Offline / Cash Collection</strong>
+                    <span style={{ color: 'var(--text-secondary)' }}>An agent will collect cash or you can pay at the office.</span>
                   </div>
                 </label>
-                <label className={`payment-option ${paymentMode === 'online' ? 'active' : ''}`}>
+                <label 
+                  className={`payment-option ${paymentMode === 'online' ? 'active' : ''}`}
+                  style={{ 
+                    backgroundColor: paymentMode === 'online' ? 'var(--primary-glow)' : 'var(--bg-tertiary)',
+                    borderColor: paymentMode === 'online' ? 'var(--primary)' : 'var(--border-color)'
+                  }}
+                >
                   <input type="radio" name="paymentMode" value="online" checked={paymentMode === 'online'} onChange={(e) => setPaymentMode(e.target.value)} />
                   <div className="option-content">
-                    <strong>Pay Online via UPI</strong>
-                    <span>Scan QR code and upload screenshot.</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>Pay Online via UPI</strong>
+                    <span style={{ color: 'var(--text-secondary)' }}>Scan QR code and upload screenshot.</span>
                   </div>
                 </label>
               </div>
@@ -509,10 +521,30 @@ export default function Slots() {
               {paymentMode === 'online' && (
                 <div className="online-payment-details">
                   <div className="qr-section">
-                    <div className="qr-placeholder" style={{ backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px', textAlign: 'center', width: '200px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <div className="qr-placeholder" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', textAlign: 'center', width: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}>
                       <img src={nextgenQr} alt="Payment QR Code" style={{ width: '100%', height: 'auto', borderRadius: '8px', marginBottom: '12px' }} />
-                      <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>Pay to UPI ID:</span>
-                      <strong style={{ fontSize: '0.9rem', color: '#111827' }}>{mockUpiId}</strong>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Pay to UPI ID:</span>
+                      <strong 
+                        style={{ 
+                          fontSize: '0.85rem', 
+                          color: 'var(--text-primary)', 
+                          marginTop: '4px',
+                          wordBreak: 'break-all',
+                          userSelect: 'all',
+                          cursor: 'copy',
+                          padding: '4px 8px',
+                          backgroundColor: 'var(--bg-secondary)',
+                          borderRadius: '6px',
+                          border: '1px dashed var(--border-color)'
+                        }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(mockUpiId);
+                          alert('UPI ID copied to clipboard!');
+                        }}
+                        title="Click to copy"
+                      >
+                        {mockUpiId}
+                      </strong>
                     </div>
                   </div>
                   

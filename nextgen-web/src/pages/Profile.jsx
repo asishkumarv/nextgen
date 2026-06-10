@@ -111,6 +111,7 @@ export default function Profile() {
             
             <h2 className="overview-name">{user?.name}</h2>
             <p className="overview-phone">{user?.phone}</p>
+            {user?.id && <p className="overview-phone" style={{ fontSize: '0.85rem', opacity: 0.8, marginTop: '4px' }}>User ID: {user.id}</p>}
             {user?.subscriptions && user.subscriptions.some(s => s.status !== 'Rejected') && (
               <span className="badge-member badge-member-large">PRO MEMBER</span>
             )}
@@ -137,6 +138,7 @@ export default function Profile() {
                     <h4>{sub.plan}</h4>
                     <p>Mandal: <strong>{sub.mandalName}</strong></p>
                     <p>Slot Selected: <strong>Slot #{sub.slotNumber}</strong></p>
+                    {sub.validTill && <p>Expires On: <strong>{new Date(sub.validTill).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}
                     <p>Status: <strong style={{ color: sub.status === 'Pending' ? '#F59E0B' : sub.status === 'Rejected' ? '#DC2626' : '#10B981' }}>{sub.status}</strong></p>
                   </div>
                 </div>
@@ -192,7 +194,8 @@ export default function Profile() {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="Enter phone number"
-                      required
+                      disabled
+                      style={{ cursor: 'not-allowed', opacity: 0.7 }}
                     />
                   </div>
                 </div>
