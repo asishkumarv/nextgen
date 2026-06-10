@@ -58,65 +58,81 @@ export default function HomeScreen() {
           <Text style={styles.welcomeSub}>Manage your electrical support subscription</Text>
         </View>
 
-        {/* Subscription Status Card */}
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => navigation.navigate('Slots')}
-          style={styles.cardContainer}
-        >
-          <LinearGradient
-            colors={
-              activeSub?.status === 'Pending' ? ['#F59E0B', '#D97706'] :
-              activeSub?.status === 'Rejected' ? ['#DC2626', '#991B1B'] :
-              bookedSlot ? ['#00C853', '#0091EA'] : ['#F59E0B', '#EF4444']
-            }
-            style={styles.banner}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+        {/* Subscriptions List */}
+        {subscriptions && subscriptions.filter(s => s.status !== 'Rejected').length > 0 ? (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('Slots')}
+            style={styles.cardContainer}
           >
-            <View style={styles.bannerHeader}>
-              <View style={styles.subActiveBadge}>
-                <Ionicons name={
-                  activeSub?.status === 'Pending' ? 'time' :
-                  activeSub?.status === 'Rejected' ? 'close-circle' :
-                  bookedSlot ? 'sparkles' : 'alert-circle'
-                } size={12} color="#FFF" style={{ marginRight: 4 }} />
-                <Text style={styles.subActiveText}>
-                  {
-                    activeSub?.status === 'Pending' ? 'Subscription Pending' :
-                    activeSub?.status === 'Rejected' ? 'Subscription Rejected' :
-                    bookedSlot ? 'Subscription Active' : 'No Active Slot'
-                  }
-                </Text>
+            <LinearGradient
+              colors={['#00C853', '#0091EA']}
+              style={styles.banner}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.bannerHeader}>
+                <View style={styles.subActiveBadge}>
+                  <Ionicons name="sparkles" size={12} color="#FFF" style={{ marginRight: 4 }} />
+                  <Text style={styles.subActiveText}>Subscriptions Active</Text>
+                </View>
               </View>
-              <Text style={styles.priceTag}>₹2999/year</Text>
-            </View>
 
-            <Text style={styles.offer}>Power Care Annual</Text>
-            
-            <View style={styles.slotLabelContainer}>
-              <Ionicons name="calendar-outline" size={14} color="#FFF" style={{ marginRight: 6 }} />
-              <Text style={styles.slotLabel}>
-                {
-                  activeSub?.status === 'Pending' ? `Requested Slot #${activeSub.slotNumber}` :
-                  activeSub?.status === 'Rejected' ? 'Your request was rejected' :
-                  bookedSlot ? `Reserved Slot #${bookedSlot}` : 'Tap to select subscription slot'
-                }
-              </Text>
-            </View>
+              {subscriptions.filter(s => s.status !== 'Rejected').map((sub, index, arr) => (
+                <View key={sub.id || index} style={{ marginBottom: arr.length > 1 ? 10 : 16 }}>
+                  <Text style={[styles.offer, arr.length > 1 && { fontSize: 18 }]}>
+                    {sub.plan || 'Power Care Annual'}
+                  </Text>
+                  
+                  <View style={[styles.slotLabelContainer, { marginBottom: 0, marginTop: arr.length > 1 ? 4 : 8 }]}>
+                    <Ionicons name="calendar-outline" size={arr.length > 1 ? 12 : 14} color="#FFF" style={{ marginRight: 6 }} />
+                    <Text style={[styles.slotLabel, arr.length > 1 && { fontSize: 12 }]}>
+                      {sub.status === 'Pending' ? `Requested Slot #${sub.slotNumber} (Pending)` : `Reserved Slot #${sub.slotNumber}`}
+                    </Text>
+                  </View>
+                </View>
+              ))}
 
-            <View style={styles.whiteButton}>
-              <Text style={styles.whiteButtonText}>
-                {
-                  activeSub?.status === 'Pending' ? 'View Status' :
-                  activeSub?.status === 'Rejected' ? 'Try Again' :
-                  bookedSlot ? 'View Slot Details' : 'Pick Subscription Slot'
-                }
-              </Text>
-              <Ionicons name="arrow-forward" size={16} color="#111827" style={{ marginLeft: 6 }} />
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
+              <View style={[styles.whiteButton, { marginTop: 8 }]}>
+                <Text style={styles.whiteButtonText}>View Details & Add More</Text>
+                <Ionicons name="arrow-forward" size={16} color="#111827" style={{ marginLeft: 6 }} />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('Slots')}
+            style={styles.cardContainer}
+          >
+            <LinearGradient
+              colors={['#F59E0B', '#EF4444']}
+              style={styles.banner}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.bannerHeader}>
+                <View style={styles.subActiveBadge}>
+                  <Ionicons name="alert-circle" size={12} color="#FFF" style={{ marginRight: 4 }} />
+                  <Text style={styles.subActiveText}>No Active Slot</Text>
+                </View>
+                <Text style={styles.priceTag}>₹2999/year</Text>
+              </View>
+
+              <Text style={styles.offer}>Power Care Annual</Text>
+              
+              <View style={styles.slotLabelContainer}>
+                <Ionicons name="calendar-outline" size={14} color="#FFF" style={{ marginRight: 6 }} />
+                <Text style={styles.slotLabel}>Tap to select subscription slot</Text>
+              </View>
+
+              <View style={styles.whiteButton}>
+                <Text style={styles.whiteButtonText}>Pick Subscription Slot</Text>
+                <Ionicons name="arrow-forward" size={16} color="#111827" style={{ marginLeft: 6 }} />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
 
         {/* Quick Action Shortcuts */}
         <Text style={styles.heading}>Quick Actions</Text>

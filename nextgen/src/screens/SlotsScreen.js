@@ -269,13 +269,53 @@ export default function SlotsScreen() {
         <Header />
       </View>
 
-      {bookingDetails?.status === 'Rejected' && (
-        <View style={[styles.successGradientCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, marginBottom: 16 }]}>
-          <View style={[styles.checkCircle, { backgroundColor: '#FEE2E2' }]}>
-            <Ionicons name="close-circle" size={40} color="#DC2626" />
-          </View>
-          <Text style={[styles.successTitle, { color: '#B91C1C' }]}>Request Rejected</Text>
-          <Text style={[styles.successSubtitle, { color: '#991B1B' }]}>Your previous subscription request was rejected. Please select a new slot.</Text>
+      {/* Removed old bookingDetails check */}      {/* Existing Subscriptions List */}
+      {subscriptions && subscriptions.length > 0 && (
+        <View style={{ marginBottom: 20 }}>
+          <Text style={[styles.sectionHeading, { marginBottom: 12 }]}>My Subscriptions</Text>
+          {subscriptions.map((sub, index) => (
+            <View key={sub.id || index} style={{ marginBottom: 12 }}>
+              {sub.status === 'Pending' ? (
+                <View style={[styles.gradientCard, { backgroundColor: '#FFFBEB', borderColor: '#FCD34D', borderWidth: 1, padding: 16, marginTop: 0 }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Ionicons name="time-outline" size={18} color="#B45309" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#B45309', fontWeight: '700', fontSize: 14 }}>PENDING APPROVAL</Text>
+                  </View>
+                  <Text style={{ color: '#92400E', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Power Care Annual'}</Text>
+                  <Text style={{ color: '#B45309', fontSize: 14, marginTop: 4 }}>
+                    Slot #{sub.slotNumber} · Paid via {sub.paymentMode || 'Online'}
+                  </Text>
+                </View>
+              ) : sub.status === 'Rejected' ? (
+                <View style={[styles.gradientCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, padding: 16, marginTop: 0 }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Ionicons name="close-circle-outline" size={18} color="#B91C1C" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#B91C1C', fontWeight: '700', fontSize: 14 }}>REQUEST REJECTED</Text>
+                  </View>
+                  <Text style={{ color: '#991B1B', fontSize: 18, fontWeight: '800' }}>Subscription Rejected</Text>
+                  <Text style={{ color: '#B91C1C', fontSize: 14, marginTop: 4 }}>
+                    Your request for slot #{sub.slotNumber} was not approved.
+                  </Text>
+                </View>
+              ) : (
+                <LinearGradient
+                  colors={['#00C853', '#0091EA']}
+                  style={[styles.gradientCard, { padding: 16, marginTop: 0 }]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Ionicons name="checkmark-circle" size={18} color="#FFF" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>ACTIVE SUBSCRIPTION</Text>
+                  </View>
+                  <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Power Care Annual'}</Text>
+                  <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: 14, marginTop: 4 }}>
+                    Slot #{sub.slotNumber} · Expires: {sub.expiry_date ? new Date(sub.expiry_date).toLocaleDateString() : 'Active'}
+                  </Text>
+                </LinearGradient>
+              )}
+            </View>
+          ))}
         </View>
       )}
 

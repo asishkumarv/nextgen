@@ -278,11 +278,47 @@ export default function Slots() {
         </p>
       </section>
 
-      
-      {user?.subscription?.status === 'Rejected' && (
-        <div className="banner error-banner container-small">
-          <AlertTriangle size={18} />
-          <span>Your previous subscription request was rejected. You may choose a new slot.</span>
+      {/* Existing Subscriptions List */}
+      {user?.subscriptions && user.subscriptions.length > 0 && (
+        <div className="container-small" style={{ marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px', color: '#111827' }}>My Subscriptions</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {user.subscriptions.map((sub, index) => (
+              <div key={sub.id || index}>
+                {sub.status === 'Pending' ? (
+                  <div className="banner" style={{ backgroundColor: '#FFFBEB', borderColor: '#FCD34D', color: '#B45309', margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Info size={18} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: '700' }}>PENDING APPROVAL: {sub.plan || 'Power Care Annual'}</span>
+                        <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>Slot #{sub.slotNumber} · Paid via {sub.paymentMode || 'Online'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : sub.status === 'Rejected' ? (
+                  <div className="banner error-banner" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <AlertTriangle size={18} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: '700' }}>REQUEST REJECTED</span>
+                        <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>Your request for slot #{sub.slotNumber} was not approved.</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="banner success-banner" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <CheckCircle2 size={18} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: '700' }}>ACTIVE SUBSCRIPTION: {sub.plan || 'Power Care Annual'}</span>
+                        <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>Slot #{sub.slotNumber} · Expires: {sub.expiry_date ? new Date(sub.expiry_date).toLocaleDateString() : 'Active'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
