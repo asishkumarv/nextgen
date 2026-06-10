@@ -178,10 +178,6 @@ export default function Slots() {
   };
 
   const handleBookSlot = async () => {
-    if (user?.subscription && user.subscription.status !== 'Rejected') {
-      setError('You already have an active subscription slot.');
-      return;
-    }
     if (!selectedDistrictId || !selectedMandalId || !selectedEventId || !selectedSlot) {
       setError('Please select a District, Mandal, Event, and Slot number.');
       return;
@@ -282,12 +278,6 @@ export default function Slots() {
         </p>
       </section>
 
-      {user?.subscription && user.subscription.status !== 'Rejected' && (
-        <div className="banner info-banner container-small">
-          <Shield size={18} />
-          <span>You have an active or pending subscription slot: <strong>#{user.subscription.slotNumber}</strong>. You can only hold one active slot at a time.</span>
-        </div>
-      )}
       
       {user?.subscription?.status === 'Rejected' && (
         <div className="banner error-banner container-small">
@@ -316,7 +306,7 @@ export default function Slots() {
                 id="district-select"
                 value={selectedDistrictId}
                 onChange={(e) => setSelectedDistrictId(e.target.value)}
-                disabled={districtsLoading || (user?.subscription && user.subscription.status !== 'Rejected')}
+                disabled={districtsLoading}
               >
                 <option value="">-- Select District --</option>
                 {districts.map((d) => (
@@ -332,7 +322,7 @@ export default function Slots() {
                 id="mandal-select"
                 value={selectedMandalId}
                 onChange={(e) => setSelectedMandalId(e.target.value)}
-                disabled={!selectedDistrictId || mandalsLoading || (user?.subscription && user.subscription.status !== 'Rejected')}
+                disabled={!selectedDistrictId || mandalsLoading}
               >
                 <option value="">
                   {mandalsLoading ? 'Loading mandals...' : '-- Select Mandal --'}
@@ -350,7 +340,7 @@ export default function Slots() {
                 id="event-select"
                 value={selectedEventId}
                 onChange={(e) => setSelectedEventId(e.target.value)}
-                disabled={!selectedMandalId || eventsLoading || (user?.subscription && user.subscription.status !== 'Rejected')}
+                disabled={!selectedMandalId || eventsLoading}
               >
                 <option value="">
                   {eventsLoading ? 'Loading events...' : '-- Select Event --'}
@@ -440,7 +430,7 @@ export default function Slots() {
                       <button
                         key={slotNum}
                         onClick={() => !isBooked && setSelectedSlot(slotNum)}
-                        disabled={isBooked || (user?.subscription && user.subscription.status !== 'Rejected')}
+                        disabled={isBooked}
                         className={`slot-box-btn ${isBooked ? 'booked' : 'available'} ${isSelected ? 'selected' : ''}`}
                       >
                         <span className="slot-title">Slot</span>
@@ -460,7 +450,7 @@ export default function Slots() {
           </div>
 
           {/* Payment Method Panel */}
-          {selectedSlot && activeEvent && (!user?.subscription || user.subscription.status === 'Rejected') && (
+          {selectedSlot && activeEvent && (
             <div className="payment-method-card glass-card animate-slide-up" style={{ marginTop: '20px' }} ref={paymentRef}>
               <h3>Step 3: Payment Details</h3>
               <div className="payment-options">
@@ -530,7 +520,7 @@ export default function Slots() {
           )}
 
           {/* Booking Summary Panel */}
-          {selectedSlot && activeEvent && (!user?.subscription || user.subscription.status === 'Rejected') && (
+          {selectedSlot && activeEvent && (
             <div className="subscription-summary-card glass-card animate-slide-up" style={{ marginTop: '20px' }}>
               <div className="summary-details">
                 <div className="summary-logo-row">

@@ -29,7 +29,7 @@ const SLOT_SIZE = (width - 104) / 5;
 export default function SlotsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { bookedSlot, bookingDetails, bookSlot, cancelSlot, refreshData } = useApp();
+  const { bookedSlot, subscriptions, bookSlot, cancelSlot, refreshData } = useApp();
   
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
@@ -433,131 +433,9 @@ export default function SlotsScreen() {
     </ScrollView>
   );
 
-  // Rendering Case B: Subscribed (Already purchased)
-  const renderConfirmation = () => (
-    <ScrollView 
-      style={styles.scrollContainer}
-      contentContainerStyle={{ paddingBottom: 100 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00C853']} />
-      }
-    >
-      <View style={styles.headerWrapper}>
-        <Header />
-      </View>
-
-      {/* Success Banner */}
-      {bookingDetails?.status === 'Pending' ? (
-        <View style={[styles.successGradientCard, { backgroundColor: '#FFFBEB', borderColor: '#FCD34D', borderWidth: 1 }]}>
-          <View style={[styles.checkCircle, { backgroundColor: '#FEF3C7' }]}>
-            <Ionicons name="time" size={40} color="#F59E0B" />
-          </View>
-          <Text style={[styles.successTitle, { color: '#B45309' }]}>Request Pending</Text>
-          <Text style={[styles.successSubtitle, { color: '#92400E' }]}>Your request is awaiting admin approval</Text>
-
-          <View style={[styles.subscriptionActiveBadge, { backgroundColor: '#F59E0B' }]}>
-            <Ionicons name="hourglass" size={12} color="#FFF" style={{ marginRight: 6 }} />
-            <Text style={styles.subscriptionActiveText}>Pending</Text>
-          </View>
-        </View>
-      ) : (
-        <LinearGradient
-          colors={['#00C853', '#00B0FF']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.successGradientCard}
-        >
-          <View style={styles.checkCircle}>
-            <Ionicons name="checkmark" size={40} color="#00C853" />
-          </View>
-          <Text style={styles.successTitle}>Active Subscription</Text>
-          <Text style={styles.successSubtitle}>Welcome to Next Gen Power Care</Text>
-
-          <View style={styles.subscriptionActiveBadge}>
-            <Ionicons name="sparkles" size={12} color="#FFF" style={{ marginRight: 6 }} />
-            <Text style={styles.subscriptionActiveText}>Active</Text>
-          </View>
-        </LinearGradient>
-      )}
-
-      {/* Reserved Slot details */}
-      <View style={styles.slotDetailCard}>
-        <Text style={styles.slotDetailHeader}>YOUR SLOT NUMBER</Text>
-        <Text style={styles.slotDetailNumber}>#{bookingDetails?.slotNumber || bookedSlot}</Text>
-        <Text style={styles.slotDetailFooter}>Reserved exclusively for you</Text>
-      </View>
-
-      {/* Subscription details */}
-      <View style={styles.infoList}>
-        {/* District & Mandal */}
-        <View style={styles.infoRow}>
-          <View style={[styles.infoIconWrapper, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name="map-outline" size={20} color="#00C853" />
-          </View>
-          <View style={styles.infoTextWrapper}>
-            <Text style={styles.infoLabel}>District & Mandal</Text>
-            <Text style={styles.infoValue}>
-              {bookingDetails?.districtName} / {bookingDetails?.mandalName}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.rowDivider} />
-
-        {/* Event Name */}
-        <View style={styles.infoRow}>
-          <View style={[styles.infoIconWrapper, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name="calendar-outline" size={20} color="#00C853" />
-          </View>
-          <View style={styles.infoTextWrapper}>
-            <Text style={styles.infoLabel}>Subscribed Event</Text>
-            <Text style={styles.infoValue}>{bookingDetails?.eventName}</Text>
-          </View>
-        </View>
-
-        <View style={styles.rowDivider} />
-
-        {/* Plan & Pricing */}
-        <View style={styles.infoRow}>
-          <View style={[styles.infoIconWrapper, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name="ribbon-outline" size={20} color="#00C853" />
-          </View>
-          <View style={styles.infoTextWrapper}>
-            <Text style={styles.infoLabel}>Subscription Tier</Text>
-            <Text style={styles.infoValue}>{bookingDetails?.plan}</Text>
-          </View>
-        </View>
-
-        <View style={styles.rowDivider} />
-
-        {/* Date Row */}
-        <View style={styles.infoRow}>
-          <View style={[styles.infoIconWrapper, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name="time-outline" size={20} color="#00C853" />
-          </View>
-          <View style={styles.infoTextWrapper}>
-            <Text style={styles.infoLabel}>Valid Till</Text>
-            <Text style={styles.infoValue}>{bookingDetails?.date}</Text>
-          </View>
-        </View>
-      </View>
-
-      {bookingDetails?.status === 'Pending' && (
-        <TouchableOpacity 
-          style={styles.cancelButton}
-          onPress={cancelSlot}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.cancelButtonText}>Cancel / Change Subscription</Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
-  );
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {bookedSlot && bookingDetails?.status !== 'Rejected' ? renderConfirmation() : renderSlotGrid()}
+      {renderSlotGrid()}
 
       {/* District Dropdown */}
       {districtDropdownOpen && (
@@ -656,7 +534,7 @@ export default function SlotsScreen() {
       )}
 
       {/* Bottom Sheet for Payment */}
-      {(!bookedSlot || bookingDetails?.status === 'Rejected') && selectedLocalSlot && selectedEvent && (
+      {selectedLocalSlot && selectedEvent && (
         <View style={styles.modalBackdrop}>
           <TouchableOpacity 
             style={styles.modalDismissArea} 

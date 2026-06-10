@@ -96,7 +96,8 @@ export default function Services() {
     }
   };
 
-  const isSubscribed = !!user?.subscription;
+  const activeSub = user?.subscriptions?.find(s => s.status !== 'Rejected');
+  const isSubscribed = !!activeSub;
   const timeSlots = [
     'Morning (09:00 AM - 12:00 PM)',
     'Afternoon (12:00 PM - 03:00 PM)',
@@ -353,10 +354,10 @@ export default function Services() {
             )}
           </div>
 
-          {isSubscribed && (
+          {isSubscribed && activeSub && (
             <div className="info-banner-blue">
               <ShieldCheck size={18} />
-              <p>As a Priority Care subscriber in <strong>{user.subscription.districtName}/{user.subscription.mandalName}</strong>, this request will automatically inherit your slot region and balance parameters for vendor allocation.</p>
+              <p>As a Priority Care subscriber in <strong>{activeSub.districtName}/{activeSub.mandalName}</strong>, this request will automatically inherit your slot region and balance parameters for vendor allocation.</p>
             </div>
           )}
 

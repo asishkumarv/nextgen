@@ -54,13 +54,13 @@ export default function Dashboard() {
     }
   };
 
-  const handleCancelSubscription = async () => {
+  const handleCancelSubscription = async (subscriptionId) => {
     if (!window.confirm('Are you sure you want to cancel your annual slot subscription? All priority benefits will be terminated immediately.')) return;
     setActionLoading(true);
     setActionError('');
     setActionSuccess('');
     try {
-      await api.post('/subscription/cancel');
+      await api.post('/subscription/cancel', { subscriptionId });
       setActionSuccess('Subscription cancelled successfully.');
       await refreshProfile();
       fetchBookings(); // To refresh computed prices if any
@@ -128,86 +128,94 @@ export default function Dashboard() {
           <div className="subscription-card glass-card">
             <div className="sub-card-header">
               <Shield className="sub-icon text-gradient" size={24} />
-              <h3>Priority Care Slot</h3>
+              <h3>Priority Care Slots</h3>
             </div>
-            {user?.subscription ? (
-              user.subscription.status === 'Pending' ? (
-                <div className="active-sub-info animate-fade-in" style={{ backgroundColor: '#FFFBEB', borderColor: '#FCD34D' }}>
-                  <div className="sub-badge" style={{ backgroundColor: '#F59E0B' }}>PENDING APPROVAL</div>
-                  <p className="plan-name">{user.subscription.plan}</p>
-                  <p className="sub-upsell-text" style={{ marginTop: '10px', marginBottom: '15px', color: '#B45309' }}>
-                    Your subscription request is currently pending admin approval.
-                  </p>
-                  
-                  <div className="sub-meta-grid">
-                    <div className="meta-box">
-                      <span className="m-label">Region Code</span>
-                      <span className="m-value">{user.subscription.districtName} / {user.subscription.mandalName}</span>
-                    </div>
-                    <div className="meta-box">
-                      <span className="m-label">Event Category</span>
-                      <span className="m-value">{user.subscription.eventName}</span>
-                    </div>
-                    <div className="meta-box">
-                      <span className="m-label">Slot Number</span>
-                      <span className="m-value">#{user.subscription.slotNumber}</span>
-                    </div>
-                    <div className="meta-box">
-                      <span className="m-label">Payment Mode</span>
-                      <span className="m-value" style={{textTransform: 'capitalize'}}>{user.subscription.paymentMode}</span>
-                    </div>
-                  </div>
+            {user?.subscriptions && user.subscriptions.length > 0 ? (
+              user.subscriptions.map((sub) => (
+                <div key={sub.id} style={{ marginBottom: '16px' }}>
+                  {sub.status === 'Pending' ? (
+                    <div className="active-sub-info animate-fade-in" style={{ backgroundColor: '#FFFBEB', borderColor: '#FCD34D' }}>
+                      <div className="sub-badge" style={{ backgroundColor: '#F59E0B' }}>PENDING APPROVAL</div>
+                      <p className="plan-name">{sub.plan}</p>
+                      <p className="sub-upsell-text" style={{ marginTop: '10px', marginBottom: '15px', color: '#B45309' }}>
+                        Your subscription request is currently pending admin approval.
+                      </p>
+                      
+                      <div className="sub-meta-grid">
+                        <div className="meta-box">
+                          <span className="m-label">Region Code</span>
+                          <span className="m-value">{sub.districtName} / {sub.mandalName}</span>
+                        </div>
+                        <div className="meta-box">
+                          <span className="m-label">Event Category</span>
+                          <span className="m-value">{sub.eventName}</span>
+                        </div>
+                        <div className="meta-box">
+                          <span className="m-label">Slot Number</span>
+                          <span className="m-value">#{sub.slotNumber}</span>
+                        </div>
+                        <div className="meta-box">
+                          <span className="m-label">Payment Mode</span>
+                          <span className="m-value" style={{textTransform: 'capitalize'}}>{sub.paymentMode}</span>
+                        </div>
+                      </div>
 
-                  <button
-                    onClick={handleCancelSubscription}
-                    disabled={actionLoading}
-                    className="btn btn-danger-outline btn-block btn-cancel-sub"
-                  >
-                    Cancel Request
-                  </button>
+                      <button
+                        onClick={() => handleCancelSubscription(sub.id)}
+                        disabled={actionLoading}
+                        className="btn btn-danger-outline btn-block btn-cancel-sub"
+                      >
+                        Cancel Request
+                      </button>
+                    </div>
+                  ) : sub.status === 'Rejected' ? (
+                    <div className="inactive-sub-info" style={{ marginBottom: 0 }}>
+                      <p className="no-sub-text" style={{ color: '#DC2626' }}>Your subscription request for slot #{sub.slotNumber} was rejected.</p>
+                      <p className="sub-upsell-text">Please contact support or try booking another slot.</p>
+                    </div>
+                  ) : (
+                    <div className="active-sub-info animate-fade-in">
+                      <div className="sub-badge">ACTIVE PLAN</div>
+                      <p className="plan-name">{sub.plan}</p>
+                      
+                      <div className="sub-meta-grid">
+                        <div className="meta-box">
+                          <span className="m-label">Region Code</span>
+                          <span className="m-value">{sub.districtName} / {sub.mandalName}</span>
+                        </div>
+                        <div className="meta-box">
+                          <span className="m-label">Event Category</span>
+                          <span className="m-value">{sub.eventName}</span>
+                        </div>
+                        <div className="meta-box">
+                          <span className="m-label">Slot Number</span>
+                          <span className="m-value">#{sub.slotNumber}</span>
+                        </div>
+                        <div className="meta-box">
+                          <span className="m-label">Valid Until</span>
+                          <span className="m-value">{formatDate(sub.validTill)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ) : user.subscription.status === 'Rejected' ? (
-                <div className="inactive-sub-info">
-                  <p className="no-sub-text" style={{ color: '#DC2626' }}>Your previous subscription request was rejected.</p>
-                  <p className="sub-upsell-text">Please contact support or try booking another slot.</p>
-                  <Link to="/slots" className="btn btn-primary btn-block">
-                    <Calendar size={16} />
-                    <span>Choose Slot & Subscribe</span>
-                  </Link>
-                </div>
-              ) : (
-                <div className="active-sub-info animate-fade-in">
-                  <div className="sub-badge">ACTIVE PLAN</div>
-                  <p className="plan-name">{user.subscription.plan}</p>
-                  
-                  <div className="sub-meta-grid">
-                    <div className="meta-box">
-                      <span className="m-label">Region Code</span>
-                      <span className="m-value">{user.subscription.districtName} / {user.subscription.mandalName}</span>
-                    </div>
-                    <div className="meta-box">
-                      <span className="m-label">Event Category</span>
-                      <span className="m-value">{user.subscription.eventName}</span>
-                    </div>
-                    <div className="meta-box">
-                      <span className="m-label">Slot Number</span>
-                      <span className="m-value">#{user.subscription.slotNumber}</span>
-                    </div>
-                    <div className="meta-box">
-                      <span className="m-label">Valid Until</span>
-                      <span className="m-value">{formatDate(user.subscription.validTill)}</span>
-                    </div>
-                  </div>
-
-                </div>
-              )
+              ))
             ) : (
               <div className="inactive-sub-info">
-                <p className="no-sub-text">You don't have an active subscription slot.</p>
+                <p className="no-sub-text">You don't have any active subscription slots.</p>
                 <p className="sub-upsell-text">Subscribe to an annual slot in your region to unlock unlimited free bookings, priority dispatch, and workload-balanced vendor routing.</p>
                 <Link to="/slots" className="btn btn-primary btn-block">
                   <Calendar size={16} />
                   <span>Choose Slot & Subscribe</span>
+                </Link>
+              </div>
+            )}
+            
+            {user?.subscriptions && user.subscriptions.length > 0 && (
+              <div style={{ marginTop: '16px' }}>
+                <Link to="/slots" className="btn btn-primary btn-block">
+                  <Calendar size={16} />
+                  <span>Book Another Slot</span>
                 </Link>
               </div>
             )}

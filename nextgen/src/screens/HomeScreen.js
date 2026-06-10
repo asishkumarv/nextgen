@@ -22,7 +22,8 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, bookingDetails, setActiveBookingService, refreshData } = useApp();
+  const { user, bookedSlot, subscriptions, setActiveBookingService, refreshData } = useApp();
+  const activeSub = subscriptions?.find(s => s.status !== 'Rejected') || subscriptions?.[0];
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -65,8 +66,8 @@ export default function HomeScreen() {
         >
           <LinearGradient
             colors={
-              bookingDetails?.status === 'Pending' ? ['#F59E0B', '#D97706'] :
-              bookingDetails?.status === 'Rejected' ? ['#DC2626', '#991B1B'] :
+              activeSub?.status === 'Pending' ? ['#F59E0B', '#D97706'] :
+              activeSub?.status === 'Rejected' ? ['#DC2626', '#991B1B'] :
               bookedSlot ? ['#00C853', '#0091EA'] : ['#F59E0B', '#EF4444']
             }
             style={styles.banner}
@@ -76,14 +77,14 @@ export default function HomeScreen() {
             <View style={styles.bannerHeader}>
               <View style={styles.subActiveBadge}>
                 <Ionicons name={
-                  bookingDetails?.status === 'Pending' ? 'time' :
-                  bookingDetails?.status === 'Rejected' ? 'close-circle' :
+                  activeSub?.status === 'Pending' ? 'time' :
+                  activeSub?.status === 'Rejected' ? 'close-circle' :
                   bookedSlot ? 'sparkles' : 'alert-circle'
                 } size={12} color="#FFF" style={{ marginRight: 4 }} />
                 <Text style={styles.subActiveText}>
                   {
-                    bookingDetails?.status === 'Pending' ? 'Subscription Pending' :
-                    bookingDetails?.status === 'Rejected' ? 'Subscription Rejected' :
+                    activeSub?.status === 'Pending' ? 'Subscription Pending' :
+                    activeSub?.status === 'Rejected' ? 'Subscription Rejected' :
                     bookedSlot ? 'Subscription Active' : 'No Active Slot'
                   }
                 </Text>
@@ -97,8 +98,8 @@ export default function HomeScreen() {
               <Ionicons name="calendar-outline" size={14} color="#FFF" style={{ marginRight: 6 }} />
               <Text style={styles.slotLabel}>
                 {
-                  bookingDetails?.status === 'Pending' ? `Requested Slot #${bookedSlot}` :
-                  bookingDetails?.status === 'Rejected' ? 'Your request was rejected' :
+                  activeSub?.status === 'Pending' ? `Requested Slot #${activeSub.slotNumber}` :
+                  activeSub?.status === 'Rejected' ? 'Your request was rejected' :
                   bookedSlot ? `Reserved Slot #${bookedSlot}` : 'Tap to select subscription slot'
                 }
               </Text>
@@ -107,8 +108,8 @@ export default function HomeScreen() {
             <View style={styles.whiteButton}>
               <Text style={styles.whiteButtonText}>
                 {
-                  bookingDetails?.status === 'Pending' ? 'View Status' :
-                  bookingDetails?.status === 'Rejected' ? 'Try Again' :
+                  activeSub?.status === 'Pending' ? 'View Status' :
+                  activeSub?.status === 'Rejected' ? 'Try Again' :
                   bookedSlot ? 'View Slot Details' : 'Pick Subscription Slot'
                 }
               </Text>

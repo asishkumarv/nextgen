@@ -64,7 +64,8 @@ export default function ServicesScreen() {
   const [createdBookingId, setCreatedBookingId] = useState('');
 
   // District/Mandal/Event/Slot states for booking
-  const { bookedSlot, bookingDetails } = useApp();
+  const { bookedSlot, subscriptions } = useApp();
+  const activeSub = subscriptions?.find(s => s.status !== 'Rejected') || subscriptions?.[0];
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
@@ -83,10 +84,10 @@ export default function ServicesScreen() {
   // Fetch districts on entering step 2 (for non-subscribers)
   useEffect(() => {
     if (bookingStep === 2) {
-      if (bookedSlot && bookingDetails) {
+      if (bookedSlot && activeSub) {
         // Prepopulate with active subscription
-        setSelectedSlot(bookingDetails.slotNumber);
-        setSelectedEvent(bookingDetails.eventName);
+        setSelectedSlot(activeSub.slotNumber);
+        setSelectedEvent(activeSub.eventName);
       } else {
         const loadDistricts = async () => {
           try {
@@ -99,7 +100,7 @@ export default function ServicesScreen() {
         loadDistricts();
       }
     }
-  }, [bookingStep, bookedSlot, bookingDetails]);
+  }, [bookingStep, bookedSlot, activeSub]);
 
   // Fetch mandals when district changes
   useEffect(() => {
@@ -230,10 +231,10 @@ export default function ServicesScreen() {
         selectedDate,
         selectedTimeSlot ? selectedTimeSlot.split(' ')[0] : 'Morning',
         addressString,
-        bookedSlot ? bookingDetails?.districtId : (selectedDistrict?.id || null),
-        bookedSlot ? bookingDetails?.mandalId : (selectedMandal?.id || null),
-        bookedSlot ? bookingDetails?.slotNumber : null,
-        bookedSlot ? bookingDetails?.eventName : null
+        bookedSlot ? activeSub?.districtId : (selectedDistrict?.id || null),
+        bookedSlot ? activeSub?.mandalId : (selectedMandal?.id || null),
+        bookedSlot ? activeSub?.slotNumber : null,
+        bookedSlot ? activeSub?.eventName : null
       );
       setCreatedBookingId(newId);
       setBookingSuccess(true);
@@ -483,10 +484,10 @@ export default function ServicesScreen() {
                     </View>
                     
                     <Text style={styles.subDetailsTitle}>Subscription coverage: </Text>
-                    <Text style={styles.subDetailsText}>District: {bookingDetails?.districtName}</Text>
-                    <Text style={styles.subDetailsText}>Mandal: {bookingDetails?.mandalName}</Text>
-                    <Text style={styles.subDetailsText}>Slot: #{bookingDetails?.slotNumber}</Text>
-                    <Text style={styles.subDetailsText}>Registered Event: {bookingDetails?.eventName}</Text>
+                    <Text style={styles.subDetailsText}>District: {activeSub?.districtName}</Text>
+                    <Text style={styles.subDetailsText}>Mandal: {activeSub?.mandalName}</Text>
+                    <Text style={styles.subDetailsText}>Slot: #{activeSub?.slotNumber}</Text>
+                    <Text style={styles.subDetailsText}>Registered Event: {activeSub?.eventName}</Text>
                     
                     <View style={styles.divider} />
                     
@@ -718,7 +719,7 @@ export default function ServicesScreen() {
                   <View style={styles.reviewItem}>
                     <Ionicons name="map-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
                     <Text style={styles.reviewText}>
-                      Region: {bookedSlot ? bookingDetails?.districtName : selectedDistrict?.name} / {bookedSlot ? bookingDetails?.mandalName : selectedMandal?.name}
+                      Region: {bookedSlot ? activeSub?.districtName : selectedDistrict?.name} / {bookedSlot ? activeSub?.mandalName : selectedMandal?.name}
                     </Text>
                   </View>
                 )}
@@ -727,7 +728,7 @@ export default function ServicesScreen() {
                   <View style={styles.reviewItem}>
                     <Ionicons name="ticket-outline" size={18} color="#6B7280" style={{ marginRight: 10 }} />
                     <Text style={styles.reviewText}>
-                      Event & Slot: {bookingDetails?.eventName} (Slot #{bookingDetails?.slotNumber})
+                      Event & Slot: {activeSub?.eventName} (Slot #{activeSub?.slotNumber})
                     </Text>
                   </View>
                 )}

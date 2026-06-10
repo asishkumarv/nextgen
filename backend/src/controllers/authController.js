@@ -82,7 +82,8 @@ const register = async (req, res) => {
         district_id: user.district_id,
         mandal_id: user.mandal_id,
         referral_code: user.referral_code,
-        wallet_balance: user.wallet_balance
+        wallet_balance: user.wallet_balance,
+        subscriptions: []
       }
     });
 
@@ -136,7 +137,7 @@ const login = async (req, res) => {
         mandal_id: user.mandal_id,
         referral_code: user.referral_code,
         wallet_balance: user.wallet_balance,
-        subscription: null
+        subscriptions: []
       }
     });
 
@@ -170,28 +171,27 @@ const getMe = async (req, res) => {
        LEFT JOIN districts d ON s.district_id = d.id
        LEFT JOIN mandals m ON s.mandal_id = m.id
        WHERE s.user_id = $1
-       ORDER BY s.created_at DESC
-       LIMIT 1`,
+       ORDER BY s.created_at DESC`,
       [userId]
     );
 
-    const subscription = subRes.rows.length > 0 ? {
-      id: subRes.rows[0].id,
-      slotNumber: subRes.rows[0].slot_number,
-      plan: subRes.rows[0].plan,
-      validTill: subRes.rows[0].valid_till,
-      eventName: subRes.rows[0].eventName,
-      districtId: subRes.rows[0].districtId,
-      mandalId: subRes.rows[0].mandalId,
-      districtName: subRes.rows[0].districtName,
-      mandalName: subRes.rows[0].mandalName,
-      status: subRes.rows[0].status,
-      paymentMode: subRes.rows[0].payment_mode
-    } : null;
+    const subscriptions = subRes.rows.map(row => ({
+      id: row.id,
+      slotNumber: row.slot_number,
+      plan: row.plan,
+      validTill: row.valid_till,
+      eventName: row.eventName,
+      districtId: row.districtId,
+      mandalId: row.mandalId,
+      districtName: row.districtName,
+      mandalName: row.mandalName,
+      status: row.status,
+      paymentMode: row.payment_mode
+    }));
 
     res.json({
       ...user,
-      subscription
+      subscriptions
     });
 
   } catch (error) {

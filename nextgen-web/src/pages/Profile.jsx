@@ -111,7 +111,7 @@ export default function Profile() {
             
             <h2 className="overview-name">{user?.name}</h2>
             <p className="overview-phone">{user?.phone}</p>
-            {user?.subscription && (
+            {user?.subscriptions && user.subscriptions.some(s => s.status !== 'Rejected') && (
               <span className="badge-member badge-member-large">PRO MEMBER</span>
             )}
 
@@ -129,15 +129,18 @@ export default function Profile() {
           {/* Active Subscription Summary card */}
           <div className="profile-sub-summary-card glass-card">
             <h3>Active Subscription Status</h3>
-            {user?.subscription ? (
-              <div className="sub-summary-active">
-                <Shield className="sub-icon text-gradient" size={24} />
-                <div>
-                  <h4>{user.subscription.plan}</h4>
-                  <p>Mandal: <strong>{user.subscription.mandalName}</strong></p>
-                  <p>Slot Selected: <strong>Slot #{user.subscription.slotNumber}</strong></p>
+            {user?.subscriptions && user.subscriptions.length > 0 ? (
+              user.subscriptions.map(sub => (
+                <div key={sub.id} className={`sub-summary-${sub.status === 'Rejected' ? 'inactive' : 'active'}`} style={{ marginBottom: '12px' }}>
+                  {sub.status !== 'Rejected' && <Shield className="sub-icon text-gradient" size={24} />}
+                  <div>
+                    <h4>{sub.plan}</h4>
+                    <p>Mandal: <strong>{sub.mandalName}</strong></p>
+                    <p>Slot Selected: <strong>Slot #{sub.slotNumber}</strong></p>
+                    <p>Status: <strong style={{ color: sub.status === 'Pending' ? '#F59E0B' : sub.status === 'Rejected' ? '#DC2626' : '#10B981' }}>{sub.status}</strong></p>
+                  </div>
                 </div>
-              </div>
+              ))
             ) : (
               <div className="sub-summary-inactive">
                 <p>No active subscription slot reserved.</p>

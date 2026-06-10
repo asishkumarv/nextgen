@@ -25,7 +25,7 @@ import { api } from '../utils/api';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, bookingDetails, bookings, updateProfile, logout, refreshData, changePassword, cancelBooking } = useApp();
+  const { user, bookedSlot, subscriptions, bookings, updateProfile, logout, refreshData, changePassword, cancelBooking } = useApp();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -208,70 +208,74 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Subscription Card */}
-        {bookedSlot ? (
-          bookingDetails?.status === 'Pending' ? (
-            <View style={[styles.subCard, { backgroundColor: '#FFFBEB', borderColor: '#FCD34D', borderWidth: 1 }]}>
-              <View style={styles.subHeaderRow}>
-                <Ionicons name="time-outline" size={16} color="#B45309" style={{ marginRight: 6 }} />
-                <Text style={[styles.subHeaderLabel, { color: '#B45309' }]}>PENDING APPROVAL</Text>
-              </View>
+        {/* Subscriptions List */}
+        {subscriptions && subscriptions.length > 0 ? (
+          subscriptions.map((sub, index) => (
+            <View key={sub.id || index} style={{ marginBottom: 12 }}>
+              {sub.status === 'Pending' ? (
+                <View style={[styles.subCard, { backgroundColor: '#FFFBEB', borderColor: '#FCD34D', borderWidth: 1 }]}>
+                  <View style={styles.subHeaderRow}>
+                    <Ionicons name="time-outline" size={16} color="#B45309" style={{ marginRight: 6 }} />
+                    <Text style={[styles.subHeaderLabel, { color: '#B45309' }]}>PENDING APPROVAL</Text>
+                  </View>
 
-              <Text style={[styles.subTitle, { color: '#92400E' }]}>{bookingDetails?.plan || 'Power Care Annual'}</Text>
-              <Text style={[styles.subInfo, { color: '#B45309' }]}>
-                Slot #{bookedSlot} · Paid via {bookingDetails?.paymentMode || 'Online'}
-              </Text>
-              <Text style={{ marginTop: 8, fontSize: 13, color: '#D97706' }}>
-                Admin is reviewing your request.
-              </Text>
-            </View>
-          ) : bookingDetails?.status === 'Rejected' ? (
-            <View style={[styles.subCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
-              <View style={styles.subHeaderRow}>
-                <Ionicons name="close-circle-outline" size={16} color="#B91C1C" style={{ marginRight: 6 }} />
-                <Text style={[styles.subHeaderLabel, { color: '#B91C1C' }]}>REQUEST REJECTED</Text>
-              </View>
-
-              <Text style={[styles.subTitle, { color: '#991B1B' }]}>Subscription Rejected</Text>
-              <Text style={[styles.subInfo, { color: '#B91C1C' }]}>
-                Your previous subscription request was not approved.
-              </Text>
-              <TouchableOpacity 
-                style={[styles.subscribeBtn, { backgroundColor: '#B91C1C' }]} 
-                onPress={() => navigation.navigate('Slots')}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.subscribeBtnText, { color: '#FFF' }]}>Choose a New Slot</Text>
-                <Ionicons name="arrow-forward-outline" size={16} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <LinearGradient
-              colors={['#00B894', '#0091EA']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.subCard}
-            >
-              <View style={styles.subHeaderRow}>
-                <Ionicons name="ribbon" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={styles.subHeaderLabel}>ACTIVE SUBSCRIPTION</Text>
-              </View>
-
-              <Text style={styles.subTitle}>{bookingDetails?.plan || 'Power Care Annual'}</Text>
-              <Text style={styles.subInfo}>
-                Slot #{bookedSlot} · Valid till {bookingDetails?.date || '28 Apr 2027'}
-              </Text>
-
-              <View style={styles.badgeRow}>
-                <View style={styles.subBadge}>
-                  <Text style={styles.subBadgeText}>Unlimited services</Text>
+                  <Text style={[styles.subTitle, { color: '#92400E' }]}>{sub.plan || 'Power Care Annual'}</Text>
+                  <Text style={[styles.subInfo, { color: '#B45309' }]}>
+                    Slot #{sub.slotNumber} · Paid via {sub.paymentMode || 'Online'}
+                  </Text>
+                  <Text style={{ marginTop: 8, fontSize: 13, color: '#D97706' }}>
+                    Admin is reviewing your request.
+                  </Text>
                 </View>
-                <View style={styles.subBadge}>
-                  <Text style={styles.subBadgeText}>Priority support</Text>
+              ) : sub.status === 'Rejected' ? (
+                <View style={[styles.subCard, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
+                  <View style={styles.subHeaderRow}>
+                    <Ionicons name="close-circle-outline" size={16} color="#B91C1C" style={{ marginRight: 6 }} />
+                    <Text style={[styles.subHeaderLabel, { color: '#B91C1C' }]}>REQUEST REJECTED</Text>
+                  </View>
+
+                  <Text style={[styles.subTitle, { color: '#991B1B' }]}>Subscription Rejected</Text>
+                  <Text style={[styles.subInfo, { color: '#B91C1C' }]}>
+                    Your request for slot #{sub.slotNumber} was not approved.
+                  </Text>
+                  <TouchableOpacity 
+                    style={[styles.subscribeBtn, { backgroundColor: '#B91C1C', marginTop: 12 }]} 
+                    onPress={() => navigation.navigate('Slots')}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.subscribeBtnText, { color: '#FFF' }]}>Choose a New Slot</Text>
+                    <Ionicons name="arrow-forward-outline" size={16} color="#FFF" />
+                  </TouchableOpacity>
                 </View>
-              </View>
-            </LinearGradient>
-          )
+              ) : (
+                <LinearGradient
+                  colors={['#00B894', '#0091EA']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.subCard}
+                >
+                  <View style={styles.subHeaderRow}>
+                    <Ionicons name="ribbon" size={16} color="#FFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.subHeaderLabel}>ACTIVE SUBSCRIPTION</Text>
+                  </View>
+
+                  <Text style={styles.subTitle}>{sub.plan || 'Power Care Annual'}</Text>
+                  <Text style={styles.subInfo}>
+                    Slot #{sub.slotNumber} · Valid till {sub.date || '28 Apr 2027'}
+                  </Text>
+
+                  <View style={styles.badgeRow}>
+                    <View style={styles.subBadge}>
+                      <Text style={styles.subBadgeText}>Unlimited services</Text>
+                    </View>
+                    <View style={styles.subBadge}>
+                      <Text style={styles.subBadgeText}>Priority support</Text>
+                    </View>
+                  </View>
+                </LinearGradient>
+              )}
+            </View>
+          ))
         ) : (
           <LinearGradient
             colors={['#1E293B', '#0F172A']}
@@ -281,12 +285,12 @@ export default function ProfileScreen() {
           >
             <View style={styles.subHeaderRow}>
               <Ionicons name="alert-circle-outline" size={16} color="#94A3B8" style={{ marginRight: 6 }} />
-              <Text style={[styles.subHeaderLabel, { color: '#94A3B8' }]}>NO ACTIVE SUBSCRIPTION</Text>
+              <Text style={[styles.subHeaderLabel, { color: '#94A3B8' }]}>NO ACTIVE PLAN</Text>
             </View>
 
-            <Text style={styles.subTitle}>Not Subscribed</Text>
-            <Text style={styles.subInfo}>
-              Unlock unlimited smart services & priority support.
+            <Text style={[styles.subTitle, { color: '#FFF' }]}>Become a Pro Member</Text>
+            <Text style={[styles.subInfo, { color: '#CBD5E1' }]}>
+              Subscribe to an annual slot to unlock unlimited free bookings and priority care.
             </Text>
 
             <TouchableOpacity 
@@ -294,10 +298,21 @@ export default function ProfileScreen() {
               onPress={() => navigation.navigate('Slots')}
               activeOpacity={0.8}
             >
-              <Text style={styles.subscribeBtnText}>Choose a Slot to Subscribe</Text>
-              <Ionicons name="arrow-forward-outline" size={16} color="#0F172A" />
+              <Text style={styles.subscribeBtnText}>Choose Slot & Subscribe</Text>
+              <Ionicons name="arrow-forward-outline" size={16} color="#111827" />
             </TouchableOpacity>
           </LinearGradient>
+        )}
+        
+        {subscriptions && subscriptions.length > 0 && (
+          <TouchableOpacity 
+            style={[styles.subscribeBtn, { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD', borderWidth: 1, marginBottom: 12 }]} 
+            onPress={() => navigation.navigate('Slots')}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.subscribeBtnText, { color: '#0369A1' }]}>Pick Another Slot</Text>
+            <Ionicons name="add-circle-outline" size={16} color="#0369A1" />
+          </TouchableOpacity>
         )}
 
         {/* Booking History Header */}

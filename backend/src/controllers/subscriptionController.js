@@ -13,11 +13,6 @@ const bookSlot = async (req, res) => {
   }
 
   try {
-    // Check if user already has an active or pending subscription
-    const userSubCheck = await pool.query("SELECT * FROM subscriptions WHERE user_id = $1 AND status != 'Rejected'", [userId]);
-    if (userSubCheck.rows.length > 0) {
-      return res.status(400).json({ message: 'You already have an active or pending subscription' });
-    }
 
     // Verify Event exists and belongs to Mandal
     const eventRes = await pool.query('SELECT * FROM events WHERE id = $1 AND mandal_id = $2', [eventId, mandalId]);
@@ -78,10 +73,15 @@ const bookSlot = async (req, res) => {
 
 const cancelSlot = async (req, res) => {
   const userId = req.user.id;
+  const { subscriptionId } = req.body;
+
+  if (!subscriptionId) {
+    return res.status(400).json({ message: 'Subscription ID is required to cancel' });
+  }
 
   try {
-    // Delete user subscription
-    const deleteRes = await pool.query('DELETE FROM subscriptions WHERE user_id = $1 RETURNING *', [userId]);
+    // Delete specific user subscription
+    const deleteRes = await pool.query('DELETE FROM subscriptions WHERE user_id = $1 AND id = $2 RETURNING *', [userId, subscriptionId]);
     
     if (deleteRes.rows.length === 0) {
       return res.status(404).json({ message: 'No active subscription found to cancel' });

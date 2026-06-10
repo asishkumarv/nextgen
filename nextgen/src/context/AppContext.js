@@ -9,8 +9,8 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [bookedSlot, setBookedSlot] = useState(null); // slot number (e.g. 114)
-  const [bookingDetails, setBookingDetails] = useState(null); // subscription info
+  const [bookedSlot, setBookedSlot] = useState(null); // kept for backward compatibility if needed, or we can just ignore it
+  const [subscriptions, setSubscriptions] = useState([]); // array of subscription info
   const [activeBookingService, setActiveBookingService] = useState(null); // service selection
   const [bookings, setBookings] = useState([]); // user bookings
   const [dbBookedSlots, setDbBookedSlots] = useState(new Set()); // all slots booked in database
@@ -59,33 +59,35 @@ export const AppProvider = ({ children }) => {
         referralCode: profile.referral_code || ''
       });
 
-      if (profile.subscription) {
-        setBookedSlot(profile.subscription.slotNumber);
+      if (profile.subscriptions && profile.subscriptions.length > 0) {
+        setBookedSlot(profile.subscriptions[0].slotNumber); // keep for backward compat for single slot scenarios
         
-        // Format validity date
-        const subDate = new Date(profile.subscription.validTill);
-        const formattedDate = subDate.toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
+        const formattedSubs = profile.subscriptions.map(sub => {
+          const subDate = new Date(sub.validTill);
+          const formattedDate = subDate.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          });
+          
+          return {
+            id: sub.id,
+            plan: sub.plan,
+            date: formattedDate,
+            slotNumber: sub.slotNumber,
+            districtId: sub.districtId,
+            mandalId: sub.mandalId,
+            districtName: sub.districtName,
+            mandalName: sub.mandalName,
+            eventName: sub.eventName,
+            status: sub.status,
+            paymentMode: sub.paymentMode,
+          };
         });
-        
-        setBookingDetails({
-          id: profile.subscription.id,
-          plan: profile.subscription.plan,
-          date: formattedDate,
-          slotNumber: profile.subscription.slotNumber,
-          districtId: profile.subscription.districtId,
-          mandalId: profile.subscription.mandalId,
-          districtName: profile.subscription.districtName,
-          mandalName: profile.subscription.mandalName,
-          eventName: profile.subscription.eventName,
-          status: profile.subscription.status,
-          paymentMode: profile.subscription.paymentMode,
-        });
+        setSubscriptions(formattedSubs);
       } else {
         setBookedSlot(null);
-        setBookingDetails(null);
+        setSubscriptions([]);
       }
 
       // 2. Fetch bookings list
@@ -150,7 +152,7 @@ export const AppProvider = ({ children }) => {
     setTokenState(null);
     setUser(null);
     setBookedSlot(null);
-    setBookingDetails(null);
+    setSubscriptions([]);
     setBookings([]);
     setServices(staticServices);
   };
@@ -209,12 +211,11 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const cancelSlot = async () => {
+  const cancelSlot = async (subscriptionId) => {
     try {
-      const res = await api.post('/subscription/cancel');
+      const res = await api.post('/subscription/cancel', { subscriptionId });
       if (res.success) {
-        setBookedSlot(null);
-        setBookingDetails(null);
+        await loadAppData(); // reload subscriptions from backend
         await fetchDbBookedSlots();
         return { success: true };
       }
@@ -254,7 +255,7 @@ export const AppProvider = ({ children }) => {
         user,
         isLoading,
         bookedSlot,
-        bookingDetails,
+        subscriptions,
         bookings,
         activeBookingService,
         dbBookedSlots,
