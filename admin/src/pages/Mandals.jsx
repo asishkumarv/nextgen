@@ -468,7 +468,7 @@ const styles = {
   infoRow: { display: 'flex', alignItems: 'flex-start', gap: '8px' },
   infoIcon: { color: '#9CA3AF', marginTop: '2px', flexShrink: 0 },
   infoValDesc: { fontSize: '0.8rem', color: '#6B7280', lineHeight: '1.4' },
-  slotsCode: { fontSize: '0.75rem', backgroundColor: '#F3F4F6', color: '#4B5563', padding: '2px 6px', borderRadius: '4px', fontWeight: '600', fontFamily: 'monospace', wordBreak: 'break-all' },
+  slotsCode: { flex: 1, fontSize: '0.75rem', backgroundColor: '#F3F4F6', color: '#4B5563', padding: '6px 8px', borderRadius: '4px', fontWeight: '600', fontFamily: 'monospace', wordBreak: 'break-all', display: 'block', maxHeight: '64px', overflowY: 'auto', lineHeight: '1.4' },
   pricesRow: { display: 'flex', gap: '8px', marginTop: '4px' },
   pricePill: { fontSize: '0.7rem', fontWeight: '700', backgroundColor: '#E6F4EA', color: '#00B894', padding: '2px 8px', borderRadius: '12px' },
   noEventsText: { fontSize: '0.85rem', color: '#9CA3AF', fontStyle: 'italic' },

@@ -24,7 +24,7 @@ import * as ImagePicker from 'expo-image-picker';
 import nextgenQr from '../assets/nextgenQr.jpeg';
 
 const { width } = Dimensions.get('window');
-const SLOT_SIZE = (width - 104) / 5;
+const SLOT_SIZE = (width - 120) / 5;
 
 export default function SlotsScreen() {
   const insets = useSafeAreaInsets();
@@ -269,7 +269,7 @@ export default function SlotsScreen() {
         <Header />
       </View>
 
-      {/* Removed old bookingDetails check */}      {/* Existing Subscriptions List */}
+
       {subscriptions && subscriptions.length > 0 && (
         <View style={{ marginBottom: 20 }}>
           <Text style={[styles.sectionHeading, { marginBottom: 12 }]}>My Subscriptions</Text>
@@ -845,13 +845,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   slotButton: {
-    width: SLOT_SIZE,
-    height: SLOT_SIZE,
-    borderRadius: SLOT_SIZE / 2,
+    width: '18%',
+    aspectRatio: 1,
+    borderRadius: 100, // large value to ensure a perfect circle
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 6,
-    marginHorizontal: ((width - 32 - 32) - (SLOT_SIZE * 5)) / 10,
+    marginHorizontal: '1%',
     position: 'relative',
   },
   slotAvailable: {
