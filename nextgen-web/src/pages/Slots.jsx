@@ -28,8 +28,10 @@ export default function Slots() {
   // Payment States
   const [paymentMode, setPaymentMode] = useState('offline'); // 'online' or 'offline'
   const [transactionId, setTransactionId] = useState('');
+  const [transactionError, setTransactionError] = useState('');
   const [screenshotFile, setScreenshotFile] = useState(null);
   const [screenshotPreview, setScreenshotPreview] = useState('');
+  const [screenshotError, setScreenshotError] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
   // Loading & Error States
@@ -167,32 +169,36 @@ export default function Slots() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image must be less than 5MB');
-        return;
-      }
       setScreenshotFile(file);
       setScreenshotPreview(URL.createObjectURL(file));
+      setScreenshotError('');
       setError('');
     }
   };
 
   const handleBookSlot = async () => {
+    setTransactionError('');
+    setScreenshotError('');
+    setError('');
+
     if (!selectedDistrictId || !selectedMandalId || !selectedEventId || !selectedSlot) {
       setError('Please select a District, Mandal, Event, and Slot number.');
       return;
     }
 
+    let hasError = false;
     if (paymentMode === 'online') {
       if (!transactionId.trim()) {
-        setError('Please enter the UPI Transaction ID.');
-        return;
+        setTransactionError('Please enter the UPI Transaction ID.');
+        hasError = true;
       }
       if (!screenshotFile) {
-        setError('Please upload a screenshot of your payment.');
-        return;
+        setScreenshotError('Please upload a screenshot of your payment.');
+        hasError = true;
       }
     }
+    
+    if (hasError) return;
 
     setSubmitting(true);
     setError('');
@@ -554,10 +560,15 @@ export default function Slots() {
                       <input 
                         type="text" 
                         placeholder="e.g. T2105151234" 
-                        className="form-control" 
+                        className={`form-control ${transactionError ? 'is-invalid' : ''}`}
+                        style={transactionError ? { borderColor: 'var(--danger)' } : {}}
                         value={transactionId}
-                        onChange={(e) => setTransactionId(e.target.value)}
+                        onChange={(e) => {
+                          setTransactionId(e.target.value);
+                          if(e.target.value.trim()) setTransactionError('');
+                        }}
                       />
+                      {transactionError && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>{transactionError}</div>}
                     </div>
                     
                     <div className="form-group">
@@ -571,7 +582,7 @@ export default function Slots() {
                       />
                       
                       {!screenshotPreview ? (
-                        <button type="button" className="upload-btn-custom" onClick={() => fileInputRef.current.click()}>
+                        <button type="button" className="upload-btn-custom" style={screenshotError ? { borderColor: 'var(--danger)', color: 'var(--danger)' } : {}} onClick={() => fileInputRef.current.click()}>
                           <Upload size={18} /> Choose Image
                         </button>
                       ) : (
@@ -580,6 +591,7 @@ export default function Slots() {
                           <button type="button" className="change-img-btn" onClick={() => fileInputRef.current.click()}>Change</button>
                         </div>
                       )}
+                      {screenshotError && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>{screenshotError}</div>}
                     </div>
                   </div>
                 </div>
@@ -614,6 +626,13 @@ export default function Slots() {
                   </div>
                 </div>
               </div>
+
+              {error && (
+                <div className="banner error-banner" style={{ margin: '0 0 16px 0', padding: '12px' }}>
+                  <AlertTriangle size={18} />
+                  <span>{error}</span>
+                </div>
+              )}
 
               {success ? (
                 <div className="booking-success-indicator">

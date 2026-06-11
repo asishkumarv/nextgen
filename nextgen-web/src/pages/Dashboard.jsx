@@ -134,10 +134,10 @@ export default function Dashboard() {
               user.subscriptions.map((sub) => (
                 <div key={sub.id} style={{ marginBottom: '16px' }}>
                   {sub.status === 'Pending' ? (
-                    <div className="active-sub-info animate-fade-in" style={{ backgroundColor: '#FFFBEB', borderColor: '#FCD34D' }}>
-                      <div className="sub-badge" style={{ backgroundColor: '#F59E0B' }}>PENDING APPROVAL</div>
+                    <div className="active-sub-info animate-fade-in pending-sub-info">
+                      <div className="sub-badge pending-badge">PENDING APPROVAL</div>
                       <p className="plan-name">{sub.plan}</p>
-                      <p className="sub-upsell-text" style={{ marginTop: '10px', marginBottom: '15px', color: '#B45309' }}>
+                      <p className="sub-upsell-text pending-upsell-text" style={{ marginTop: '10px', marginBottom: '15px' }}>
                         Your subscription request is currently pending admin approval.
                       </p>
                       

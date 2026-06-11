@@ -1525,6 +1525,20 @@
   flex-direction: column;
 }
 
+.pending-sub-info {
+  background-color: var(--warning-glow);
+  border-color: var(--warning);
+}
+
+.pending-badge {
+  background-color: var(--warning);
+  color: #0A0F1D;
+}
+
+.pending-upsell-text {
+  color: var(--warning-text);
+}
+
 .sub-badge {
   background-color: var(--primary-glow);
   color: var(--primary);
