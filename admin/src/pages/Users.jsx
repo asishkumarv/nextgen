@@ -108,9 +108,9 @@ export default function Users() {
                     </td>
                     <td>
                       {u.isSubscribed ? (
-                        <span className="badge badge-success">
-                          <Sparkles size={12} />
-                          Active (Slot #{u.slotNumber})
+                        <span className={`badge ${u.subscriptionStatus === 'Active' ? 'badge-success' : 'badge-warning'}`} style={u.subscriptionStatus === 'Pending' ? { backgroundColor: '#FEF3C7', color: '#D97706' } : {}}>
+                          {u.subscriptionStatus === 'Active' && <Sparkles size={12} />}
+                          {u.subscriptionStatus || 'Active'} (Slot #{u.slotNumber} | ID: {u.subscriptionId})
                         </span>
                       ) : (
                         <span className="badge badge-danger" style={{ backgroundColor: '#F3F4F6', color: '#9CA3AF' }}>

@@ -183,14 +183,16 @@ const getUsers = async (req, res) => {
         u.name, 
         u.phone, 
         u.created_at AS "createdAt", 
-        COUNT(b.id)::int AS "bookingCount",
-        (s.slot_number IS NOT NULL) AS "isSubscribed",
-        s.slot_number AS "slotNumber"
+        COUNT(DISTINCT b.id)::int AS "bookingCount",
+        (MAX(s.slot_number) IS NOT NULL) AS "isSubscribed",
+        MAX(s.slot_number) AS "slotNumber",
+        MAX(s.status) AS "subscriptionStatus",
+        MAX(s.id) AS "subscriptionId"
       FROM users u
       LEFT JOIN bookings b ON u.id = b.user_id
-      LEFT JOIN subscriptions s ON u.id = s.user_id
+      LEFT JOIN subscriptions s ON u.id = s.user_id AND s.status != 'Rejected'
       WHERE u.name ILIKE $1 OR u.phone ILIKE $1
-      GROUP BY u.id, s.slot_number
+      GROUP BY u.id
       ORDER BY u.created_at DESC
     `, [searchPattern]);
 
@@ -264,7 +266,15 @@ const getSubscribers = async (req, res) => {
       JOIN users u ON s.user_id = u.id
       LEFT JOIN districts d ON s.district_id = d.id
       LEFT JOIN mandals m ON s.mandal_id = m.id
-      WHERE s.status = 'Active' AND (u.name ILIKE $1 OR u.phone ILIKE $1 OR CAST(s.slot_number AS VARCHAR) ILIKE $1 OR d.name ILIKE $1 OR m.name ILIKE $1)
+      WHERE s.status = 'Active' AND (
+        u.name ILIKE $1 OR 
+        u.phone ILIKE $1 OR 
+        CAST(s.slot_number AS VARCHAR) ILIKE $1 OR 
+        d.name ILIKE $1 OR 
+        m.name ILIKE $1 OR
+        CAST(s.id AS VARCHAR) ILIKE $1 OR
+        CAST(u.id AS VARCHAR) ILIKE $1
+      )
       ORDER BY s.created_at DESC
     `, [searchPattern]);
 

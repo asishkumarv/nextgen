@@ -48,7 +48,7 @@ export default function Subscribers() {
           <Search size={18} color="#9CA3AF" style={styles.searchIcon} />
           <input
             type="text"
-            placeholder="Search by name, phone or slot..."
+            placeholder="Search by name, phone, slot, user ID or sub ID..."
             style={styles.searchInput}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
