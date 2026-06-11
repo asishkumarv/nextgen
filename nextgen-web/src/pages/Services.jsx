@@ -96,7 +96,7 @@ export default function Services() {
     }
   };
 
-  const activeSub = user?.subscriptions?.find(s => s.status !== 'Rejected');
+  const activeSub = user?.subscriptions?.find(s => s.status === 'Active');
   const isSubscribed = !!activeSub;
   const timeSlots = [
     'Morning (09:00 AM - 12:00 PM)',

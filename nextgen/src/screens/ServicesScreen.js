@@ -65,7 +65,7 @@ export default function ServicesScreen() {
 
   // District/Mandal/Event/Slot states for booking
   const { bookedSlot, subscriptions } = useApp();
-  const activeSub = subscriptions?.find(s => s.status !== 'Rejected') || subscriptions?.[0];
+  const activeSub = subscriptions?.find(s => s.status === 'Active');
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(null);

@@ -60,7 +60,8 @@ export const AppProvider = ({ children }) => {
       });
 
       if (profile.subscriptions && profile.subscriptions.length > 0) {
-        setBookedSlot(profile.subscriptions[0].slotNumber); // keep for backward compat for single slot scenarios
+        const activeSub = profile.subscriptions.find(s => s.status === 'Active');
+        setBookedSlot(activeSub ? activeSub.slotNumber : null); // keep for backward compat for single slot scenarios
         
         const formattedSubs = profile.subscriptions.map(sub => {
           const subDate = new Date(sub.validTill);
