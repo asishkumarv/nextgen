@@ -18,19 +18,14 @@ const uploadImage = async (req, res) => {
     const b64 = Buffer.from(req.file.buffer).toString('base64');
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'nextgen_payments',
-      resource_type: 'auto'
-    });
-
+    // Return the base64 string directly for DB storage (no Cloudinary)
     res.status(200).json({
       success: true,
-      url: result.secure_url,
-      public_id: result.public_id
+      url: dataURI
     });
   } catch (error) {
-    console.error('Error uploading to Cloudinary:', error);
-    res.status(500).json({ message: 'Error uploading image' });
+    console.error('Error processing image:', error);
+    res.status(500).json({ message: 'Error processing image' });
   }
 };
 

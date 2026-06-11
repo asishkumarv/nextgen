@@ -246,26 +246,29 @@ export default function Slots() {
       if (paymentMode === 'online' && screenshotFile) {
         setUploadingImage(true);
         try {
-          const reader = new FileReader();
-          const readAsBase64 = (file) => new Promise((resolve, reject) => {
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-          });
-
+          const formData = new FormData();
+          
           let fileToProcess = screenshotFile;
           try {
             // Attempt to compress first (saves huge amounts of bandwidth and memory)
             fileToProcess = await compressImage(screenshotFile);
           } catch (compressionErr) {
-            // If compression fails (e.g., iPhone HEIC format not supported by Canvas), fallback to raw file
+            // If compression fails (e.g., iPhone HEIC format), fallback to raw file
             console.warn('Compression skipped/failed, using raw file:', compressionErr);
           }
           
-          screenshotUrl = await readAsBase64(fileToProcess);
+          formData.append('image', fileToProcess);
+          
+          // The backend /upload endpoint natively parses the file and returns the Base64 string for DB storage
+          const uploadRes = await api.upload('/upload', formData);
+          
+          if (uploadRes && uploadRes.url) {
+            screenshotUrl = uploadRes.url;
+          } else {
+            throw new Error('Server failed to process image');
+          }
         } catch (uploadErr) {
-          // Check if it's a ProgressEvent (from FileReader.onerror) or a regular Error
-          const errorMessage = uploadErr instanceof Error ? uploadErr.message : 'FileReader error or memory limit exceeded';
+          const errorMessage = uploadErr instanceof Error ? uploadErr.message : 'Server error or memory limit exceeded';
           throw new Error(`Failed to process screenshot: ${errorMessage}`);
         } finally {
           setUploadingImage(false);
