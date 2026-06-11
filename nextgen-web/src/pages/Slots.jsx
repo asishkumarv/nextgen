@@ -209,12 +209,15 @@ export default function Slots() {
       if (paymentMode === 'online' && screenshotFile) {
         setUploadingImage(true);
         try {
-          const reader = new FileReader();
-          screenshotUrl = await new Promise((resolve, reject) => {
-            reader.readAsDataURL(screenshotFile);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-          });
+          const formData = new FormData();
+          formData.append('image', screenshotFile);
+          
+          const uploadRes = await api.upload('/upload', formData);
+          if (uploadRes && uploadRes.url) {
+            screenshotUrl = uploadRes.url;
+          } else {
+            throw new Error('Image upload failed to return URL');
+          }
         } catch (uploadErr) {
           throw new Error('Failed to process screenshot. Please try again.');
         } finally {
