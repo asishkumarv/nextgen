@@ -246,13 +246,23 @@ export default function Slots() {
       if (paymentMode === 'online' && screenshotFile) {
         setUploadingImage(true);
         try {
-          const compressedFile = await compressImage(screenshotFile);
           const reader = new FileReader();
-          screenshotUrl = await new Promise((resolve, reject) => {
-            reader.readAsDataURL(compressedFile);
+          const readAsBase64 = (file) => new Promise((resolve, reject) => {
+            reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
             reader.onerror = error => reject(error);
           });
+
+          let fileToProcess = screenshotFile;
+          try {
+            // Attempt to compress first (saves huge amounts of bandwidth and memory)
+            fileToProcess = await compressImage(screenshotFile);
+          } catch (compressionErr) {
+            // If compression fails (e.g., iPhone HEIC format not supported by Canvas), fallback to raw file
+            console.warn('Compression skipped/failed, using raw file:', compressionErr);
+          }
+          
+          screenshotUrl = await readAsBase64(fileToProcess);
         } catch (uploadErr) {
           // Check if it's a ProgressEvent (from FileReader.onerror) or a regular Error
           const errorMessage = uploadErr instanceof Error ? uploadErr.message : 'FileReader error or memory limit exceeded';
