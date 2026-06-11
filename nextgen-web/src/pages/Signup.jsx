@@ -62,8 +62,8 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !phone || !password || !confirmPassword) {
-      setError('Please fill in all fields');
+    if (!name || !phone || !password || !confirmPassword || !districtId || !mandalId || !email) {
+      setError('Please fill in all required fields including district, mandal and email');
       return;
     }
     if (password !== confirmPassword) {
@@ -143,7 +143,8 @@ export default function Signup() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email address (optional)"
+                placeholder="Enter email address"
+                required
               />
             </div>
           </div>
@@ -161,8 +162,9 @@ export default function Signup() {
                 }}
                 className="form-control"
                 style={{ paddingLeft: '40px', width: '100%', height: '42px', borderRadius: '8px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB' }}
+                required
               >
-                <option value="">Select District (Optional)</option>
+                <option value="">Select District</option>
                 {districts.map(d => (
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
@@ -181,8 +183,9 @@ export default function Signup() {
                 disabled={!districtId}
                 className="form-control"
                 style={{ paddingLeft: '40px', width: '100%', height: '42px', borderRadius: '8px', border: '1px solid #D1D5DB', backgroundColor: !districtId ? '#E5E7EB' : '#F9FAFB' }}
+                required
               >
-                <option value="">Select Mandal (Optional)</option>
+                <option value="">Select Mandal</option>
                 {mandals.map(m => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}

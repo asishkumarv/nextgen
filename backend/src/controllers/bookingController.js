@@ -70,7 +70,7 @@ const createBooking = async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
     // Check subscription status
-    const subCheck = await pool.query('SELECT * FROM subscriptions WHERE user_id = $1', [userId]);
+    const subCheck = await pool.query("SELECT * FROM subscriptions WHERE user_id = $1 AND status = 'Active'", [userId]);
     const isSubscribed = subCheck.rows.length > 0;
     
     // Fetch the service price from database
@@ -82,9 +82,13 @@ const createBooking = async (req, res) => {
       servicePrice = parseFloat(price || 0);
     }
 
+    // Fetch user details to get their registered district and mandal
+    const userQuery = await pool.query('SELECT district_id, mandal_id FROM users WHERE id = $1', [userId]);
+    const userData = userQuery.rows[0] || {};
+
     let computedPrice = servicePrice;
-    let finalDistrictId = districtId;
-    let finalMandalId = mandalId;
+    let finalDistrictId = districtId || userData.district_id;
+    let finalMandalId = mandalId || userData.mandal_id;
     let finalEventName = eventName;
     let finalSlotNumber = slotNumber;
 
@@ -114,13 +118,15 @@ const createBooking = async (req, res) => {
       LEFT JOIN bookings b ON v.id = b.vendor_id
       WHERE LOWER(s.title) = LOWER($1) 
         AND v.status = 'Approved'
+        AND (v.district_id = $3 OR $3 IS NULL)
+        AND (v.mandal_id = $4 OR $4 IS NULL)
         AND v.id NOT IN (
           SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
         )
       GROUP BY v.id
       ORDER BY active_workload ASC, total_earnings ASC, v.id ASC
       LIMIT 1
-    `, [serviceName.trim(), leaveDateCheck]);
+    `, [serviceName.trim(), leaveDateCheck, finalDistrictId, finalMandalId]);
 
     if (vendorQuery.rows.length > 0) {
       assignedVendorId = vendorQuery.rows[0].id;

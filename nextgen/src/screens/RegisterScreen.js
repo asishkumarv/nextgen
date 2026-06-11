@@ -135,6 +135,11 @@ export default function RegisterScreen({ onNavigateToLogin }) {
       hasError = true;
     }
 
+    if (!email.trim() || !districtId || !mandalId) {
+      showToast('Email, District, and Mandal are required fields', 'error');
+      hasError = true;
+    }
+
     if (hasError) {
       if (password && confirmPassword && password !== confirmPassword) {
         showToast('Passwords do not match', 'error');
@@ -241,7 +246,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <Ionicons name="mail-outline" size={18} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
-                  placeholder="Enter email address (optional)"
+                  placeholder="Enter email address"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -262,7 +267,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               >
                 <Ionicons name="map-outline" size={18} color="#6B7280" style={styles.inputIcon} />
                 <Text style={[styles.textInput, { color: districtId ? '#111827' : '#9CA3AF' }]}>
-                  {districts.find(d => d.id === districtId)?.name || 'Select District (Optional)'}
+                  {districts.find(d => d.id === districtId)?.name || 'Select District'}
                 </Text>
                 <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
               </TouchableOpacity>
@@ -297,7 +302,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               >
                 <Ionicons name="location-outline" size={18} color="#6B7280" style={styles.inputIcon} />
                 <Text style={[styles.textInput, { color: mandalId ? '#111827' : '#9CA3AF' }]}>
-                  {mandals.find(m => m.id === mandalId)?.name || 'Select Mandal (Optional)'}
+                  {mandals.find(m => m.id === mandalId)?.name || 'Select Mandal'}
                 </Text>
                 <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
               </TouchableOpacity>

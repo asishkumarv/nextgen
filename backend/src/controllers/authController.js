@@ -6,8 +6,8 @@ require('dotenv').config();
 const register = async (req, res) => {
   const { name, phone, password, referralCode, district_id, mandal_id, address, email } = req.body;
 
-  if (!name || !phone || !password) {
-    return res.status(400).json({ message: 'Please enter all fields' });
+  if (!name || !phone || !password || !district_id || !mandal_id || !email) {
+    return res.status(400).json({ message: 'Please enter all required fields including district, mandal, and email' });
   }
 
   const client = await pool.connect();
