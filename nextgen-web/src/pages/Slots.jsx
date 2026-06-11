@@ -34,7 +34,7 @@ const compressImage = (file) => {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
       canvas.toBlob((blob) => {
-        if (blob) resolve(new File([blob], file.name || 'image.jpg', { type: 'image/jpeg' }));
+        if (blob) resolve(blob); // Return Blob directly, avoiding new File() compatibility issues on mobile
         else reject(new Error('Canvas compression failed'));
       }, 'image/jpeg', 0.8);
     };
@@ -254,7 +254,9 @@ export default function Slots() {
             reader.onerror = error => reject(error);
           });
         } catch (uploadErr) {
-          throw new Error(uploadErr.message || 'Failed to process screenshot. Please try again.');
+          // Check if it's a ProgressEvent (from FileReader.onerror) or a regular Error
+          const errorMessage = uploadErr instanceof Error ? uploadErr.message : 'FileReader error or memory limit exceeded';
+          throw new Error(`Failed to process screenshot: ${errorMessage}`);
         } finally {
           setUploadingImage(false);
         }
