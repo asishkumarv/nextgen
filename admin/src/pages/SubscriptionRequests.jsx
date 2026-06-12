@@ -98,7 +98,7 @@ export default function SubscriptionRequests() {
         <div style={styles.searchContainer}>
           <input 
             type="text" 
-            placeholder="Search by Name, Slot, Mandal..." 
+            placeholder="Search by Name, Slot, Sub ID, Mandal..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={styles.searchInput}
