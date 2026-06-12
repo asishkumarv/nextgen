@@ -10,6 +10,24 @@ export default function SubscriptionRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const getFilteredData = (data) => {
+    if (!searchQuery.trim()) return data;
+    const query = searchQuery.toLowerCase();
+    return data.filter(req => {
+      return (
+        (req.name && req.name.toLowerCase().includes(query)) ||
+        (req.slotNumber && req.slotNumber.toLowerCase().includes(query)) ||
+        (req.subId && req.subId.toLowerCase().includes(query)) ||
+        (req.mandalName && req.mandalName.toLowerCase().includes(query)) ||
+        (req.districtName && req.districtName.toLowerCase().includes(query)) ||
+        (req.eventName && req.eventName.toLowerCase().includes(query))
+      );
+    });
+  };
+
+  const displayedData = getFilteredData(activeTab === 'pending' ? requests : history);
 
   const fetchRequests = async () => {
     try {
@@ -72,9 +90,20 @@ export default function SubscriptionRequests() {
 
   return (
     <div style={styles.container} className="animate-fade-in">
-      <div style={styles.header}>
-        <h1 style={styles.title}>Subscription Management</h1>
-        <p style={styles.subtitle}>Review pending requests and view history of approved/rejected subscriptions.</p>
+      <div style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={styles.title}>Subscription Management</h1>
+          <p style={styles.subtitle}>Review pending requests and view history of approved/rejected subscriptions.</p>
+        </div>
+        <div style={styles.searchContainer}>
+          <input 
+            type="text" 
+            placeholder="Search by Name, Slot, Mandal..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={styles.searchInput}
+          />
+        </div>
       </div>
 
       <div style={styles.tabsContainer}>
@@ -96,17 +125,17 @@ export default function SubscriptionRequests() {
         <div style={styles.loading}>Loading data...</div>
       ) : error ? (
         <div style={styles.error}>{error}</div>
-      ) : activeTab === 'pending' && requests.length === 0 ? (
+      ) : activeTab === 'pending' && displayedData.length === 0 ? (
         <div style={styles.empty}>
           <CheckCircle size={48} color="#9CA3AF" style={{ marginBottom: '16px' }} />
-          <h3>All caught up!</h3>
-          <p>There are no pending subscription requests to review.</p>
+          <h3>{searchQuery ? 'No matching requests found' : 'All caught up!'}</h3>
+          <p>{searchQuery ? 'Try adjusting your search filters.' : 'There are no pending subscription requests to review.'}</p>
         </div>
-      ) : activeTab === 'history' && history.length === 0 ? (
+      ) : activeTab === 'history' && displayedData.length === 0 ? (
         <div style={styles.empty}>
           <History size={48} color="#9CA3AF" style={{ marginBottom: '16px' }} />
           <h3>No History Found</h3>
-          <p>There are no processed subscription requests yet.</p>
+          <p>{searchQuery ? 'No matching processed requests found.' : 'There are no processed subscription requests yet.'}</p>
         </div>
       ) : (
         <div className="table-container animate-fade-in">
@@ -122,7 +151,7 @@ export default function SubscriptionRequests() {
               </tr>
             </thead>
             <tbody>
-              {(activeTab === 'pending' ? requests : history).map(req => (
+              {displayedData.map(req => (
                 <tr key={req.subId}>
                   <td>
                     <div style={styles.userInfo}>
@@ -320,5 +349,20 @@ const styles = {
   modalImage: {
     maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain',
     borderRadius: '12px', display: 'block', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+  },
+  searchContainer: {
+    flex: '1',
+    minWidth: '250px',
+    maxWidth: '400px',
+    display: 'flex',
+    justifyContent: 'flex-end',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    border: '1px solid #D1D5DB',
+    fontSize: '0.9rem',
+    outline: 'none',
   }
 };
