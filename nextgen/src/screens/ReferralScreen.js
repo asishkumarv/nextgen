@@ -236,7 +236,7 @@ export default function ReferralScreen({ navigation }) {
               </View>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>IFSC Code</Text>
-                <TextInput style={styles.input} value={ifsc} onChangeText={t => setIfsc(t.toUpperCase())} placeholder="e.g. SBIN0001234" autoCapitalize="characters" />
+                <TextInput style={styles.input} value={ifsc} onChangeText={t => setIfsc(t.replace(/[^a-zA-Z0-9]/g, '').toUpperCase())} placeholder="e.g. SBIN0001234" autoCapitalize="characters" />
               </View>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Amount (₹)</Text>

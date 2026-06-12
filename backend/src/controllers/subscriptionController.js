@@ -37,7 +37,7 @@ const bookSlot = async (req, res) => {
     }
 
     // Generate random Subscription ID
-    const randomId = `NGPC-${Math.floor(100000 + Math.random() * 900000)}`;
+    const randomId = `NPC-${Math.floor(100000 + Math.random() * 900000)}`;
     const plan = `Annual · ₹${parseInt(event.price)}/year`;
     const price = parseFloat(event.price);
     

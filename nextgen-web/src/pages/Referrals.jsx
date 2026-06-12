@@ -179,7 +179,7 @@ export default function Referrals() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div className="form-group">
                 <label>IFSC Code</label>
-                <input type="text" value={ifsc} onChange={e => setIfsc(e.target.value.toUpperCase())} required placeholder="e.g. SBIN0001234" />
+                <input type="text" value={ifsc} onChange={e => setIfsc(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase())} required placeholder="e.g. SBIN0001234" />
               </div>
               <div className="form-group">
                 <label>Amount (₹)</label>
