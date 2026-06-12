@@ -222,6 +222,7 @@ export default function ProfileScreen() {
 
                   <Text style={[styles.subTitle, { color: '#92400E' }]}>{sub.plan || 'Power Care Annual'}</Text>
                   <Text style={[styles.subInfo, { color: '#B45309' }]}>
+                    ID: {sub.id}{'\n'}
                     Slot #{sub.slotNumber} · Paid via {sub.paymentMode || 'Online'}
                   </Text>
                   <Text style={{ marginTop: 8, fontSize: 13, color: '#D97706' }}>
@@ -237,6 +238,7 @@ export default function ProfileScreen() {
 
                   <Text style={[styles.subTitle, { color: '#991B1B' }]}>Subscription Rejected</Text>
                   <Text style={[styles.subInfo, { color: '#B91C1C' }]}>
+                    ID: {sub.id}{'\n'}
                     Your request for slot #{sub.slotNumber} was not approved.
                   </Text>
                   <TouchableOpacity 
@@ -262,6 +264,7 @@ export default function ProfileScreen() {
 
                   <Text style={styles.subTitle}>{sub.plan || 'Power Care Annual'}</Text>
                   <Text style={styles.subInfo}>
+                    ID: {sub.id}{'\n'}
                     Slot #{sub.slotNumber} · Valid till {sub.validTill ? new Date(sub.validTill).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                   </Text>
 

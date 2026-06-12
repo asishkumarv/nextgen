@@ -136,6 +136,7 @@ export default function Profile() {
                   {sub.status !== 'Rejected' && <Shield className="sub-icon text-gradient" size={24} />}
                   <div>
                     <h4>{sub.plan}</h4>
+                    <p>Subscription ID: <strong>{sub.id}</strong></p>
                     <p>Mandal: <strong>{sub.mandalName}</strong></p>
                     <p>Slot Selected: <strong>Slot #{sub.slotNumber}</strong></p>
                     {sub.validTill && <p>Expires On: <strong>{new Date(sub.validTill).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}

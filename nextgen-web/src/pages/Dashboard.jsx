@@ -142,6 +142,10 @@ export default function Dashboard() {
                       </p>
                       
                       <div className="sub-meta-grid">
+                        <div className="meta-box" style={{ gridColumn: '1 / -1' }}>
+                          <span className="m-label">Subscription ID</span>
+                          <span className="m-value">{sub.id}</span>
+                        </div>
                         <div className="meta-box">
                           <span className="m-label">Region Code</span>
                           <span className="m-value">{sub.districtName} / {sub.mandalName}</span>
@@ -179,6 +183,10 @@ export default function Dashboard() {
                       <p className="plan-name">{sub.plan}</p>
                       
                       <div className="sub-meta-grid">
+                        <div className="meta-box" style={{ gridColumn: '1 / -1' }}>
+                          <span className="m-label">Subscription ID</span>
+                          <span className="m-value">{sub.id}</span>
+                        </div>
                         <div className="meta-box">
                           <span className="m-label">Region Code</span>
                           <span className="m-value">{sub.districtName} / {sub.mandalName}</span>

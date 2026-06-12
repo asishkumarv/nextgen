@@ -90,6 +90,12 @@ export default function HomeScreen() {
                       {sub.status === 'Pending' ? `Requested Slot #${sub.slotNumber} (Pending)` : `Reserved Slot #${sub.slotNumber}`}
                     </Text>
                   </View>
+                  <View style={[styles.slotLabelContainer, { marginBottom: 0, marginTop: 4 }]}>
+                    <Ionicons name="barcode-outline" size={arr.length > 1 ? 12 : 14} color="#FFF" style={{ marginRight: 6 }} />
+                    <Text style={[styles.slotLabel, arr.length > 1 && { fontSize: 12 }]}>
+                      ID: {sub.id}
+                    </Text>
+                  </View>
                 </View>
               ))}
 
