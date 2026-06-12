@@ -192,6 +192,9 @@ export default function SubscriptionRequests() {
                           <XCircle size={16} /> Reject
                         </button>
                       </div>
+                      <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#6B7280' }}>
+                        ID: {req.subId}
+                      </div>
                     </td>
                   ) : (
                     <td>
@@ -206,6 +209,9 @@ export default function SubscriptionRequests() {
                       ) : (
                         <span style={styles.metaText}>{req.status}</span>
                       )}
+                      <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#6B7280' }}>
+                        ID: {req.subId}
+                      </div>
                     </td>
                   )}
                 </tr>
