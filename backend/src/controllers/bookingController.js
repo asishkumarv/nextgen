@@ -93,20 +93,35 @@ const createBooking = async (req, res) => {
     let finalSlotNumber = slotNumber;
 
     if (isSubscribed) {
-      const sub = subCheck.rows[0];
-      if (!finalDistrictId) finalDistrictId = sub.district_id;
-      if (!finalMandalId) finalMandalId = sub.mandal_id;
-      if (!finalEventName) finalEventName = sub.event_name;
-      if (!finalSlotNumber) finalSlotNumber = sub.slot_number;
+      let matchingSub = subCheck.rows[0]; // fallback to first one
+      let isServiceFree = false;
 
-      // Check if service is included in the subscription event
-      const eventRes = await pool.query('SELECT included_services FROM events WHERE event_name = $1 AND mandal_id = $2', [sub.event_name, sub.mandal_id]);
-      if (eventRes.rows.length > 0) {
-        const includedServices = eventRes.rows[0].included_services || [];
-        // Support case-insensitive check
-        if (includedServices.some(s => s.toLowerCase() === serviceName.trim().toLowerCase())) {
-          computedPrice = 0.00;
+      for (const sub of subCheck.rows) {
+        const eventRes = await pool.query('SELECT included_services FROM events WHERE id = $1 OR (event_name = $2 AND mandal_id = $3)', [sub.event_id, sub.event_name, sub.mandal_id]);
+        if (eventRes.rows.length > 0) {
+          let includedServices = eventRes.rows[0].included_services || [];
+          if (typeof includedServices === 'string') {
+            try {
+              includedServices = JSON.parse(includedServices);
+            } catch (e) {
+              includedServices = [];
+            }
+          }
+          if (Array.isArray(includedServices) && includedServices.some(s => s?.toLowerCase() === serviceName.trim().toLowerCase())) {
+            matchingSub = sub;
+            isServiceFree = true;
+            break;
+          }
         }
+      }
+
+      if (!finalDistrictId) finalDistrictId = matchingSub.district_id;
+      if (!finalMandalId) finalMandalId = matchingSub.mandal_id;
+      if (!finalEventName) finalEventName = matchingSub.event_name;
+      if (!finalSlotNumber) finalSlotNumber = matchingSub.slot_number;
+
+      if (isServiceFree) {
+        computedPrice = 0.00;
       }
     }
 

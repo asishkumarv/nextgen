@@ -96,13 +96,23 @@ export default function Services() {
     }
   };
 
-  const activeSub = user?.subscriptions?.find(s => s.status === 'Active');
-  const isSubscribed = !!activeSub;
+  const activeSubs = user?.subscriptions?.filter(s => s.status === 'Active') || [];
+  const isSubscribed = activeSubs.length > 0;
+  const activeSub = activeSubs[0]; // fallback for legacy logic
 
   const isServiceIncluded = (serviceTitle) => {
-    if (!activeSub || !serviceTitle) return false;
-    const included = activeSub.includedServices || [];
-    return included.some(s => s.toLowerCase() === serviceTitle.toLowerCase());
+    if (!serviceTitle || activeSubs.length === 0) return false;
+    for (const sub of activeSubs) {
+      let included = sub.includedServices;
+      if (typeof included === 'string') {
+        try { included = JSON.parse(included); } catch(e) { included = []; }
+      }
+      if (!Array.isArray(included)) included = [];
+      if (included.some(s => s?.toLowerCase() === serviceTitle.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
   };
   const timeSlots = [
     'Morning (09:00 AM - 12:00 PM)',

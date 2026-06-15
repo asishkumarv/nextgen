@@ -48,4 +48,22 @@ export const api = {
   post: (endpoint, body, options) => request(endpoint, { method: 'POST', body: JSON.stringify(body), ...options }),
   put: (endpoint, body, options) => request(endpoint, { method: 'PUT', body: JSON.stringify(body), ...options }),
   delete: (endpoint, options) => request(endpoint, { method: 'DELETE', ...options }),
+  upload: async (endpoint, formData, options = {}) => {
+    const token = getAuthToken();
+    const headers = { ...options.headers };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      body: formData,
+      headers,
+      ...options,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Something went wrong');
+    }
+    return data;
+  }
 };
