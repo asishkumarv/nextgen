@@ -360,7 +360,10 @@ export default function Slots() {
                       <AlertTriangle size={18} />
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: '700' }}>REQUEST REJECTED</span>
-                        <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>Your request for slot #{sub.slotNumber} was not approved.</span>
+                        <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>
+                          Your request for slot #{sub.slotNumber} was not approved.
+                          {sub.remark && <><br/>Reason: {sub.remark}</>}
+                        </span>
                       </div>
                     </div>
                   </div>

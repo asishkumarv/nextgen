@@ -174,7 +174,10 @@ export default function Dashboard() {
                     </div>
                   ) : sub.status === 'Rejected' ? (
                     <div className="inactive-sub-info" style={{ marginBottom: 0 }}>
-                      <p className="no-sub-text" style={{ color: '#DC2626' }}>Your subscription request for slot #{sub.slotNumber} was rejected.</p>
+                      <p className="no-sub-text" style={{ color: '#DC2626' }}>
+                        Your subscription request for slot #{sub.slotNumber} was rejected.
+                        {sub.remark && <><br/><span style={{fontSize: '0.9rem', display: 'inline-block', marginTop: '4px'}}>Reason: {sub.remark}</span></>}
+                      </p>
                       <p className="sub-upsell-text">Please contact support or try booking another slot.</p>
                     </div>
                   ) : (

@@ -141,6 +141,7 @@ export default function Profile() {
                     <p>Slot Selected: <strong>Slot #{sub.slotNumber}</strong></p>
                     {sub.validTill && <p>Expires On: <strong>{new Date(sub.validTill).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}
                     <p>Status: <strong style={{ color: sub.status === 'Pending' ? '#F59E0B' : sub.status === 'Rejected' ? '#DC2626' : '#10B981' }}>{sub.status}</strong></p>
+                    {sub.status === 'Rejected' && sub.remark && <p style={{ color: '#DC2626', marginTop: '4px' }}>Reason: {sub.remark}</p>}
                   </div>
                 </div>
               ))
