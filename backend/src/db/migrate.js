@@ -26,6 +26,11 @@ const migrate = async () => {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
     `);
     
+    // Add remark column to subscriptions table
+    await client.query(`
+      ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS remark TEXT;
+    `);
+    
     console.log('Successfully migrated database tables.');
   } catch (error) {
     console.error('Migration error:', error);
