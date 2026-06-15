@@ -295,6 +295,7 @@ export default function SlotsScreen() {
                   <Text style={{ color: '#991B1B', fontSize: 18, fontWeight: '800' }}>Subscription Rejected</Text>
                   <Text style={{ color: '#B91C1C', fontSize: 14, marginTop: 4 }}>
                     Your request for slot #{sub.slotNumber} was not approved.
+                    {sub.remark && `\nReason: ${sub.remark}`}
                   </Text>
                 </View>
               ) : (

@@ -1027,6 +1027,7 @@ const getSubscriptionHistory = async (req, res) => {
         s.transaction_id as "transactionId",
         s.screenshot_url as "screenshotUrl",
         s.status,
+        s.remark,
         s.created_at as "createdAt",
         s.slot_number as "slotNumber",
         u.name,
@@ -1098,10 +1099,11 @@ const approveSubscription = async (req, res) => {
 
 const rejectSubscription = async (req, res) => {
   const subId = req.params.id;
+  const { remark } = req.body;
   try {
     const updated = await pool.query(
-      "UPDATE subscriptions SET status = 'Rejected', slot_number = slot_number || '-REJECTED-' || id WHERE id = $1 RETURNING *",
-      [subId]
+      "UPDATE subscriptions SET status = 'Rejected', slot_number = slot_number || '-REJECTED-' || id, remark = $2 WHERE id = $1 RETURNING *",
+      [subId, remark || '']
     );
 
     if (updated.rows.length === 0) {

@@ -11,6 +11,9 @@ export default function SubscriptionRequests() {
   const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectRemark, setRejectRemark] = useState('');
+  const [subToReject, setSubToReject] = useState(null);
 
   const getFilteredData = (data) => {
     if (!searchQuery.trim()) return data;
@@ -72,10 +75,23 @@ export default function SubscriptionRequests() {
     }
   };
 
-  const handleReject = async (id) => {
+  const handleRejectClick = (id) => {
+    setSubToReject(id);
+    setRejectRemark('');
+    setRejectModalOpen(true);
+  };
+
+  const confirmReject = async () => {
+    if (!subToReject) return;
+    if (!rejectRemark.trim()) {
+      alert('Please provide a reason for rejection');
+      return;
+    }
     try {
-      await api.put(`/admin/subscription-requests/${id}/reject`);
-      setRequests(requests.filter(req => req.subId !== id));
+      await api.put(`/admin/subscription-requests/${subToReject}/reject`, { remark: rejectRemark });
+      setRequests(requests.filter(req => req.subId !== subToReject));
+      setRejectModalOpen(false);
+      setSubToReject(null);
     } catch (err) {
       alert(err.message || 'Failed to reject subscription');
     }
@@ -217,7 +233,7 @@ export default function SubscriptionRequests() {
                         <button onClick={() => handleApprove(req.subId)} style={styles.approveBtn}>
                           <CheckCircle size={16} /> Approve
                         </button>
-                        <button onClick={() => handleReject(req.subId)} style={styles.rejectBtn}>
+                        <button onClick={() => handleRejectClick(req.subId)} style={styles.rejectBtn}>
                           <XCircle size={16} /> Reject
                         </button>
                       </div>
@@ -232,8 +248,11 @@ export default function SubscriptionRequests() {
                           <CheckCircle size={14} /> Approved
                         </div>
                       ) : req.status === 'Rejected' ? (
-                        <div style={styles.statusBadge('#EF4444', '#FEE2E2')}>
-                          <XCircle size={14} /> Rejected
+                        <div>
+                          <div style={styles.statusBadge('#EF4444', '#FEE2E2')}>
+                            <XCircle size={14} /> Rejected
+                          </div>
+                          {req.remark && <div style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '4px', maxWidth: '150px' }}>Reason: {req.remark}</div>}
                         </div>
                       ) : (
                         <span style={styles.metaText}>{req.status}</span>
@@ -258,6 +277,28 @@ export default function SubscriptionRequests() {
               <X size={24} />
             </button>
             <img src={selectedImage} alt="Payment Screenshot" style={styles.modalImage} />
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {rejectModalOpen && createPortal(
+        <div style={styles.modalOverlay} onClick={() => setRejectModalOpen(false)}>
+          <div style={{...styles.modalContent, backgroundColor: 'white', padding: '24px', borderRadius: '12px', minWidth: '300px'}} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{marginTop: 0, marginBottom: '16px'}}>Reject Subscription</h3>
+            <div style={{marginBottom: '16px'}}>
+              <label style={{display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: '600'}}>Reason for rejection *</label>
+              <textarea 
+                style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', minHeight: '80px', fontFamily: 'inherit'}}
+                value={rejectRemark}
+                onChange={(e) => setRejectRemark(e.target.value)}
+                placeholder="E.g., Payment invalid, unclear screenshot"
+              />
+            </div>
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '12px'}}>
+              <button style={{padding: '8px 16px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: 'transparent', cursor: 'pointer'}} onClick={() => setRejectModalOpen(false)}>Cancel</button>
+              <button style={{padding: '8px 16px', borderRadius: '6px', border: 'none', backgroundColor: '#EF4444', color: 'white', fontWeight: '600', cursor: 'pointer'}} onClick={confirmReject}>Confirm Reject</button>
+            </div>
           </div>
         </div>,
         document.body

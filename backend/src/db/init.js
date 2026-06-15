@@ -92,6 +92,7 @@ const createTables = async (dropExisting = false) => {
         transaction_id VARCHAR(100),
         screenshot_url TEXT,
         status VARCHAR(20) DEFAULT 'Pending',
+        remark TEXT,
         valid_till TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(event_id, slot_number)

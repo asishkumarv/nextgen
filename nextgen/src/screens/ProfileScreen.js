@@ -240,6 +240,7 @@ export default function ProfileScreen() {
                   <Text style={[styles.subInfo, { color: '#B91C1C' }]}>
                     ID: {sub.id}{'\n'}
                     Your request for slot #{sub.slotNumber} was not approved.
+                    {sub.remark && `\nReason: ${sub.remark}`}
                   </Text>
                   <TouchableOpacity 
                     style={[styles.subscribeBtn, { backgroundColor: '#B91C1C', marginTop: 12 }]} 
