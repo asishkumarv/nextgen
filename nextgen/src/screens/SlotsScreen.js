@@ -271,10 +271,10 @@ export default function SlotsScreen() {
       </View>
 
 
-      {subscriptions && subscriptions.length > 0 && (
+      {subscriptions && subscriptions.filter(s => s.status === 'Active' || s.status === 'Pending').length > 0 && (
         <View style={{ marginBottom: 20 }}>
           <Text style={[styles.sectionHeading, { marginBottom: 12 }]}>My Subscriptions</Text>
-          {subscriptions.map((sub, index) => (
+          {subscriptions.filter(s => s.status === 'Active' || s.status === 'Pending').map((sub, index) => (
             <View key={sub.id || index} style={{ marginBottom: 12 }}>
               {sub.status === 'Pending' ? (
                 <View style={[styles.gradientCard, { backgroundColor: '#FFFBEB', borderColor: '#FCD34D', borderWidth: 1, padding: 16, marginTop: 0 }]}>

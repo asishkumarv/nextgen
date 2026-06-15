@@ -338,11 +338,11 @@ export default function Slots() {
       </section>
 
       {/* Existing Subscriptions List */}
-      {user?.subscriptions && user.subscriptions.length > 0 && (
+      {user?.subscriptions && user.subscriptions.filter(s => s.status === 'Active' || s.status === 'Pending').length > 0 && (
         <div className="container-small" style={{ marginBottom: '32px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px', color: '#111827' }}>My Subscriptions</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {user.subscriptions.map((sub, index) => (
+            {user.subscriptions.filter(s => s.status === 'Active' || s.status === 'Pending').map((sub, index) => (
               <div key={sub.id || index}>
                 {sub.status === 'Pending' ? (
                   <div className="banner" style={{ backgroundColor: '#FFFBEB', borderColor: '#FCD34D', color: '#B45309', margin: 0 }}>
