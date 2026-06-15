@@ -166,10 +166,12 @@ const getMe = async (req, res) => {
     const subRes = await pool.query(
       `SELECT s.id, s.slot_number, s.plan, s.valid_till, s.event_name as "eventName",
               s.district_id as "districtId", s.mandal_id as "mandalId",
-              d.name AS "districtName", m.name AS "mandalName", s.status, s.payment_mode, s.remark
+              d.name AS "districtName", m.name AS "mandalName", s.status, s.payment_mode, s.remark,
+              e.included_services, e.thumbnail
        FROM subscriptions s
        LEFT JOIN districts d ON s.district_id = d.id
        LEFT JOIN mandals m ON s.mandal_id = m.id
+       LEFT JOIN events e ON e.event_name = s.event_name AND e.mandal_id = s.mandal_id
        WHERE s.user_id = $1
        ORDER BY s.created_at DESC`,
       [userId]
@@ -187,7 +189,9 @@ const getMe = async (req, res) => {
       mandalName: row.mandalName,
       status: row.status,
       paymentMode: row.payment_mode,
-      remark: row.remark
+      remark: row.remark,
+      includedServices: row.included_services,
+      thumbnail: row.thumbnail
     }));
 
     res.json({

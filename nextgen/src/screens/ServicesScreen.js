@@ -66,6 +66,12 @@ export default function ServicesScreen() {
   // District/Mandal/Event/Slot states for booking
   const { bookedSlot, subscriptions } = useApp();
   const activeSub = subscriptions?.find(s => s.status === 'Active');
+
+  const isServiceIncluded = (serviceTitle) => {
+    if (!activeSub || !serviceTitle) return false;
+    const included = activeSub.includedServices || [];
+    return included.some(s => s.toLowerCase() === serviceTitle.toLowerCase());
+  };
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
@@ -223,7 +229,8 @@ export default function ServicesScreen() {
     if (!activeBookingService) return;
     try {
       const addressString = `${houseNo}, ${street}, ${landmark} - ${pincode}`;
-      const priceToBook = bookedSlot ? 0.00 : parseFloat(activeBookingService.price || 0);
+      const isIncluded = isServiceIncluded(activeBookingService?.title);
+      const priceToBook = (bookedSlot && isIncluded) ? 0.00 : parseFloat(activeBookingService.price || 0);
       
       const newId = await addBooking(
         activeBookingService.title || '',
@@ -329,7 +336,8 @@ export default function ServicesScreen() {
   const renderBookingFlow = () => {
     if (!activeBookingService) return null;
     if (bookingSuccess) {
-      const priceToBook = bookedSlot ? 0.00 : parseFloat(activeBookingService.price || 0);
+      const isIncluded = isServiceIncluded(activeBookingService?.title);
+      const priceToBook = (bookedSlot && isIncluded) ? 0.00 : parseFloat(activeBookingService.price || 0);
       return (
         <View style={styles.successContainer}>
           <View style={styles.successCard}>
@@ -491,7 +499,11 @@ export default function ServicesScreen() {
                     
                     <View style={styles.divider} />
                     
-                    <Text style={styles.subDiscountText}>Service Booking: Free (Power Care Subscriber)</Text>
+                    <Text style={styles.subDiscountText}>
+                      {activeBookingService && isServiceIncluded(activeBookingService.title) 
+                        ? 'Service Booking: Free (Power Care Subscriber)' 
+                        : 'Service Booking: Paid (Not included in subscription)'}
+                    </Text>
                   </LinearGradient>
                 </View>
               ) : (
@@ -695,7 +707,7 @@ export default function ServicesScreen() {
                 <View style={styles.reviewHeader}>
                   <Text style={styles.reviewServiceTitle}>{activeBookingService?.title}</Text>
                   <Text style={styles.reviewServicePrice}>
-                    {bookedSlot ? 'Free' : `₹${parseFloat(activeBookingService?.price || 0).toFixed(2)}`}
+                    {(bookedSlot && isServiceIncluded(activeBookingService?.title)) ? 'Free' : `₹${parseFloat(activeBookingService?.price || 0).toFixed(2)}`}
                   </Text>
                 </View>
                 
@@ -743,7 +755,7 @@ export default function ServicesScreen() {
                     style={{ marginRight: 10 }} 
                   />
                   <Text style={[styles.reviewText, { color: '#00B894', fontWeight: '700' }]}>
-                    {bookedSlot ? 'Paid via Power Care Subscription' : 'Local Charge (Paid on completion)'}
+                    {(bookedSlot && isServiceIncluded(activeBookingService?.title)) ? 'Paid via Power Care Subscription' : 'Local Charge (Paid on completion)'}
                   </Text>
                 </View>
               </View>

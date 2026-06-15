@@ -915,7 +915,7 @@ const adminDeleteMandal = async (req, res) => {
 
 // Events CRUD Handlers
 const adminAddEvent = async (req, res) => {
-  const { mandal_id, event_name, description, slots, price } = req.body;
+  const { mandal_id, event_name, description, slots, price, included_services, thumbnail } = req.body;
   if (!mandal_id || !event_name || !slots || price === undefined) {
     return res.status(400).json({ message: 'Please enter all required event fields' });
   }
@@ -927,9 +927,9 @@ const adminAddEvent = async (req, res) => {
     const expandedSlots = parseSlotsRange(slots);
     
     const result = await pool.query(
-      `INSERT INTO events (mandal_id, event_name, description, slots, price) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [mandal_id, event_name, description || '', expandedSlots, parseFloat(price)]
+      `INSERT INTO events (mandal_id, event_name, description, slots, price, included_services, thumbnail) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [mandal_id, event_name, description || '', expandedSlots, parseFloat(price), included_services ? JSON.stringify(included_services) : null, thumbnail || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -940,7 +940,7 @@ const adminAddEvent = async (req, res) => {
 
 const adminUpdateEvent = async (req, res) => {
   const { id } = req.params;
-  const { event_name, description, slots, price } = req.body;
+  const { event_name, description, slots, price, included_services, thumbnail } = req.body;
   if (!event_name || !slots || price === undefined) {
     return res.status(400).json({ message: 'Please enter all required event fields' });
   }
@@ -958,8 +958,8 @@ const adminUpdateEvent = async (req, res) => {
     const expandedSlots = parseSlotsRange(slots);
 
     const result = await pool.query(
-      `UPDATE events SET event_name = $1, description = $2, slots = $3, price = $4 WHERE id = $5 RETURNING *`,
-      [event_name, description || '', expandedSlots, parseFloat(price), id]
+      `UPDATE events SET event_name = $1, description = $2, slots = $3, price = $4, included_services = $5, thumbnail = $6 WHERE id = $7 RETURNING *`,
+      [event_name, description || '', expandedSlots, parseFloat(price), included_services ? JSON.stringify(included_services) : null, thumbnail || null, id]
     );
     res.json(result.rows[0]);
   } catch (error) {

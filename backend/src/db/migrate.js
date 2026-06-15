@@ -31,6 +31,12 @@ const migrate = async () => {
       ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS remark TEXT;
     `);
     
+    // Add included_services and thumbnail to events table
+    await client.query(`
+      ALTER TABLE events ADD COLUMN IF NOT EXISTS included_services JSONB;
+      ALTER TABLE events ADD COLUMN IF NOT EXISTS thumbnail TEXT;
+    `);
+    
     console.log('Successfully migrated database tables.');
   } catch (error) {
     console.error('Migration error:', error);

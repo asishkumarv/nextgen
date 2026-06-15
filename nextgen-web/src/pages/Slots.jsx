@@ -368,7 +368,7 @@ export default function Slots() {
                     </div>
                   </div>
                 ) : (
-                  <div className="banner success-banner" style={{ margin: 0 }}>
+                  <div className="banner success-banner" style={{ margin: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <CheckCircle2 size={18} />
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -376,6 +376,9 @@ export default function Slots() {
                         <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>Slot #{sub.slotNumber} · Expires: {sub.expiry_date ? new Date(sub.expiry_date).toLocaleDateString() : 'Active'}</span>
                       </div>
                     </div>
+                    {sub.thumbnail && (
+                      <img src={sub.thumbnail} alt="Plan Thumbnail" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', marginLeft: '12px' }} />
+                    )}
                   </div>
                 )}
               </div>
@@ -459,6 +462,9 @@ export default function Slots() {
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                       {activeEvent.description || 'No description provided.'}
                     </span>
+                    {activeEvent.thumbnail && (
+                      <img src={activeEvent.thumbnail} alt="Event Thumbnail" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px', marginTop: '12px' }} />
+                    )}
                   </div>
                 </div>
                 <div className="price-number">₹{parseInt(activeEvent.price)}/yr</div>

@@ -98,6 +98,12 @@ export default function Services() {
 
   const activeSub = user?.subscriptions?.find(s => s.status === 'Active');
   const isSubscribed = !!activeSub;
+
+  const isServiceIncluded = (serviceTitle) => {
+    if (!activeSub || !serviceTitle) return false;
+    const included = activeSub.includedServices || [];
+    return included.some(s => s.toLowerCase() === serviceTitle.toLowerCase());
+  };
   const timeSlots = [
     'Morning (09:00 AM - 12:00 PM)',
     'Afternoon (12:00 PM - 03:00 PM)',
@@ -200,7 +206,7 @@ export default function Services() {
                 </div>
                 <div className="card-footer-row">
                   <span className="price-tag">
-                    {isSubscribed ? (
+                    {isServiceIncluded(service.title) ? (
                       <>
                         <span className="original-price">₹{service.price}</span>
                         <span className="free-price">₹0.00 Free</span>
@@ -338,7 +344,7 @@ export default function Services() {
               <span className="r-value">{address}</span>
             </div>
 
-            {isSubscribed ? (
+            {isServiceIncluded(selectedService?.title) ? (
               <div className="review-item subscription-coverage-item">
                 <span className="r-label">Member Benefits</span>
                 <span className="r-value highlight-green">

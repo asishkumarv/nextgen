@@ -11,7 +11,8 @@ import {
   TextInput,
   Image,
   Alert,
-  Platform
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -305,9 +306,14 @@ export default function SlotsScreen() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                    <Ionicons name="checkmark-circle" size={18} color="#FFF" style={{ marginRight: 6 }} />
-                    <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>ACTIVE SUBSCRIPTION</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Ionicons name="checkmark-circle" size={18} color="#FFF" style={{ marginRight: 6 }} />
+                      <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>ACTIVE SUBSCRIPTION</Text>
+                    </View>
+                    {sub.thumbnail && (
+                      <Image source={{ uri: sub.thumbnail }} style={{ width: 40, height: 40, borderRadius: 6 }} />
+                    )}
                   </View>
                   <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Power Care Annual'}</Text>
                   <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: 14, marginTop: 4 }}>
@@ -375,6 +381,21 @@ export default function SlotsScreen() {
       </View>
 
       {/* Legend Indicator Section */}
+      {selectedEvent && (
+        <View style={{ marginHorizontal: 20, marginBottom: 16, backgroundColor: '#FFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Ionicons name="information-circle-outline" size={20} color="#0984E3" style={{ marginRight: 6 }} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#111827' }}>Event Details</Text>
+          </View>
+          <Text style={{ fontSize: 14, color: '#4B5563', lineHeight: 20 }}>
+            {selectedEvent.description || 'No description provided.'}
+          </Text>
+          {selectedEvent.thumbnail && (
+            <Image source={{ uri: selectedEvent.thumbnail }} style={{ width: '100%', height: 140, borderRadius: 8, marginTop: 12 }} />
+          )}
+        </View>
+      )}
+
       {selectedEvent && (
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>

@@ -93,12 +93,21 @@ const createBooking = async (req, res) => {
     let finalSlotNumber = slotNumber;
 
     if (isSubscribed) {
-      computedPrice = 0.00;
       const sub = subCheck.rows[0];
       if (!finalDistrictId) finalDistrictId = sub.district_id;
       if (!finalMandalId) finalMandalId = sub.mandal_id;
       if (!finalEventName) finalEventName = sub.event_name;
       if (!finalSlotNumber) finalSlotNumber = sub.slot_number;
+
+      // Check if service is included in the subscription event
+      const eventRes = await pool.query('SELECT included_services FROM events WHERE event_name = $1 AND mandal_id = $2', [sub.event_name, sub.mandal_id]);
+      if (eventRes.rows.length > 0) {
+        const includedServices = eventRes.rows[0].included_services || [];
+        // Support case-insensitive check
+        if (includedServices.some(s => s.toLowerCase() === serviceName.trim().toLowerCase())) {
+          computedPrice = 0.00;
+        }
+      }
     }
 
     // Find the vendor with the least workload offering this service

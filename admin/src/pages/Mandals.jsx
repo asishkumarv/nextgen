@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../utils/api';
-import { Search, Plus, Trash2, Edit3, X, HelpCircle, MapPin, DollarSign, Calendar, Sliders, FileText } from 'lucide-react';
+import { Search, Plus, Trash2, Edit3, X, HelpCircle, MapPin, DollarSign, Calendar, Sliders, FileText, Image } from 'lucide-react';
 
 export default function Mandals() {
   const [mandals, setMandals] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [services, setServices] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,18 +26,22 @@ export default function Mandals() {
     event_name: '',
     description: '',
     slots: '',
-    price: ''
+    price: '',
+    included_services: [],
+    thumbnail: ''
   });
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [mandalsData, districtsData] = await Promise.all([
+      const [mandalsData, districtsData, servicesData] = await Promise.all([
         api.get('/admin/mandals'),
-        api.get('/admin/districts')
+        api.get('/admin/districts'),
+        api.get('/admin/services')
       ]);
       setMandals(mandalsData);
       setDistricts(districtsData);
+      setServices(servicesData);
       setError('');
     } catch (err) {
       setError(err.message || 'Failed to retrieve mandals directory');
@@ -114,7 +119,9 @@ export default function Mandals() {
       event_name: '',
       description: '',
       slots: '',
-      price: ''
+      price: '',
+      included_services: [],
+      thumbnail: ''
     });
     setEventModalOpen(true);
   };
@@ -126,7 +133,9 @@ export default function Mandals() {
       event_name: event.event_name,
       description: event.description || '',
       slots: event.slots,
-      price: event.price
+      price: event.price,
+      included_services: event.included_services || [],
+      thumbnail: event.thumbnail || ''
     });
     setEventModalOpen(true);
   };
@@ -148,7 +157,7 @@ export default function Mandals() {
 
   const handleEventSubmit = async (e) => {
     e.preventDefault();
-    const { event_name, description, slots, price } = eventFormData;
+    const { event_name, description, slots, price, included_services, thumbnail } = eventFormData;
     if (!event_name.trim() || !slots.trim() || price === '') {
       alert('Please fill out all required event fields');
       return;
@@ -159,7 +168,9 @@ export default function Mandals() {
         event_name: event_name.trim(),
         description: description.trim(),
         slots: slots.trim(),
-        price: parseFloat(price)
+        price: parseFloat(price),
+        included_services,
+        thumbnail
       };
 
       if (editingEvent) {
@@ -183,6 +194,32 @@ export default function Mandals() {
     } catch (err) {
       alert(err.message || 'Failed to save event');
     }
+  };
+
+  const handleThumbnailUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const uploadRes = await api.upload('/upload', formData);
+      if (uploadRes && uploadRes.url) {
+        setEventFormData(prev => ({ ...prev, thumbnail: uploadRes.url }));
+      }
+    } catch (err) {
+      alert('Failed to upload thumbnail: ' + err.message);
+    }
+  };
+
+  const handleToggleService = (serviceTitle) => {
+    setEventFormData(prev => {
+      const current = prev.included_services || [];
+      if (current.includes(serviceTitle)) {
+        return { ...prev, included_services: current.filter(s => s !== serviceTitle) };
+      } else {
+        return { ...prev, included_services: [...current, serviceTitle] };
+      }
+    });
   };
 
   const previewSlotsExpanded = (slotsStr) => {
@@ -303,7 +340,7 @@ export default function Mandals() {
                         {event.description && (
                           <div style={styles.infoRow}>
                             <FileText size={12} style={styles.infoIcon} />
-                            <span style={styles.infoValDesc}>{event.description}</span>
+                            <div style={{...styles.infoValDesc, maxHeight: '60px', overflowY: 'auto'}}>{event.description}</div>
                           </div>
                         )}
                         <div style={styles.infoRow}>
@@ -422,6 +459,31 @@ export default function Mandals() {
                   onChange={(e) => setEventFormData({ ...eventFormData, price: e.target.value })}
                   required
                 />
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Included Services (Free for subscribers)</label>
+                <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #D1D5DB', borderRadius: '8px', padding: '8px' }}>
+                  {services.map(service => (
+                    <label key={service.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={(eventFormData.included_services || []).includes(service.title)}
+                        onChange={() => handleToggleService(service.title)}
+                      />
+                      <span style={{ fontSize: '0.85rem' }}>{service.title}</span>
+                    </label>
+                  ))}
+                  {services.length === 0 && <span style={{fontSize: '0.8rem', color: '#6B7280'}}>No services available to select.</span>}
+                </div>
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Event Thumbnail</label>
+                {eventFormData.thumbnail && (
+                  <img src={eventFormData.thumbnail} alt="Thumbnail preview" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px', border: '1px solid #D1D5DB' }} />
+                )}
+                <input type="file" accept="image/*" onChange={handleThumbnailUpload} style={{ fontSize: '0.85rem' }} />
               </div>
               <div style={styles.modalActions}>
                 <button type="button" onClick={() => setEventModalOpen(false)} style={styles.cancelBtn}>Cancel</button>
