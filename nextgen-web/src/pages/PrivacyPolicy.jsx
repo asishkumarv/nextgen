@@ -39,7 +39,7 @@ export default function PrivacyPolicy() {
 
           <h2 className="text-gradient" style={{ marginBottom: '15px' }}>5. Contact Us</h2>
           <p style={{ marginBottom: '20px', lineHeight: '1.6' }}>
-            If you have questions or comments about this notice, you may email us at privacy@nextgenpowercare.com.
+            If you have questions or comments about this notice, you may email us at nextgenpowecarenpc@gmail.com.
           </p>
         </div>
       </div>
