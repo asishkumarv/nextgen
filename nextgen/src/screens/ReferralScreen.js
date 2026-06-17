@@ -271,7 +271,8 @@ export default function ReferralScreen({ navigation }) {
               <Text style={styles.tierText}>• Flat ₹100 for every sub-referral</Text>
             </View>
             <Text style={{ color: '#6B7280', fontSize: 13, marginBottom: 4 }}>• Min withdrawal is ₹100.</Text>
-            <Text style={{ color: '#6B7280', fontSize: 13 }}>• Processed within 2-3 business days.</Text>
+            <Text style={{ color: '#6B7280', fontSize: 13, marginBottom: 4 }}>• Processed within 2-3 business days.</Text>
+            <Text style={{ color: '#0984E3', fontSize: 13, fontWeight: '500' }}>• Note: Referral amount will be rewarded to your wallet once the referred user takes a subscription plan.</Text>
             <TouchableOpacity style={styles.submitBtn} onPress={() => setTermsVisible(false)}>
               <Text style={styles.submitBtnText}>I Understand</Text>
             </TouchableOpacity>

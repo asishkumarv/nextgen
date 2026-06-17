@@ -352,10 +352,12 @@ export default function ProfileScreen() {
                     </Text>
                   </View>
                 </View>
-                <View style={styles.bookingRight}>
-                  <Text style={styles.bookingPrice}>₹{booking.price}</Text>
-                  <Text style={styles.bookingStatus}>{booking.status}</Text>
-                </View>
+                  <View style={styles.bookingRight}>
+                    <Text style={styles.bookingPrice}>
+                      {parseFloat(booking.price) === 0 ? '₹0 (Free)' : `₹${booking.price}`}
+                    </Text>
+                    <Text style={styles.bookingStatus}>{booking.status}</Text>
+                  </View>
               </View>
 
               {isExpanded && (

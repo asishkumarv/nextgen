@@ -336,6 +336,7 @@ export default function Slots() {
           Secure an annual slot in your region to unlock priority scheduling and discounted booking prices.
         </p>
       </section>
+    
 
       {/* Existing Subscriptions List */}
       {user?.subscriptions && user.subscriptions.filter(s => s.status === 'Active' || s.status === 'Pending').length > 0 && (

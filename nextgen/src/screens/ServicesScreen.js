@@ -318,7 +318,9 @@ export default function ServicesScreen() {
               <View style={styles.serviceInfo}>
                 <Text style={styles.serviceTitle}>{item.title}</Text>
                 <Text style={styles.serviceSubtitle}>{item.subtitle}</Text>
-                <Text style={styles.servicePrice}>₹{item.price}</Text>
+                <Text style={styles.servicePrice}>
+                  {isServiceIncluded(item.title) ? '₹0 (Free)' : `₹${item.price}`}
+                </Text>
               </View>
             </View>
 
@@ -459,7 +461,7 @@ export default function ServicesScreen() {
                       </View>
                     </View>
                     <Text style={[styles.serviceSelectPrice, isSelected && styles.serviceSelectPriceActive]}>
-                      ₹{item.price}
+                      {isServiceIncluded(item.title) ? '₹0 (Free)' : `₹${item.price}`}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -717,7 +719,7 @@ export default function ServicesScreen() {
                 <View style={styles.reviewHeader}>
                   <Text style={styles.reviewServiceTitle}>{activeBookingService?.title}</Text>
                   <Text style={styles.reviewServicePrice}>
-                    {(bookedSlot && isServiceIncluded(activeBookingService?.title)) ? 'Free' : `₹${parseFloat(activeBookingService?.price || 0).toFixed(2)}`}
+                    {isServiceIncluded(activeBookingService?.title) ? '₹0 (Free)' : `₹${parseFloat(activeBookingService?.price || 0).toFixed(2)}`}
                   </Text>
                 </View>
                 
@@ -765,7 +767,7 @@ export default function ServicesScreen() {
                     style={{ marginRight: 10 }} 
                   />
                   <Text style={[styles.reviewText, { color: '#00B894', fontWeight: '700' }]}>
-                    {(bookedSlot && isServiceIncluded(activeBookingService?.title)) ? 'Paid via Power Care Subscription' : 'Local Charge (Paid on completion)'}
+                    {isServiceIncluded(activeBookingService?.title) ? 'Paid via Power Care Subscription' : 'Local Charge (Paid on completion)'}
                   </Text>
                 </View>
               </View>

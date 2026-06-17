@@ -83,6 +83,10 @@ export const AppProvider = ({ children }) => {
             eventName: sub.eventName,
             status: sub.status,
             paymentMode: sub.paymentMode,
+            includedServices: sub.includedServices,
+            thumbnail: sub.thumbnail,
+            remark: sub.remark,
+            validTill: sub.validTill,
           };
         });
         setSubscriptions(formattedSubs);

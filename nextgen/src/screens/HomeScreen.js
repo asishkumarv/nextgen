@@ -25,6 +25,22 @@ export default function HomeScreen() {
   const { user, bookedSlot, subscriptions, setActiveBookingService, refreshData } = useApp();
   const activeSub = subscriptions?.find(s => s.status !== 'Rejected') || subscriptions?.[0];
 
+  const isServiceIncluded = (serviceTitle) => {
+    if (!serviceTitle || !subscriptions || subscriptions.length === 0) return false;
+    const activeSubs = subscriptions.filter(s => s.status === 'Active');
+    for (const sub of activeSubs) {
+      let included = sub.includedServices;
+      if (typeof included === 'string') {
+        try { included = JSON.parse(included); } catch(e) { included = []; }
+      }
+      if (!Array.isArray(included)) included = [];
+      if (included.some(s => s?.toLowerCase() === serviceTitle.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -199,7 +215,9 @@ export default function HomeScreen() {
               <View style={styles.serviceInfo}>
                 <Text style={styles.serviceTitle}>{item.title}</Text>
                 <Text style={styles.serviceSubtitle}>{item.subtitle}</Text>
-                <Text style={styles.servicePrice}>₹{item.price}</Text>
+                <Text style={styles.servicePrice}>
+                  {isServiceIncluded(item.title) ? '₹0 (Free)' : `₹${item.price}`}
+                </Text>
               </View>
             </View>
             <TouchableOpacity 
