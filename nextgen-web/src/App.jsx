@@ -19,6 +19,8 @@ import Services from './pages/Services';
 import Slots from './pages/Slots';
 import Profile from './pages/Profile';
 import Referrals from './pages/Referrals';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 import './App.css';
 
@@ -47,6 +49,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
 
               {/* Auth routes guarded against authenticated users */}
               <Route

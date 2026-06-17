@@ -22,6 +22,7 @@ import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 import Header from '../components/Header';
 import * as ImagePicker from 'expo-image-picker';
+import * as Clipboard from 'expo-clipboard';
 import nextgenQr from '../assets/nextgenQr.jpeg';
 
 const { width } = Dimensions.get('window');
@@ -52,10 +53,11 @@ export default function SlotsScreen() {
   const [transactionId, setTransactionId] = useState('');
   const [screenshotUri, setScreenshotUri] = useState(null);
   const [screenshotWebFile, setScreenshotWebFile] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadingBooked, setLoadingBooked] = useState(false);
+  const [displayLimit, setDisplayLimit] = useState(100);
 
   // Fetch districts on mount
   const fetchDistricts = async () => {
@@ -127,7 +129,12 @@ export default function SlotsScreen() {
 
   useEffect(() => {
     fetchBookedSlots();
+    setDisplayLimit(100);
   }, [selectedEvent]);
+
+  useEffect(() => {
+    setDisplayLimit(100);
+  }, [slotSearchQuery]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -174,7 +181,7 @@ export default function SlotsScreen() {
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 0.5,
     });
 
@@ -199,9 +206,9 @@ export default function SlotsScreen() {
     }
 
     let uploadedUrl = null;
+    setIsSubmitting(true);
 
     if (paymentMode === 'online' && screenshotUri) {
-      setUploadingImage(true);
       try {
         const formData = new FormData();
         
@@ -227,11 +234,10 @@ export default function SlotsScreen() {
           throw new Error('Image upload failed to return URL');
         }
       } catch (uploadErr) {
-        setUploadingImage(false);
+        setIsSubmitting(false);
         Alert.alert('Error', 'Failed to upload screenshot. Please try again.');
         return;
       }
-      setUploadingImage(false);
     }
 
     if (selectedDistrict && selectedMandal && selectedLocalSlot && selectedEvent) {
@@ -246,11 +252,15 @@ export default function SlotsScreen() {
       );
       if (result && result.success) {
         setSelectedLocalSlot(null);
-        Alert.alert('Success', 'Subscription request submitted successfully!');
+        Alert.alert('Success', 'Subscription request submitted successfully!', [
+          { text: 'OK', onPress: () => navigation.navigate('Home') }
+        ]);
       } else {
         Alert.alert('Error', result?.message || 'Failed to purchase subscription');
       }
     }
+    
+    setIsSubmitting(false);
   };
 
   const configuredSlots = getEventSlots();
@@ -317,7 +327,7 @@ export default function SlotsScreen() {
                   </View>
                   <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Power Care Annual'}</Text>
                   <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: 14, marginTop: 4 }}>
-                    Slot #{sub.slotNumber} · Expires: {sub.expiry_date ? new Date(sub.expiry_date).toLocaleDateString() : 'Active'}
+                    Slot #{sub.slotNumber} · Expires: {sub.date || (sub.validTill ? new Date(sub.validTill).toLocaleDateString() : 'Active')}
                   </Text>
                 </LinearGradient>
               )}
@@ -454,12 +464,13 @@ export default function SlotsScreen() {
                   <Text style={styles.noSlotsText}>No slots found matching "{slotSearchQuery}"</Text>
                 </View>
               ) : (
-                <View style={styles.gridBody}>
-                  {filteredSlots.map((num) => {
-                    const isBooked = isSlotBooked(num);
-                    const isSelected = num === selectedLocalSlot;
-                
-                let slotStyle = styles.slotAvailable;
+                <View>
+                  <View style={styles.gridBody}>
+                    {filteredSlots.slice(0, displayLimit).map((num) => {
+                      const isBooked = isSlotBooked(num);
+                      const isSelected = num === selectedLocalSlot;
+                  
+                  let slotStyle = styles.slotAvailable;
                 let textStyle = styles.slotTextAvailable;
 
                 if (isBooked) {
@@ -486,6 +497,15 @@ export default function SlotsScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+            {filteredSlots.length > displayLimit && (
+              <TouchableOpacity 
+                style={{ padding: 14, backgroundColor: '#F3F4F6', borderRadius: 12, marginTop: 16, alignItems: 'center' }} 
+                onPress={() => setDisplayLimit(prev => prev + 100)}
+              >
+                <Text style={{ fontWeight: '600', color: '#4B5563' }}>Load More Slots</Text>
+              </TouchableOpacity>
+            )}
             </View>
           )}
             </View>
@@ -657,7 +677,16 @@ export default function SlotsScreen() {
                 <View style={styles.qrPlaceholder}>
                   <Image source={nextgenQr} style={{ width: 160, height: 160, borderRadius: 8, marginBottom: 12 }} resizeMode="contain" />
                   <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 4 }}>Pay to UPI ID:</Text>
-                  <Text style={styles.qrText}>Vyapar.175693314872@hdfcbank</Text>
+                  <TouchableOpacity 
+                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
+                    onPress={async () => {
+                      await Clipboard.setStringAsync('Vyapar.175693314872@hdfcbank');
+                      Alert.alert('Copied!', 'UPI ID copied to clipboard.');
+                    }}
+                  >
+                    <Text style={[styles.qrText, { marginRight: 8, color: '#0984E3' }]} selectable={true}>Vyapar.175693314872@hdfcbank</Text>
+                    <Ionicons name="copy-outline" size={16} color="#0984E3" />
+                  </TouchableOpacity>
                 </View>
                 
                 <TextInput
@@ -682,15 +711,15 @@ export default function SlotsScreen() {
             <TouchableOpacity 
               style={styles.sheetConfirmBtnWrapper}
               onPress={handleConfirmBooking}
-              disabled={uploadingImage}
+              disabled={isSubmitting}
             >
               <LinearGradient
-                colors={['#00C853', '#0091EA']}
+                colors={['#00B0FF', '#0091EA']}
                 style={styles.sheetConfirmBtn}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
-                {uploadingImage ? (
+                {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
                   <Text style={styles.sheetConfirmBtnText}>Submit Request</Text>
@@ -863,17 +892,16 @@ const styles = StyleSheet.create({
   gridBody: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    paddingHorizontal: 2,
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 8,
   },
   slotButton: {
-    width: '18%',
-    aspectRatio: 1,
-    borderRadius: 100, // large value to ensure a perfect circle
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 6,
-    marginHorizontal: '1%',
     position: 'relative',
   },
   slotAvailable: {

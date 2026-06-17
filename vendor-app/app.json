@@ -21,7 +21,8 @@
         "foregroundImage": "./src/assets/logo.png",
         "backgroundColor": "#F5F7FB"
       },
-      "package": "com.nextgen.vendor"
+      "package": "com.nextgen.vendor",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "favicon": "./src/assets/logo.png"

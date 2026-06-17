@@ -101,8 +101,8 @@ export default function HomeScreen() {
                   </Text>
                   
                   <View style={[styles.slotLabelContainer, { marginBottom: 0, marginTop: arr.length > 1 ? 4 : 8 }]}>
-                    <Ionicons name="calendar-outline" size={arr.length > 1 ? 12 : 14} color="#FFF" style={{ marginRight: 6 }} />
-                    <Text style={[styles.slotLabel, arr.length > 1 && { fontSize: 12 }]}>
+                    <Ionicons name="calendar-outline" size={arr.length > 1 ? 12 : 14} color={sub.status === 'Pending' ? '#FCD34D' : '#FFF'} style={{ marginRight: 6 }} />
+                    <Text style={[styles.slotLabel, arr.length > 1 && { fontSize: 12 }, sub.status === 'Pending' ? { color: '#FCD34D', fontWeight: '800' } : {}]}>
                       {sub.status === 'Pending' ? `Requested Slot #${sub.slotNumber} (Pending)` : `Reserved Slot #${sub.slotNumber}`}
                     </Text>
                   </View>

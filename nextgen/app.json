@@ -22,7 +22,8 @@
         "monochromeImage": "./src/assets/logo.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.asishkumarv.nextgen"
+      "package": "com.asishkumarv.nextgen",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "output": "static",

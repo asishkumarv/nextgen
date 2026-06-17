@@ -62,9 +62,9 @@ export default function Footer() {
         <div className="footer-bottom-container">
           <p>&copy; {new Date().getFullYear()} NextGen PowerCare. All rights reserved.</p>
           <div className="footer-legal">
-            <a href="#terms">Terms of Service</a>
+            <Link to="/terms-of-service">Terms of Service</Link>
             <span className="bullet">&bull;</span>
-            <a href="#privacy">Privacy Policy</a>
+            <Link to="/privacy-policy">Privacy Policy</Link>
           </div>
         </div>
       </div>
