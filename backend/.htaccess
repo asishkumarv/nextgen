@@ -1,0 +1,15 @@
+<IfModule mod_headers.c>
+    # Capture the Origin header from the request
+    SetEnvIf Origin "^(.*)$" HTTP_ORIGIN=$1
+
+    # Echo back the requested origin dynamically to support multiple domains (admin, main site, localhost)
+    Header always set Access-Control-Allow-Origin "%{HTTP_ORIGIN}e" env=HTTP_ORIGIN
+    Header always set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT, PATCH"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+    Header always set Access-Control-Allow-Credentials "true"
+
+    # Immediately intercept OPTIONS requests and return 200 OK without passing to Node.js
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+</IfModule>
