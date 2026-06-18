@@ -1,25 +1,54 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 
 const NotificationScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { notifications, setUnreadNotificationCount, setNotifications } = useApp();
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    markAllAsRead();
-  }, []);
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications');
+      if (res && res.success) {
+        setNotifications(res.notifications);
+        setUnreadNotificationCount(res.unreadCount);
+        return res.notifications;
+      }
+    } catch (error) {
+      console.warn('Failed to fetch notifications', error);
+    }
+    return null;
+  };
 
-  const markAllAsRead = async () => {
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications().then((fetchedNotifs) => {
+        if (fetchedNotifs && fetchedNotifs.some(n => !n.is_read)) {
+          markAllAsRead(fetchedNotifs);
+        }
+      });
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchNotifications();
+    await markAllAsRead();
+    setRefreshing(false);
+  };
+
+  const markAllAsRead = async (currentNotifs = notifications) => {
     try {
       await api.put('/notifications/read-all');
       setUnreadNotificationCount(0);
       
       // Update local state to show all as read
-      const updated = notifications.map(n => ({ ...n, is_read: true }));
+      const updated = currentNotifs.map(n => ({ ...n, is_read: true }));
       setNotifications(updated);
     } catch (error) {
       console.warn('Failed to mark notifications as read', error);
@@ -82,6 +111,9 @@ const NotificationScreen = ({ navigation }) => {
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00B894']} />
+          }
         />
       )}
     </View>

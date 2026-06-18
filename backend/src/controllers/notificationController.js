@@ -2,7 +2,7 @@ const { Notification } = require('../models/dbModel');
 
 exports.getNotifications = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const notifications = await Notification.findByUserId(userId);
     const unreadCount = await Notification.getUnreadCount(userId);
     
@@ -19,7 +19,7 @@ exports.getNotifications = async (req, res) => {
 
 exports.markAsRead = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const notificationId = req.params.id;
     
     const updated = await Notification.markAsRead(notificationId, userId);
@@ -36,7 +36,7 @@ exports.markAsRead = async (req, res) => {
 
 exports.markAllAsRead = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     await Notification.markAllAsRead(userId);
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
