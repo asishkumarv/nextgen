@@ -216,11 +216,54 @@ const Service = {
   }
 };
 
+const Notification = {
+  async findByUserId(userId) {
+    const res = await pool.query(
+      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    return res.rows;
+  },
+
+  async create(userId, title, message, type) {
+    const res = await pool.query(
+      'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4) RETURNING *',
+      [userId, title, message, type]
+    );
+    return res.rows[0];
+  },
+
+  async markAsRead(id, userId) {
+    const res = await pool.query(
+      'UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2 RETURNING *',
+      [id, userId]
+    );
+    return res.rows[0] || null;
+  },
+
+  async markAllAsRead(userId) {
+    const res = await pool.query(
+      'UPDATE notifications SET is_read = true WHERE user_id = $1 AND is_read = false RETURNING *',
+      [userId]
+    );
+    return res.rows;
+  },
+
+  async getUnreadCount(userId) {
+    const res = await pool.query(
+      'SELECT COUNT(*)::int FROM notifications WHERE user_id = $1 AND is_read = false',
+      [userId]
+    );
+    return res.rows[0].count;
+  }
+};
+
 module.exports = {
   User,
   Subscription,
   Booking,
   Admin,
-  Service
+  Service,
+  Notification
 };
 

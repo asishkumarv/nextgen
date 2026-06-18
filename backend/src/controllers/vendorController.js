@@ -2,6 +2,7 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const { Notification } = require('../models/dbModel');
 
 const vendorRegister = async (req, res) => {
   const { name, phone, password, existingServices, newService, districtId, mandalId } = req.body;
@@ -346,6 +347,19 @@ const completeTask = async (req, res) => {
       "UPDATE bookings SET status = 'Completed' WHERE id = $1 AND vendor_id = $2 RETURNING *",
       [taskId, vendorId]
     );
+
+    if (updated.rows.length > 0) {
+      try {
+        await Notification.create(
+          updated.rows[0].user_id,
+          'Task Completed',
+          `Your booking for ${updated.rows[0].service_name} has been marked as completed.`,
+          'task'
+        );
+      } catch (err) {
+        console.error('Failed to create notification', err);
+      }
+    }
 
     res.json({
       success: true,

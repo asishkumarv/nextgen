@@ -13,6 +13,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ReferralScreen from '../screens/ReferralScreen';
+import NotificationScreen from '../screens/NotificationScreen';
 import { useApp } from '../context/AppContext';
 
 const Tab = createBottomTabNavigator();
@@ -110,6 +111,15 @@ export default function AppNavigator() {
             component={ReferralScreen}
             options={{ 
               title: 'Wallet', 
+              tabBarItemStyle: { display: 'none' }
+            }}
+          />
+
+          <Tab.Screen
+            name="Notifications"
+            component={NotificationScreen}
+            options={{ 
+              title: 'Notifications', 
               tabBarItemStyle: { display: 'none' }
             }}
           />

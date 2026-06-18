@@ -4,10 +4,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useApp } from '../context/AppContext';
 
 export default function Header() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { unreadNotificationCount } = useApp();
   
   return (
     <BlurView intensity={80} tint="light" style={[styles.container, { paddingTop: insets.top + 8 }]}>
@@ -30,9 +32,13 @@ export default function Header() {
           <Ionicons name="wallet-outline" size={22} color="#111827" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
+        <TouchableOpacity 
+          style={styles.bellButton} 
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Notifications')}
+        >
           <Ionicons name="notifications-outline" size={22} color="#111827" />
-          <View style={styles.redBadge} />
+          {unreadNotificationCount > 0 && <View style={styles.redBadge} />}
         </TouchableOpacity>
       </View>
     </BlurView>

@@ -15,6 +15,8 @@ export const AppProvider = ({ children }) => {
   const [bookings, setBookings] = useState([]); // user bookings
   const [dbBookedSlots, setDbBookedSlots] = useState(new Set()); // all slots booked in database
   const [services, setServices] = useState(staticServices);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   // Check login status on startup
   useEffect(() => {
@@ -109,6 +111,17 @@ export const AppProvider = ({ children }) => {
         console.warn('Failed to retrieve services from database, using static fallback:', err.message);
       }
 
+      // 4. Fetch notifications
+      try {
+        const notifsData = await api.get('/notifications');
+        if (notifsData && notifsData.success) {
+          setNotifications(notifsData.notifications);
+          setUnreadNotificationCount(notifsData.unreadCount);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch notifications:', err.message);
+      }
+
     } catch (error) {
       console.error('Error loading app data:', error);
       // If unauthorized token, clear session
@@ -160,6 +173,8 @@ export const AppProvider = ({ children }) => {
     setSubscriptions([]);
     setBookings([]);
     setServices(staticServices);
+    setNotifications([]);
+    setUnreadNotificationCount(0);
   };
 
   const updateProfile = async (name, phone) => {
@@ -265,6 +280,10 @@ export const AppProvider = ({ children }) => {
         activeBookingService,
         dbBookedSlots,
         services,
+        notifications,
+        unreadNotificationCount,
+        setNotifications,
+        setUnreadNotificationCount,
         setActiveBookingService,
         login,
         register,

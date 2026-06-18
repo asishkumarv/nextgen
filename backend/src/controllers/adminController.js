@@ -2,7 +2,7 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { Service } = require('../models/dbModel');
+const { Service, Notification } = require('../models/dbModel');
 
 const parseSlotsRange = (slotsStr) => {
   if (!slotsStr) return '';
@@ -338,6 +338,17 @@ const completeBooking = async (req, res) => {
 
     if (updated.rows.length === 0) {
       return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    try {
+      await Notification.create(
+        updated.rows[0].user_id,
+        'Task Completed',
+        `Your booking for ${updated.rows[0].service_name} has been marked as completed by the admin.`,
+        'task'
+      );
+    } catch (err) {
+      console.error('Failed to create notification', err);
     }
 
     res.json({
@@ -741,6 +752,19 @@ const reassignBookingVendor = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    if (vendorId) {
+      try {
+        await Notification.create(
+          updated.rows[0].user_id,
+          'Technician Assigned',
+          `A technician has been assigned to your booking for ${updated.rows[0].service_name}.`,
+          'vendor'
+        );
+      } catch (err) {
+        console.error('Failed to create notification', err);
+      }
+    }
+
     res.json({
       success: true,
       message: 'Vendor reassigned successfully',
@@ -1090,6 +1114,17 @@ const approveSubscription = async (req, res) => {
       }
     }
 
+    try {
+      await Notification.create(
+        sub.user_id,
+        'Subscription Approved',
+        `Your subscription request for ${sub.plan} has been approved and is now active.`,
+        'subscription'
+      );
+    } catch (err) {
+      console.error('Failed to create notification', err);
+    }
+
     res.json({ success: true, message: 'Subscription approved and rewards processed if applicable', subscription: sub });
   } catch (error) {
     console.error('Error approving subscription:', error);
@@ -1108,6 +1143,17 @@ const rejectSubscription = async (req, res) => {
 
     if (updated.rows.length === 0) {
       return res.status(404).json({ message: 'Subscription request not found' });
+    }
+
+    try {
+      await Notification.create(
+        updated.rows[0].user_id,
+        'Subscription Rejected',
+        `Your subscription request has been rejected. Remark: ${remark || 'None'}`,
+        'subscription'
+      );
+    } catch (err) {
+      console.error('Failed to create notification', err);
     }
 
     res.json({
@@ -1176,6 +1222,18 @@ const updateWithdrawalStatus = async (req, res) => {
     );
 
     await client.query('COMMIT');
+    
+    try {
+      await Notification.create(
+        withdrawal.user_id,
+        `Withdrawal ${status}`,
+        `Your withdrawal request for ₹${withdrawal.amount} has been ${status.toLowerCase()}.`,
+        'wallet'
+      );
+    } catch (err) {
+      console.error('Failed to create notification', err);
+    }
+
     res.json({ success: true, message: 'Withdrawal status updated', withdrawal: updated.rows[0] });
   } catch (error) {
     await client.query('ROLLBACK');
