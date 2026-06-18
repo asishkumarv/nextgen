@@ -14,8 +14,8 @@ import {
   Platform,
   KeyboardAvoidingView
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
@@ -280,7 +280,7 @@ export default function SlotsScreen() {
         setTransactionId('');
         setScreenshotUri(null);
         setScreenshotWebFile(null);
-
+        
         Alert.alert('Success', 'Subscription request submitted successfully!', [
           { text: 'OK', onPress: () => navigation.navigate('Home') }
         ]);
@@ -305,24 +305,20 @@ export default function SlotsScreen() {
 
   // Rendering Case A: No Active Subscription (District/Mandal/Event selection and slots grid)
   const renderSlotGrid = () => (
-    <ScrollView 
-      style={styles.scrollContainer}
-      contentContainerStyle={{ paddingBottom: 120 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#0091EA']} />
-      }
-    >
-      <View style={styles.headerWrapper}>
-        <Header />
-      </View>
+    <View style={styles.container}>
+      <Header />
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={{ paddingBottom: 120, paddingTop: insets.top + 70 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#0F172A" />
+        }
+      >
 
       {/* Subscription Card */}
-      <LinearGradient
-        colors={['#00B0FF', '#0091EA', '#00C853']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradientCard}
+      <View
+        style={[styles.gradientCard, { backgroundColor: '#0F172A' }]}
       >
         <View style={styles.badgeRow}>
           <View style={styles.sparkBadge}>
@@ -332,7 +328,7 @@ export default function SlotsScreen() {
         </View>
         <Text style={styles.cardTitle}>Subscription Portal</Text>
         <Text style={styles.cardSubtitle}>Unlock custom event repair slots in your locality</Text>
-      </LinearGradient>
+      </View>
 
       {/* Dropdown Filters */}
       <View style={styles.filterSection}>
@@ -530,11 +526,8 @@ export default function SlotsScreen() {
                   </Text>
                 </View>
               ) : (
-                <LinearGradient
-                  colors={['#00C853', '#0091EA']}
-                  style={[styles.gradientCard, { padding: 16, marginTop: 0 }]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <View
+                  style={[styles.gradientCard, { padding: 16, marginTop: 0, backgroundColor: '#0F172A' }]}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -549,18 +542,19 @@ export default function SlotsScreen() {
                   <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: 14, marginTop: 4 }}>
                     Slot #{sub.slotNumber} · Expires: {sub.date || (sub.validTill ? new Date(sub.validTill).toLocaleDateString() : 'Active')}
                   </Text>
-                </LinearGradient>
+                </View>
               )}
             </View>
           ))}
         </View>
       )}
 
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       {renderSlotGrid()}
 
       {/* District Dropdown */}
@@ -682,11 +676,8 @@ export default function SlotsScreen() {
               </TouchableOpacity>
             </View>
 
-            <LinearGradient
-              colors={['#E6F4EA', '#E3F2FD']}
-              style={styles.subInfoCard}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
+              style={[styles.subInfoCard, { backgroundColor: '#E5F1FF' }]}
             >
               <View>
                 <Text style={styles.subInfoLabel}>Annual subscription</Text>
@@ -695,7 +686,7 @@ export default function SlotsScreen() {
               <View style={styles.unlimitedBadge}>
                 <Text style={styles.unlimitedText}>Priority Care</Text>
               </View>
-            </LinearGradient>
+            </View>
 
             {/* Payment Mode Selection */}
             <Text style={styles.paymentHeading}>Payment Method</Text>
@@ -757,18 +748,15 @@ export default function SlotsScreen() {
               onPress={handleConfirmBooking}
               disabled={isSubmitting}
             >
-              <LinearGradient
-                colors={['#00B0FF', '#0091EA']}
-                style={styles.sheetConfirmBtn}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+              <View
+                style={[styles.sheetConfirmBtn, styles.submitBtnGrad]}
               >
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
                   <Text style={styles.sheetConfirmBtnText}>Submit Request</Text>
                 )}
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
             <View style={{height: 20}} />
             </ScrollView>
@@ -782,7 +770,7 @@ export default function SlotsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#F8FAFC',
   },
   scrollContainer: {
     flex: 1,
@@ -796,10 +784,9 @@ const styles = StyleSheet.create({
     padding: 24,
     marginTop: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -1053,9 +1040,8 @@ const styles = StyleSheet.create({
     padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
   },
   sheetHeader: {
     flexDirection: 'row',
@@ -1156,8 +1142,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 8,
     width: 200,
   },
   qrText: {

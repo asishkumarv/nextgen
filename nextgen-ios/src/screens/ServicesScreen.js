@@ -11,8 +11,8 @@ import {
   KeyboardAvoidingView,
   RefreshControl,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
@@ -247,8 +247,10 @@ export default function ServicesScreen() {
     if (bookingStep === 3) {
       setBookingStep(1);
     } else if (bookingStep > 1) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setBookingStep(bookingStep - 1);
     } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setActiveBookingService(null);
     }
   };
@@ -271,9 +273,11 @@ export default function ServicesScreen() {
         bookedSlot ? activeSub?.slotNumber : null,
         bookedSlot ? activeSub?.eventName : null
       );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setCreatedBookingId(newId);
       setBookingSuccess(true);
     } catch (error) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       alert(error.message || 'Failed to create booking. Please try again.');
     }
   };
@@ -286,17 +290,17 @@ export default function ServicesScreen() {
 
   // RENDERING COMPONENT A: Search and Service Listing View (Image 2)
   const renderServiceList = () => (
-    <ScrollView 
-      style={styles.scrollContainer}
-      contentContainerStyle={{ paddingBottom: 100 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00C853']} />
-      }
-    >
+    <View style={styles.container}>
       <Header />
-
-      <Text style={styles.heading}>Services</Text>
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={{ paddingBottom: 100, paddingTop: insets.top + 70 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#0F172A" />
+        }
+      >
+        <Text style={styles.heading}>Services</Text>
       <Text style={styles.subHeading}>Transparent pricing, expert technicians</Text>
 
       {/* Search Input Bar */}
@@ -346,20 +350,18 @@ export default function ServicesScreen() {
               activeOpacity={0.8}
               onPress={() => handleStartBooking(item)}
             >
-              <LinearGradient
-                colors={['#00C853', '#0091EA']}
-                style={styles.bookBtn}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+              <View
+                style={[styles.bookBtn, { backgroundColor: '#007AFF' }]}
               >
                 <Text style={styles.bookBtnText}>Book</Text>
                 <Ionicons name="arrow-forward" size={14} color="#FFF" style={{ marginLeft: 4 }} />
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         ))
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 
   // RENDERING COMPONENT B: 5-Step Booking Flow View
@@ -395,14 +397,11 @@ export default function ServicesScreen() {
             </View>
 
             <TouchableOpacity style={styles.doneBtn} onPress={handleFinishBooking}>
-              <LinearGradient
-                colors={['#00B894', '#0091EA']}
-                style={styles.doneBtnGrad}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+              <View
+                style={[styles.doneBtnGrad, { backgroundColor: '#007AFF' }]}
               >
                 <Text style={styles.doneBtnText}>View Bookings</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -486,15 +485,12 @@ export default function ServicesScreen() {
               })}
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
-                <LinearGradient
-                  colors={['#00C853', '#0091EA']}
-                  style={styles.nextStepBtnGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                <View
+                  style={[styles.nextStepBtnGrad, { backgroundColor: '#007AFF' }]}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Select Date & Time</Text>
                   <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -512,29 +508,28 @@ export default function ServicesScreen() {
               {bookedSlot ? (
                 // Subscriber locked view
                 <View style={styles.subscriberAreaCard}>
-                  <LinearGradient
-                    colors={['#E6F4EA', '#ECFDF5']}
-                    style={styles.subGradientCard}
+                  <View
+                    style={[styles.subGradientCard, { backgroundColor: '#E5F1FF' }]}
                   >
                     <View style={styles.badgeRow}>
-                      <Ionicons name="sparkles" size={14} color="#15803D" style={{ marginRight: 6 }} />
-                      <Text style={styles.subActiveBadgeText}>Active Power Care Subscriber</Text>
+                      <Ionicons name="sparkles" size={14} color="#007AFF" style={{ marginRight: 6 }} />
+                      <Text style={[styles.subActiveBadgeText, { color: '#007AFF' }]}>Active Power Care Subscriber</Text>
                     </View>
                     
-                    <Text style={styles.subDetailsTitle}>Subscription coverage: </Text>
-                    <Text style={styles.subDetailsText}>District: {activeSub?.districtName}</Text>
-                    <Text style={styles.subDetailsText}>Mandal: {activeSub?.mandalName}</Text>
-                    <Text style={styles.subDetailsText}>Slot: #{activeSub?.slotNumber}</Text>
-                    <Text style={styles.subDetailsText}>Registered Event: {activeSub?.eventName}</Text>
+                    <Text style={[styles.subDetailsTitle, { color: '#007AFF' }]}>Subscription coverage: </Text>
+                    <Text style={[styles.subDetailsText, { color: '#005BB5' }]}>District: {activeSub?.districtName}</Text>
+                    <Text style={[styles.subDetailsText, { color: '#005BB5' }]}>Mandal: {activeSub?.mandalName}</Text>
+                    <Text style={[styles.subDetailsText, { color: '#005BB5' }]}>Slot: #{activeSub?.slotNumber}</Text>
+                    <Text style={[styles.subDetailsText, { color: '#005BB5' }]}>Registered Event: {activeSub?.eventName}</Text>
                     
                     <View style={styles.divider} />
                     
-                    <Text style={styles.subDiscountText}>
+                    <Text style={[styles.subDiscountText, { color: '#007AFF' }]}>
                       {activeBookingService && isServiceIncluded(activeBookingService.title) 
                         ? 'Service Booking: Free (Power Care Subscriber)' 
                         : 'Service Booking: Paid (Not included in subscription)'}
                     </Text>
-                  </LinearGradient>
+                  </View>
                 </View>
               ) : (
                 // Non-subscriber picker view
@@ -566,15 +561,12 @@ export default function ServicesScreen() {
               )}
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
-                <LinearGradient
-                  colors={['#00C853', '#0091EA']}
-                  style={styles.nextStepBtnGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                <View
+                  style={[styles.nextStepBtnGrad, { backgroundColor: '#007AFF' }]}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Select Date & Time</Text>
                   <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -642,15 +634,12 @@ export default function ServicesScreen() {
               })}
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
-                <LinearGradient
-                  colors={['#00C853', '#0091EA']}
-                  style={styles.nextStepBtnGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                <View
+                  style={[styles.nextStepBtnGrad, { backgroundColor: '#007AFF' }]}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Enter Address</Text>
                   <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -709,15 +698,12 @@ export default function ServicesScreen() {
               </View>
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
-                <LinearGradient
-                  colors={['#00C853', '#0091EA']}
-                  style={styles.nextStepBtnGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                <View
+                  style={[styles.nextStepBtnGrad, { backgroundColor: '#007AFF' }]}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Review & Confirm</Text>
                   <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -791,15 +777,12 @@ export default function ServicesScreen() {
               </View>
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleConfirmBooking}>
-                <LinearGradient
-                  colors={['#00C853', '#0091EA']}
-                  style={styles.nextStepBtnGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                <View
+                  style={[styles.nextStepBtnGrad, { backgroundColor: '#007AFF' }]}
                 >
                   <Text style={styles.nextStepBtnText}>Confirm & Book Service</Text>
                   <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" style={{ marginLeft: 8 }} />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -810,7 +793,7 @@ export default function ServicesScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       {activeBookingService ? renderBookingFlow() : renderServiceList()}
 
       {/* District Dropdown Modal Overlay */}
@@ -954,7 +937,7 @@ export default function ServicesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#F8FAFC',
   },
   scrollContainer: {
     flex: 1,
@@ -1009,10 +992,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowRadius: 12,
   },
   serviceLeft: {
     flexDirection: 'row',
@@ -1053,6 +1035,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 100,
+    backgroundColor: '#0F172A',
   },
   bookBtnText: {
     color: '#FFF',
@@ -1387,10 +1370,9 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     width: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
   },
   successCheckBg: {
     marginBottom: 16,

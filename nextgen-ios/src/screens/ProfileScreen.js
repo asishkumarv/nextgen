@@ -13,8 +13,8 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
@@ -151,12 +151,14 @@ export default function ProfileScreen() {
   };
 
   const handleOpenEdit = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setEditName(user?.name || '');
     setEditPhone(user?.phone || '');
     setModalVisible(true);
   };
 
   const handleSave = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     updateProfile(editName, editPhone);
     setModalVisible(false);
   };
@@ -176,28 +178,23 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
+      <Header />
       <ScrollView 
         style={styles.scrollContainer}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: 110, paddingTop: insets.top + 70 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00B894']} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#0F172A" />
         }
       >
-        {/* Header */}
-        <Header />
-
         {/* User Card */}
         <View style={styles.userCard}>
-          <LinearGradient
-            colors={['#00B894', '#0091EA']}
-            style={styles.avatar}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <View
+            style={[styles.avatar, { backgroundColor: '#007AFF' }]}
           >
             <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>
-          </LinearGradient>
+          </View>
 
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{user?.name || 'User'}</Text>
@@ -215,6 +212,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Booking History</Text>
           {bookings.length > 3 && (
             <TouchableOpacity activeOpacity={0.7} onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setShowAllBookings(!showAllBookings);
             }}>
               <Text style={styles.sectionAction}>{showAllBookings ? 'See Less' : 'See All'}</Text>
@@ -231,6 +229,7 @@ export default function ProfileScreen() {
               style={[styles.bookingCard, isExpanded && styles.bookingCardExpanded]}
               activeOpacity={0.9}
               onPress={() => {
+                Haptics.selectionAsync();
                 setExpandedBookingId(isExpanded ? null : booking.id);
               }}
             >
@@ -319,6 +318,7 @@ export default function ProfileScreen() {
         <View style={[styles.sectionHeader, { marginTop: 8 }]}>
           <Text style={styles.sectionTitle}>Subscriptions</Text>
           <TouchableOpacity activeOpacity={0.7} onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             setShowSubscriptions(!showSubscriptions);
           }} style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={[styles.sectionAction, { marginRight: 4 }]}>{showSubscriptions ? 'Hide' : 'View Subscriptions'}</Text>
@@ -414,6 +414,7 @@ export default function ProfileScreen() {
                 <TouchableOpacity 
                   style={styles.subscribeBtn} 
                   onPress={() => {
+                    Haptics.selectionAsync();
                     navigation.navigate('Slots');
                   }}
                   activeOpacity={0.8}
@@ -428,6 +429,7 @@ export default function ProfileScreen() {
               <TouchableOpacity 
                 style={[styles.subscribeBtn, { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD', borderWidth: 1, marginBottom: 12 }]} 
                 onPress={() => {
+                  Haptics.selectionAsync();
                   navigation.navigate('Slots');
                 }}
                 activeOpacity={0.8}
@@ -602,14 +604,11 @@ export default function ProfileScreen() {
             </View>
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <LinearGradient
-                colors={['#00B894', '#0091EA']}
-                style={styles.saveButtonGrad}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+              <View
+                style={[styles.saveButtonGrad, { backgroundColor: '#007AFF' }]}
               >
                 <Text style={styles.saveButtonText}>Save Changes</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -716,18 +715,15 @@ export default function ProfileScreen() {
                 onPress={handleContactSubmit}
                 disabled={contactLoading}
               >
-                <LinearGradient
-                  colors={['#00B894', '#0091EA']}
-                  style={styles.saveButtonGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                <View
+                  style={[styles.saveButtonGrad, { backgroundColor: '#007AFF' }]}
                 >
                   {contactLoading ? (
                     <ActivityIndicator color="#FFF" size="small" />
                   ) : (
                     <Text style={styles.saveButtonText}>Send Message</Text>
                   )}
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -740,7 +736,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#F8FAFC',
   },
   scrollContainer: {
     flex: 1,
@@ -756,10 +752,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
   },
   avatar: {
     width: 60,
@@ -801,10 +796,9 @@ const styles = StyleSheet.create({
     padding: 24,
     marginTop: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
   },
   subHeaderRow: {
     flexDirection: 'row',
@@ -884,10 +878,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowRadius: 8,
   },
   bookingLeft: {
     flexDirection: 'row',
