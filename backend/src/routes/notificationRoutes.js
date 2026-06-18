@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateUser } = require('../middleware/authMiddleware');
+const { authenticateUser } = require('../middleware/auth');
 const { getNotifications, markAsRead, markAllAsRead } = require('../controllers/notificationController');
 
 router.get('/', authenticateUser, getNotifications);
