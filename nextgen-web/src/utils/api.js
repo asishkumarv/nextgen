@@ -27,6 +27,10 @@ const handleResponse = async (response) => {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('nextgen_token');
+      window.location.href = '/login';
+    }
     const error = new Error(data.message || 'Something went wrong');
     error.status = response.status;
     error.data = data;

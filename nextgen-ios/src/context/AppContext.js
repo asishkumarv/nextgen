@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import { api, getAuthToken, setAuthToken, removeAuthToken } from '../utils/api';
 import { services as staticServices } from '../data/services';
 
@@ -37,6 +38,15 @@ export const AppProvider = ({ children }) => {
     bootstrapAsync();
     fetchDbBookedSlots();
   }, [token]);
+
+  // Listen for 401 Unauthorized API responses globally to force auto-logout
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('UNAUTHORIZED', () => {
+      console.log('Auto-logout triggered due to expired or invalid token');
+      logout();
+    });
+    return () => subscription.remove();
+  }, []);
 
   const fetchDbBookedSlots = async () => {
     try {

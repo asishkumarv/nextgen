@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import { Platform, DeviceEventEmitter } from 'react-native';
 
 const getApiUrl = () => {
   // Always point to production since the backend is not running locally
@@ -118,6 +118,9 @@ const request = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
+      if (response.status === 401) {
+        DeviceEventEmitter.emit('UNAUTHORIZED');
+      }
       const err = new Error(data.message || 'Request failed');
       err.status = response.status;
       throw err;
@@ -160,6 +163,9 @@ export const api = {
     }
     if (!response.ok) {
       console.error('Upload Error Text:', errorText);
+      if (response.status === 401) {
+        DeviceEventEmitter.emit('UNAUTHORIZED');
+      }
       const err = new Error(data.message || 'Upload failed');
       err.status = response.status;
       throw err;

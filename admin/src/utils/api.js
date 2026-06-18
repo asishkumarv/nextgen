@@ -37,6 +37,11 @@ const request = async (endpoint, options = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
+    if (response.status === 401) {
+      removeAuthToken();
+      removeAdminProfile();
+      window.location.href = '/login';
+    }
     throw new Error(data.message || 'Something went wrong');
   }
 
@@ -62,6 +67,11 @@ export const api = {
     });
     const data = await response.json();
     if (!response.ok) {
+      if (response.status === 401) {
+        removeAuthToken();
+        removeAdminProfile();
+        window.location.href = '/login';
+      }
       throw new Error(data.message || 'Something went wrong');
     }
     return data;

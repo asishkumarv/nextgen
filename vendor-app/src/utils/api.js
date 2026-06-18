@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import { Platform, DeviceEventEmitter } from 'react-native';
 
 const getApiUrl = () => {
   // Production URL (Render backend)
@@ -117,6 +117,9 @@ const request = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
+      if (response.status === 401) {
+        DeviceEventEmitter.emit('UNAUTHORIZED');
+      }
       const err = new Error(data.message || 'Request failed');
       err.status = response.status;
       throw err;

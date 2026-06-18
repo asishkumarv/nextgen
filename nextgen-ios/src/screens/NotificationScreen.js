@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,13 +27,16 @@ const NotificationScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchNotifications().then((fetchedNotifs) => {
-        if (fetchedNotifs && fetchedNotifs.some(n => !n.is_read)) {
-          markAllAsRead(fetchedNotifs);
-        }
-      });
+      fetchNotifications();
     }, [])
   );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -42,16 +45,28 @@ const NotificationScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const markAllAsRead = async (currentNotifs = notifications) => {
+  const markAllAsRead = async () => {
     try {
       await api.put('/notifications/read-all');
       setUnreadNotificationCount(0);
       
-      // Update local state to show all as read
-      const updated = currentNotifs.map(n => ({ ...n, is_read: true }));
+      const updated = notifications.map(n => ({ ...n, is_read: true }));
       setNotifications(updated);
     } catch (error) {
-      console.warn('Failed to mark notifications as read', error);
+      console.warn('Failed to mark all as read', error);
+    }
+  };
+
+  const markSingleAsRead = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      const updated = notifications.map(n => n.id === id ? { ...n, is_read: true } : n);
+      setNotifications(updated);
+      
+      const newUnreadCount = updated.filter(n => !n.is_read).length;
+      setUnreadNotificationCount(newUnreadCount);
+    } catch (error) {
+      console.warn('Failed to mark notification as read', error);
     }
   };
 
@@ -84,7 +99,11 @@ const NotificationScreen = ({ navigation }) => {
           <Text style={styles.message}>{item.message}</Text>
           <Text style={styles.time}>{dateStr}</Text>
         </View>
-        {!item.is_read && <View style={styles.unreadDot} />}
+        {!item.is_read && (
+          <TouchableOpacity style={styles.markReadBtn} onPress={() => markSingleAsRead(item.id)}>
+            <Ionicons name="checkmark-done-circle-outline" size={24} color="#00B894" />
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -96,7 +115,9 @@ const NotificationScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color="#1f2937" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={markAllAsRead}>
+          <Text style={styles.markAllText}>Mark all read</Text>
+        </TouchableOpacity>
       </View>
 
       {notifications.length === 0 ? (
@@ -206,6 +227,17 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#9ca3af',
+  },
+  markAllText: {
+    color: '#00B894',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  markReadBtn: {
+    padding: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
 });
 
