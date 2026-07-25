@@ -10,7 +10,7 @@ const getHeaders = () => {
   const headers = {
     'Content-Type': 'application/json',
   };
-  const token = localStorage.getItem('nextgen_token');
+  const token = localStorage.getItem('Go Fixit_token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -28,7 +28,7 @@ const handleResponse = async (response) => {
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('nextgen_token');
+      localStorage.removeItem('Go Fixit_token');
       window.location.href = '/login';
     }
     const error = new Error(data.message || 'Something went wrong');
@@ -77,7 +77,7 @@ export const api = {
 
   upload: async (endpoint, formData) => {
     const headers = {};
-    const token = localStorage.getItem('nextgen_token');
+    const token = localStorage.getItem('Go Fixit_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }

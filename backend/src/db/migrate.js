@@ -37,6 +37,11 @@ const migrate = async () => {
       ALTER TABLE events ADD COLUMN IF NOT EXISTS thumbnail TEXT;
     `);
     
+    // Alter services icon column to TEXT
+    await client.query(`
+      ALTER TABLE services ALTER COLUMN icon TYPE TEXT;
+    `);
+    
     console.log('Successfully migrated database tables.');
   } catch (error) {
     console.error('Migration error:', error);

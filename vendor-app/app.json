@@ -1,31 +1,31 @@
 {
   "expo": {
-    "name": "NextGen Vendor",
-    "slug": "nextgen-vendor",
+    "name": "Go Fixit Vendor",
+    "slug": "gofixit-vendor",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/logo.png",
-    "userInterfaceStyle": "light",
+    "icon": "./src/assets/GoFixit.png",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./src/assets/logo.png",
+      "image": "./src/assets/GoFixit.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F5F7FB"
+      "backgroundColor": "#312C51"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nextgen.vendor"
+      "bundleIdentifier": "com.gofixit.vendor"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/logo.png",
-        "backgroundColor": "#F5F7FB"
+        "foregroundImage": "./src/assets/GoFixit.png",
+        "backgroundColor": "#312C51"
       },
-      "package": "com.nextgen.vendor",
+      "package": "com.gofixit.vendor",
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
-      "favicon": "./src/assets/logo.png"
+      "favicon": "./src/assets/GoFixit.png"
     },
     "plugins": [
       "expo-router",

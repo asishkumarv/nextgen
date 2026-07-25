@@ -22,7 +22,7 @@ export default function VendorNavigator() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#00B894" />
+        <ActivityIndicator size="large" color="#F0C38E" />
       </View>
     );
   }
@@ -41,11 +41,11 @@ export default function VendorNavigator() {
         <Tab.Navigator
           screenOptions={({ route }) => ({
             headerShown: false,
-            tabBarActiveTintColor: '#00B894',
-            tabBarInactiveTintColor: '#6B7280',
+            tabBarActiveTintColor: '#F0C38E',
+            tabBarInactiveTintcolor: '#A5A1B8',
             tabBarStyle: {
               height: Platform.OS === 'ios' ? (60 + Math.max(insets.bottom, 24)) : (60 + Math.max(insets.bottom, 16)),
-              backgroundColor: '#FFFFFF',
+              backgroundColor: '#48426D',
               borderTopWidth: 1,
               borderTopColor: '#F3F4F6',
               paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 24) : Math.max(insets.bottom, 16),
@@ -100,6 +100,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
 });

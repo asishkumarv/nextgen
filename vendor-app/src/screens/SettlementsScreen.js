@@ -73,7 +73,7 @@ export default function SettlementsScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00B894']} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#F0C38E']} />
         }
       >
         <Text style={styles.heading}>Earnings & Settlements</Text>
@@ -81,7 +81,7 @@ export default function SettlementsScreen() {
         {/* Unsettled Balance Card */}
         <View style={styles.settleCard}>
           <LinearGradient
-            colors={['#0984E3', '#2B2D42']}
+            colors={['#F1AA9B', '#2B2D42']}
             style={styles.settleGrad}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -95,11 +95,11 @@ export default function SettlementsScreen() {
               disabled={loadingSettle || unsettledBalance <= 0}
             >
               {loadingSettle ? (
-                <ActivityIndicator color="#0984E3" size="small" />
+                <ActivityIndicator color="#F1AA9B" size="small" />
               ) : (
                 <>
                   <Text style={styles.settleBtnText}>Settle Payments Now</Text>
-                  <Ionicons name="send-outline" size={16} color="#0984E3" style={{ marginLeft: 6 }} />
+                  <Ionicons name="send-outline" size={16} color="#F1AA9B" style={{ marginLeft: 6 }} />
                 </>
               )}
             </TouchableOpacity>
@@ -223,12 +223,12 @@ export default function SettlementsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   heading: {
     fontSize: 28,
     fontWeight: '850',
-    color: '#111827',
+    color: '#FFFFFF',
     paddingHorizontal: 20,
     marginTop: 16,
     marginBottom: 20,
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     marginBottom: 24,
-    shadowColor: '#0984E3',
+    shadowColor: '#F1AA9B',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   settleBtn: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 14,
@@ -278,21 +278,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   settleBtnText: {
-    color: '#0984E3',
+    color: '#F1AA9B',
     fontSize: 14,
     fontWeight: '800',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     paddingHorizontal: 20,
     marginBottom: 12,
   },
   sectionSubTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#374151',
+    color: '#FFFFFF',
     paddingHorizontal: 20,
     marginBottom: 10,
   },
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
   },
   periodBtnActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -321,18 +321,18 @@ const styles = StyleSheet.create({
   periodText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6B7280',
+    color: '#A5A1B8',
   },
   periodTextActive: {
-    color: '#111827',
+    color: '#FFFFFF',
   },
   statsCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     marginHorizontal: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginBottom: 28,
   },
   statsRow: {
@@ -345,12 +345,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statsColNum: {
-    color: '#111827',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '850',
   },
   statsColLabel: {
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontSize: 11,
     fontWeight: '600',
     marginTop: 4,
@@ -364,13 +364,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   settlementItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -388,11 +388,11 @@ const styles = StyleSheet.create({
   setAmount: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   setDate: {
     fontSize: 11,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -419,16 +419,16 @@ const styles = StyleSheet.create({
     fontWeight: '750',
   },
   emptyHistory: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     marginHorizontal: 20,
   },
   emptyHistoryText: {
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontSize: 13,
     fontWeight: '600',
     marginTop: 8,

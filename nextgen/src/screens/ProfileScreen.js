@@ -182,7 +182,7 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00B894']} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#F0C38E']} />
         }
       >
         {/* Header */}
@@ -191,7 +191,7 @@ export default function ProfileScreen() {
         {/* User Card */}
         <View style={styles.userCard}>
           <LinearGradient
-            colors={['#00B894', '#0091EA']}
+            colors={['#F0C38E', '#F1AA9B']}
             style={styles.avatar}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -273,7 +273,7 @@ export default function ProfileScreen() {
                       <Text style={styles.vendorLabel}>Assigned Technician:</Text>
                       <View style={styles.vendorRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                          <Ionicons name="person" size={14} color="#00B894" style={{ marginRight: 6 }} />
+                          <Ionicons name="person" size={14} color="#F0C38E" style={{ marginRight: 6 }} />
                           <Text style={styles.vendorNameText}>{booking.vendorName}</Text>
                         </View>
                         <TouchableOpacity 
@@ -322,7 +322,7 @@ export default function ProfileScreen() {
             setShowSubscriptions(!showSubscriptions);
           }} style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={[styles.sectionAction, { marginRight: 4 }]}>{showSubscriptions ? 'Hide' : 'View Subscriptions'}</Text>
-            <Ionicons name={showSubscriptions ? 'chevron-up' : 'chevron-down'} size={16} color="#0984E3" />
+            <Ionicons name={showSubscriptions ? 'chevron-up' : 'chevron-down'} size={16} color="#F1AA9B" />
           </TouchableOpacity>
         </View>
 
@@ -339,7 +339,7 @@ export default function ProfileScreen() {
                         <Text style={[styles.subHeaderLabel, { color: '#B45309' }]}>PENDING APPROVAL</Text>
                       </View>
 
-                      <Text style={[styles.subTitle, { color: '#92400E' }]}>{sub.plan || 'Power Care Annual'}</Text>
+                      <Text style={[styles.subTitle, { color: '#92400E' }]}>{sub.plan || 'Annual Plan'}</Text>
                       <Text style={[styles.subInfo, { color: '#B45309' }]}>
                         ID: {sub.id}{'\n'}
                         Slot #{sub.slotNumber} · Paid via {sub.paymentMode || 'Online'}
@@ -372,14 +372,14 @@ export default function ProfileScreen() {
                     </View>
                   ) : (
                     <View
-                      style={[styles.subCard, { backgroundColor: '#0F172A' }]}
+                      style={[styles.subCard, { backgroundColor: '#F0C38E' }]}
                     >
                       <View style={styles.subHeaderRow}>
                         <Ionicons name="ribbon" size={16} color="#FFF" style={{ marginRight: 6 }} />
                         <Text style={styles.subHeaderLabel}>ACTIVE SUBSCRIPTION</Text>
                       </View>
 
-                      <Text style={styles.subTitle}>{sub.plan || 'Power Care Annual'}</Text>
+                      <Text style={styles.subTitle}>{sub.plan || 'Annual Plan'}</Text>
                       <Text style={styles.subInfo}>
                         ID: {sub.id}{'\n'}
                         Slot #{sub.slotNumber} · Valid till {sub.validTill ? new Date(sub.validTill).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
@@ -448,7 +448,7 @@ export default function ProfileScreen() {
                 style={styles.toggleFormBtn}
                 onPress={() => setShowPasswordForm(true)}
               >
-                <Ionicons name="lock-closed-outline" size={14} color="#0984E3" style={{ marginRight: 4 }} />
+                <Ionicons name="lock-closed-outline" size={14} color="#F1AA9B" style={{ marginRight: 4 }} />
                 <Text style={styles.toggleFormBtnText}>Change Password</Text>
               </TouchableOpacity>
             )}
@@ -461,7 +461,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Enter current password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={true}
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
@@ -473,7 +473,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Minimum 6 characters"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={true}
                   value={newPassword}
                   onChangeText={setNewPassword}
@@ -485,7 +485,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Re-enter new password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={true}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -528,7 +528,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.supportRow} activeOpacity={0.7} onPress={() => setContactModalVisible(true)}>
           <View style={styles.supportLeft}>
             <View style={styles.supportIconBg}>
-              <Ionicons name="call" size={18} color="#00B894" />
+              <Ionicons name="call" size={18} color="#F0C38E" />
             </View>
             <Text style={styles.supportText}>Contact support</Text>
           </View>
@@ -584,26 +584,26 @@ export default function ProfileScreen() {
                 value={editName}
                 onChangeText={setEditName}
                 placeholder="Enter name"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#A5A1B8"
               />
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Phone Number</Text>
               <TextInput
-                style={[styles.textInput, { backgroundColor: '#F3F4F6', color: '#6B7280' }]}
+                style={[styles.textInput, { backgroundColor: '#F3F4F6', color: '#A5A1B8' }]}
                 value={editPhone}
                 onChangeText={setEditPhone}
                 placeholder="Enter phone number"
                 keyboardType="phone-pad"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#A5A1B8"
                 editable={false}
               />
             </View>
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <LinearGradient
-                colors={['#00B894', '#0091EA']}
+                colors={['#F0C38E', '#F1AA9B']}
                 style={styles.saveButtonGrad}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -642,7 +642,7 @@ export default function ProfileScreen() {
                   value={contactData.name}
                   onChangeText={(text) => setContactData({...contactData, name: text})}
                   placeholder="Enter your name"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                 />
               </View>
 
@@ -655,7 +655,7 @@ export default function ProfileScreen() {
                   placeholder="Enter your email"
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                 />
               </View>
 
@@ -667,7 +667,7 @@ export default function ProfileScreen() {
                   onChangeText={(text) => setContactData({...contactData, phone: text})}
                   placeholder="Enter your phone number"
                   keyboardType="phone-pad"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                 />
               </View>
 
@@ -682,7 +682,7 @@ export default function ProfileScreen() {
                   </Text>
                 </TouchableOpacity>
                 {subjectDropdownOpen && (
-                  <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, marginTop: 4 }}>
+                  <View style={{ backgroundColor: '#48426D', borderWidth: 1, borderColor: '#3D3762', borderRadius: 12, marginTop: 4 }}>
                     {subjectOptions.map(opt => (
                       <TouchableOpacity 
                         key={opt.value} 
@@ -692,7 +692,7 @@ export default function ProfileScreen() {
                           setSubjectDropdownOpen(false);
                         }}
                       >
-                        <Text style={{ color: '#374151' }}>{opt.label}</Text>
+                        <Text style={{ color: '#FFFFFF' }}>{opt.label}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -706,7 +706,7 @@ export default function ProfileScreen() {
                   value={contactData.message}
                   onChangeText={(text) => setContactData({...contactData, message: text})}
                   placeholder="How can we help?"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   multiline
                 />
               </View>
@@ -717,7 +717,7 @@ export default function ProfileScreen() {
                 disabled={contactLoading}
               >
                 <LinearGradient
-                  colors={['#00B894', '#0091EA']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.saveButtonGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -740,7 +740,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   scrollContainer: {
     flex: 1,
@@ -749,12 +749,12 @@ const styles = StyleSheet.create({
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 16,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -780,11 +780,11 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   userPhone: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
   },
   editButton: {
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   editButtonText: {
-    color: '#0984E3',
+    color: '#F1AA9B',
     fontSize: 15,
     fontWeight: '700',
   },
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   subscribeBtn: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -855,7 +855,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   subscribeBtnText: {
-    color: '#0F172A',
+    color: '#F0C38E',
     fontSize: 14,
     fontWeight: '800',
   },
@@ -869,20 +869,20 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   sectionAction: {
-    color: '#0984E3',
+    color: '#F1AA9B',
     fontSize: 15,
     fontWeight: '700',
   },
   bookingCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
@@ -909,11 +909,11 @@ const styles = StyleSheet.create({
   bookingName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   bookingDetails: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
   },
   bookingRight: {
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
   bookingPrice: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   bookingStatus: {
     fontSize: 12,
@@ -934,12 +934,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   supportLeft: {
     flexDirection: 'row',
@@ -957,7 +957,7 @@ const styles = StyleSheet.create({
   supportText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   modalBg: {
     flex: 1,
@@ -965,7 +965,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   modalContent: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 24,
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   inputGroup: {
     marginBottom: 16,
@@ -988,22 +988,22 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#374151',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#111827',
-    backgroundColor: '#F9FAFB',
+    color: '#FFFFFF',
+    backgroundColor: '#25213E',
   },
   saveButton: {
     marginTop: 10,
-    shadowColor: '#00B894',
+    shadowColor: '#F0C38E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -1021,7 +1021,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   bookingCardExpanded: {
-    borderColor: '#00B894',
+    borderColor: '#F0C38E',
     backgroundColor: '#FCFDFE',
   },
   expandedContent: {
@@ -1040,7 +1040,7 @@ const styles = StyleSheet.create({
   otpLabel: {
     fontSize: 12.5,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#A5A1B8',
   },
   otpBadge: {
     backgroundColor: '#E8F5E9',
@@ -1058,22 +1058,22 @@ const styles = StyleSheet.create({
   },
   otpSubText: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: '#A5A1B8',
     marginTop: 4,
     fontWeight: '500',
   },
   vendorSection: {
     marginTop: 14,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     borderRadius: 12,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   vendorLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: '#A5A1B8',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -1086,18 +1086,18 @@ const styles = StyleSheet.create({
   vendorNameText: {
     fontSize: 13,
     fontWeight: '750',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   noVendorText: {
     fontSize: 12.5,
-    color: '#9CA3AF',
+    color: '#A5A1B8',
     fontStyle: 'italic',
     fontWeight: '500',
   },
   userCallBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#00B894',
+    backgroundColor: '#F0C38E',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
@@ -1116,7 +1116,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 10,
     marginTop: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
   },
   cancelBookingBtnText: {
     color: '#EF4444',
@@ -1124,12 +1124,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 20,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   passwordHeader: {
     flexDirection: 'row',
@@ -1141,7 +1141,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleFormBtnText: {
-    color: '#0984E3',
+    color: '#F1AA9B',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -1156,7 +1156,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
   },
   cancelPasswordBtnText: {
     color: '#4B5563',
@@ -1166,7 +1166,7 @@ const styles = StyleSheet.create({
   submitPasswordBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#00B894',
+    backgroundColor: '#F0C38E',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,

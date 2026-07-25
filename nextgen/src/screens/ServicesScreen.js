@@ -10,6 +10,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -19,6 +20,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Header from '../components/Header';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
+import { getServiceIllustration } from '../utils/illustrations';
 
 const { width } = Dimensions.get('window');
 
@@ -291,7 +293,7 @@ export default function ServicesScreen() {
       contentContainerStyle={{ paddingBottom: 100 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00C853']} />
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#F0C38E']} />
       }
     >
       <Header />
@@ -305,7 +307,7 @@ export default function ServicesScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder="Search electrical services..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor="#A5A1B8"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -323,41 +325,29 @@ export default function ServicesScreen() {
           <Text style={styles.emptyText}>No services found matching &quot;{searchQuery}&quot;</Text>
         </View>
       ) : (
-        filteredServices.map(item => (
-          <View style={styles.serviceCard} key={item.id}>
-            <View style={styles.serviceLeft}>
-              <View style={styles.serviceIconBg}>
-                <Ionicons
-                  name={item.icon || 'construct-outline'}
-                  size={22}
-                  color="#15803D"
-                />
-              </View>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceTitle}>{item.title}</Text>
-                <Text style={styles.serviceSubtitle}>{item.subtitle}</Text>
-                <Text style={styles.servicePrice}>
-                  {isServiceIncluded(item.title) ? '₹0 (Free)' : `₹${item.price}`}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity 
-              activeOpacity={0.8}
-              onPress={() => handleStartBooking(item)}
-            >
-              <LinearGradient
-                colors={['#00C853', '#0091EA']}
-                style={styles.bookBtn}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+        <View style={styles.servicesGridContainer}>
+          {filteredServices.map(item => {
+            const illustration = getServiceIllustration(item.title, item.icon);
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.gridCardItem}
+                onPress={() => handleStartBooking(item)}
+                activeOpacity={0.8}
               >
-                <Text style={styles.bookBtnText}>Book</Text>
-                <Ionicons name="arrow-forward" size={14} color="#FFF" style={{ marginLeft: 4 }} />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        ))
+                <View style={styles.gridCardIconWrapper}>
+                  <Image source={{ uri: illustration }} style={styles.gridCardImg} />
+                </View>
+                <Text style={styles.gridCardTitle} numberOfLines={2}>{item.title}</Text>
+                <View style={styles.gridBadge}>
+                  <Text style={styles.gridBadgeText}>
+                    {isServiceIncluded(item.title) ? 'Free' : `₹${item.price}`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       )}
     </ScrollView>
   );
@@ -372,7 +362,7 @@ export default function ServicesScreen() {
         <View style={styles.successContainer}>
           <View style={styles.successCard}>
             <View style={styles.successCheckBg}>
-              <Ionicons name="checkmark-circle" size={80} color="#00C853" />
+              <Ionicons name="checkmark-circle" size={80} color="#10B981" />
             </View>
             <Text style={styles.successTitle}>Booking Successful!</Text>
             <Text style={styles.successMsg}>
@@ -396,7 +386,7 @@ export default function ServicesScreen() {
 
             <TouchableOpacity style={styles.doneBtn} onPress={handleFinishBooking}>
               <LinearGradient
-                colors={['#00B894', '#0091EA']}
+                colors={['#F0C38E', '#F1AA9B']}
                 style={styles.doneBtnGrad}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -487,13 +477,13 @@ export default function ServicesScreen() {
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
                 <LinearGradient
-                  colors={['#00C853', '#0091EA']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.nextStepBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Select Date & Time</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -518,7 +508,7 @@ export default function ServicesScreen() {
                   >
                     <View style={styles.badgeRow}>
                       <Ionicons name="sparkles" size={14} color="#15803D" style={{ marginRight: 6 }} />
-                      <Text style={styles.subActiveBadgeText}>Active Power Care Subscriber</Text>
+                      <Text style={styles.subActiveBadgeText}>Active Go Fixit Subscriber</Text>
                     </View>
                     
                     <Text style={styles.subDetailsTitle}>Subscription coverage: </Text>
@@ -531,7 +521,7 @@ export default function ServicesScreen() {
                     
                     <Text style={styles.subDiscountText}>
                       {activeBookingService && isServiceIncluded(activeBookingService.title) 
-                        ? 'Service Booking: Free (Power Care Subscriber)' 
+                        ? 'Service Booking: Free (Go Fixit Subscriber)' 
                         : 'Service Booking: Paid (Not included in subscription)'}
                     </Text>
                   </LinearGradient>
@@ -541,7 +531,7 @@ export default function ServicesScreen() {
                 <View style={styles.pickerContainer}>
                   <Text style={styles.fieldHeading}>Select District</Text>
                   <TouchableOpacity style={styles.dropdownBtn} onPress={() => setDistrictDropdownOpen(true)}>
-                    <Text style={[styles.dropdownText, !selectedDistrict && { color: '#9CA3AF' }]}>
+                    <Text style={[styles.dropdownText, !selectedDistrict && { color: '#A5A1B8' }]}>
                       {selectedDistrict ? selectedDistrict.name : "Select District"}
                     </Text>
                     <Ionicons name="chevron-down" size={16} color="#6B7280" />
@@ -553,7 +543,7 @@ export default function ServicesScreen() {
                     onPress={() => selectedDistrict && setMandalDropdownOpen(true)}
                     disabled={!selectedDistrict}
                   >
-                    <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#9CA3AF' }]}>
+                    <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#A5A1B8' }]}>
                       {selectedMandal ? selectedMandal.name : "Select Mandal"}
                     </Text>
                     <Ionicons name="chevron-down" size={16} color="#6B7280" />
@@ -567,13 +557,13 @@ export default function ServicesScreen() {
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
                 <LinearGradient
-                  colors={['#00C853', '#0091EA']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.nextStepBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Select Date & Time</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -633,7 +623,7 @@ export default function ServicesScreen() {
                     <Ionicons 
                       name={slot.includes('Morning') ? 'sunny-outline' : slot.includes('Afternoon') ? 'partly-sunny-outline' : 'moon-outline'} 
                       size={20} 
-                      color={isSelected ? '#00B894' : '#6B7280'} 
+                      color={isSelected ? '#F0C38E' : '#6B7280'} 
                       style={{ marginRight: 12 }}
                     />
                     <Text style={[styles.timeSlotText, isSelected && styles.timeSlotTextActive]}>{slot}</Text>
@@ -643,13 +633,13 @@ export default function ServicesScreen() {
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
                 <LinearGradient
-                  colors={['#00C853', '#0091EA']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.nextStepBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Enter Address</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -710,13 +700,13 @@ export default function ServicesScreen() {
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
                 <LinearGradient
-                  colors={['#00C853', '#0091EA']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.nextStepBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.nextStepBtnText}>Next: Review & Confirm</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -781,18 +771,18 @@ export default function ServicesScreen() {
                   <Ionicons 
                     name={bookedSlot ? "ribbon-outline" : "card-outline"} 
                     size={18} 
-                    color="#00B894" 
+                    color="#F0C38E" 
                     style={{ marginRight: 10 }} 
                   />
-                  <Text style={[styles.reviewText, { color: '#00B894', fontWeight: '700' }]}>
-                    {isServiceIncluded(activeBookingService?.title) ? 'Paid via Power Care Subscription' : 'Local Charge (Paid on completion)'}
+                  <Text style={[styles.reviewText, { color: '#F0C38E', fontWeight: '700' }]}>
+                    {isServiceIncluded(activeBookingService?.title) ? 'Paid via Go Fixit Subscription' : 'Local Charge (Paid on completion)'}
                   </Text>
                 </View>
               </View>
 
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleConfirmBooking}>
                 <LinearGradient
-                  colors={['#00C853', '#0091EA']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.nextStepBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -838,7 +828,7 @@ export default function ServicesScreen() {
                   }}
                 >
                   <Text style={styles.dropdownListItemText}>{d.name}</Text>
-                  {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#10B981" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -870,7 +860,7 @@ export default function ServicesScreen() {
                   }}
                 >
                   <Text style={styles.dropdownListItemText}>{m.name}</Text>
-                  {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#10B981" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -901,7 +891,7 @@ export default function ServicesScreen() {
                   }}
                 >
                   <Text style={styles.dropdownListItemText}>{e}</Text>
-                  {selectedEvent === e && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  {selectedEvent === e && <Ionicons name="checkmark" size={18} color="#10B981" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -939,7 +929,7 @@ export default function ServicesScreen() {
                       </Text>
                       {isBooked && <Ionicons name="ban" size={14} color="#EF4444" style={{ marginLeft: 8 }} />}
                     </View>
-                    {selectedSlot === num && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                    {selectedSlot === num && <Ionicons name="checkmark" size={18} color="#10B981" />}
                   </TouchableOpacity>
                 );
               })}
@@ -954,7 +944,7 @@ export default function ServicesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   scrollContainer: {
     flex: 1,
@@ -963,12 +953,12 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 28,
     fontWeight: '850',
-    color: '#111827',
+    color: '#FFFFFF',
     marginTop: 10,
   },
   subHeading: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '500',
     marginTop: 4,
     marginBottom: 20,
@@ -976,10 +966,10 @@ const styles = StyleSheet.create({
   searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     paddingHorizontal: 16,
     paddingVertical: Platform.OS === 'ios' ? 14 : 10,
     marginBottom: 20,
@@ -995,19 +985,71 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '500',
+  },
+  servicesGridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    marginHorizontal: -4,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  gridCardItem: {
+    width: '30%',
+    marginHorizontal: '1.5%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  gridCardIconWrapper: {
+    width: '100%',
+    aspectRatio: 1.2,
+    backgroundColor: '#312C51',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#3D3762',
+  },
+  gridCardImg: {
+    width: 52,
+    height: 52,
+    resizeMode: 'contain',
+  },
+  gridCardTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    minHeight: 30,
+    lineHeight: 14,
+  },
+  gridBadge: {
+    backgroundColor: 'rgba(240, 195, 142, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginTop: 4,
+    borderWidth: 0.5,
+    borderColor: '#F0C38E',
+  },
+  gridBadgeText: {
+    color: '#F0C38E',
+    fontSize: 9,
+    fontWeight: '800',
   },
   serviceCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -1034,11 +1076,11 @@ const styles = StyleSheet.create({
   serviceTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   serviceSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 2,
   },
   servicePrice: {
@@ -1064,7 +1106,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   emptyText: {
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontSize: 15,
     marginTop: 10,
     textAlign: 'center',
@@ -1081,17 +1123,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginRight: 16,
   },
   flowTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   stepsContainer: {
     marginTop: 12,
@@ -1106,10 +1148,10 @@ const styles = StyleSheet.create({
   stepLabelText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: '#A5A1B8',
   },
   stepLabelActive: {
-    color: '#00B894',
+    color: '#F0C38E',
     fontWeight: '800',
   },
   barWrapper: {
@@ -1126,7 +1168,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   barActive: {
-    backgroundColor: '#00B894',
+    backgroundColor: '#F0C38E',
   },
   barInactive: {
     backgroundColor: '#E5E7EB',
@@ -1149,7 +1191,7 @@ const styles = StyleSheet.create({
   stepSectionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#374151',
+    color: '#FFFFFF',
   },
 
   // Step 1 styling
@@ -1157,15 +1199,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   serviceSelectCardActive: {
-    borderColor: '#00B894',
+    borderColor: '#F0C38E',
     backgroundColor: '#ECFDF5',
   },
   serviceSelectLeft: {
@@ -1187,27 +1229,27 @@ const styles = StyleSheet.create({
   serviceSelectTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   serviceSelectTitleActive: {
     color: '#065F46',
   },
   serviceSelectSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 2,
   },
   serviceSelectPrice: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   serviceSelectPriceActive: {
     color: '#047857',
   },
   nextStepBtn: {
     marginTop: 24,
-    shadowColor: '#0091EA',
+    shadowColor: '#F1AA9B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -1241,21 +1283,21 @@ const styles = StyleSheet.create({
   datePill: {
     width: 72,
     height: 90,
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   datePillActive: {
-    backgroundColor: '#00B894',
-    borderColor: '#00B894',
+    backgroundColor: '#F0C38E',
+    borderColor: '#F0C38E',
   },
   datePillText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
   },
   datePillTextActive: {
@@ -1264,7 +1306,7 @@ const styles = StyleSheet.create({
   datePillDayNum: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginVertical: 4,
   },
   datePillDayNumActive: {
@@ -1273,20 +1315,20 @@ const styles = StyleSheet.create({
   timeSlotCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     borderRadius: 16,
     padding: 16,
     marginBottom: 10,
   },
   timeSlotCardActive: {
-    borderColor: '#00B894',
+    borderColor: '#F0C38E',
     backgroundColor: '#ECFDF5',
   },
   timeSlotText: {
     fontSize: 14,
-    color: '#374151',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   timeSlotTextActive: {
@@ -1296,11 +1338,11 @@ const styles = StyleSheet.create({
 
   // Step 3 Address styling
   addressForm: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   inputBox: {
     marginBottom: 14,
@@ -1313,22 +1355,22 @@ const styles = StyleSheet.create({
   },
   addressInput: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
-    backgroundColor: '#F9FAFB',
+    color: '#FFFFFF',
+    backgroundColor: '#25213E',
   },
 
   // Step 4 Confirm styling
   reviewCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   reviewHeader: {
     flexDirection: 'row',
@@ -1338,7 +1380,7 @@ const styles = StyleSheet.create({
   reviewServiceTitle: {
     fontSize: 18,
     fontWeight: '850',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   reviewServicePrice: {
     fontSize: 18,
@@ -1347,7 +1389,7 @@ const styles = StyleSheet.create({
   },
   reviewSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
   },
   reviewDivider: {
@@ -1379,12 +1421,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   successCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 28,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -1398,18 +1440,18 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   successMsg: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 20,
   },
   receiptContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     borderRadius: 16,
     padding: 16,
     width: '100%',
@@ -1424,12 +1466,12 @@ const styles = StyleSheet.create({
   },
   receiptLabel: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '500',
   },
   receiptVal: {
     fontSize: 13,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   doneBtn: {
@@ -1489,31 +1531,31 @@ const styles = StyleSheet.create({
     color: '#15803D',
   },
   pickerContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   dropdownBtn: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 12,
   },
   dropdownDisabled: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     borderColor: '#F3F4F6',
     opacity: 0.6,
   },
   dropdownText: {
-    color: '#374151',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1559,7 +1601,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   dropdownListContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     width: '100%',
     maxHeight: '60%',
@@ -1582,7 +1624,7 @@ const styles = StyleSheet.create({
   dropdownListTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   dropdownListScroll: {
     flexGrow: 0,
@@ -1597,7 +1639,7 @@ const styles = StyleSheet.create({
   },
   dropdownListItemText: {
     fontSize: 15,
-    color: '#374151',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
 });

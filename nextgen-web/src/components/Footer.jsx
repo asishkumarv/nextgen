@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, Mail, Phone, MapPin } from 'lucide-react';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/GoFixit.png';
 
 export default function Footer() {
   return (
@@ -11,8 +11,8 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <img src={logoImg} alt="NextGen Logo" className="logo-img" />
-              <span>NextGen <span className="logo-accent">PowerCare</span></span>
+              <img src={logoImg} alt="Go Fixit Logo" className="logo-img" />
+              <span>Go Fixit</span>
             </div>
             <p className="footer-desc">
               State-of-the-art power system solutions, subscription-based slot booking, and priority technician routing. Serving you 24/7 with reliability and transparency.
@@ -48,7 +48,7 @@ export default function Footer() {
             </div>
             <div className="contact-item">
               <Mail size={16} className="contact-icon" />
-              <span>nextgenpowecarenpc@gmail.com</span>
+              <span>gofixitpowecarenpc@gmail.com</span>
             </div>
             <div className="contact-item">
               <MapPin size={16} className="contact-icon" />
@@ -60,7 +60,7 @@ export default function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-bottom-container">
-          <p>&copy; {new Date().getFullYear()} NextGen PowerCare. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Go Fixit. All rights reserved.</p>
           <div className="footer-legal">
             <Link to="/terms-of-service">Terms of Service</Link>
             <span className="bullet">&bull;</span>

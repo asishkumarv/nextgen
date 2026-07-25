@@ -234,7 +234,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <TextInput
                     style={styles.textInput}
                     placeholder="John Doe"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor="#A5A1B8"
                     value={name}
                     onChangeText={(t) => { setName(t); setErrors(prev => ({ ...prev, name: '' })); }}
                   />
@@ -255,7 +255,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <TextInput
                     style={styles.textInput}
                     placeholder="+91 98765 43210"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor="#A5A1B8"
                     keyboardType="phone-pad"
                     value={phone}
                     onChangeText={(t) => { setPhone(t); setErrors(prev => ({ ...prev, phone: '' })); }}
@@ -277,7 +277,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   onPress={() => setDistrictDropdownOpen(true)}
                 >
                   <Ionicons name="map-outline" size={18} color={errors.district ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
-                  <Text style={[styles.dropdownText, !selectedDistrict && { color: '#9CA3AF' }]}>
+                  <Text style={[styles.dropdownText, !selectedDistrict && { color: '#A5A1B8' }]}>
                     {selectedDistrict ? selectedDistrict.name : "Select District"}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#6B7280" style={{ marginLeft: 'auto' }} />
@@ -303,7 +303,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   disabled={!selectedDistrict}
                 >
                   <Ionicons name="location-outline" size={18} color={errors.mandal ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
-                  <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#9CA3AF' }]}>
+                  <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#A5A1B8' }]}>
                     {selectedMandal ? selectedMandal.name : "Select Mandal"}
                   </Text>
                   <Ionicons name="chevron-down" size={16} color="#6B7280" style={{ marginLeft: 'auto' }} />
@@ -324,7 +324,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <TextInput
                     style={styles.textInput}
                     placeholder="At least 6 characters"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor="#A5A1B8"
                     secureTextEntry
                     value={password}
                     onChangeText={(t) => { setPassword(t); setErrors(prev => ({ ...prev, password: '' })); }}
@@ -341,13 +341,13 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               {/* Next Button */}
               <TouchableOpacity style={styles.actionBtn} onPress={handleNext}>
                 <LinearGradient
-                  colors={['#00B894', '#0984E3']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.actionBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.actionBtnText}>Next: Choose Skills</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -362,8 +362,8 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               {/* Services List Map */}
               {allSystemServices.length === 0 ? (
                 <View style={styles.loadingSkillsContainer}>
-                  <ActivityIndicator color="#00B894" />
-                  <Text style={{ color: '#6B7280', fontSize: 13, marginTop: 8 }}>Fetching services list...</Text>
+                  <ActivityIndicator color="#F0C38E" />
+                  <Text style={{ color: '#A5A1B8', fontSize: 13, marginTop: 8 }}>Fetching services list...</Text>
                 </View>
               ) : (
                 allSystemServices.map(item => {
@@ -380,7 +380,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                           <Ionicons 
                             name={item.icon || 'construct-outline'} 
                             size={18} 
-                            color={isSelected ? '#00B894' : '#6B7280'} 
+                            color={isSelected ? '#F0C38E' : '#6B7280'} 
                           />
                         </View>
                         <View style={{ marginLeft: 12, flex: 1 }}>
@@ -407,7 +407,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <Ionicons 
                   name={addCustomService ? "checkbox" : "square-outline"} 
                   size={20} 
-                  color={addCustomService ? '#00B894' : '#6B7280'} 
+                  color={addCustomService ? '#F0C38E' : '#6B7280'} 
                   style={{ marginRight: 8 }}
                 />
                 <Text style={styles.customServiceToggleText}>I want to register a new service not listed above</Text>
@@ -424,7 +424,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                     <TextInput
                       style={styles.customInput}
                       placeholder="Service Title"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor="#A5A1B8"
                       value={customTitle}
                       onChangeText={setCustomTitle}
                     />
@@ -435,7 +435,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                     <TextInput
                       style={styles.customInput}
                       placeholder="Service Subtitle"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor="#A5A1B8"
                       value={customSubtitle}
                       onChangeText={setCustomSubtitle}
                     />
@@ -446,7 +446,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                     <TextInput
                       style={styles.customInput}
                       placeholder="e.g. 299"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor="#A5A1B8"
                       keyboardType="numeric"
                       value={customPrice}
                       onChangeText={setCustomPrice}
@@ -458,13 +458,13 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               {/* Next Button */}
               <TouchableOpacity style={styles.actionBtn} onPress={handleNext}>
                 <LinearGradient
-                  colors={['#00B894', '#0984E3']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.actionBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.actionBtnText}>Next: Review & Confirm</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                  <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -534,7 +534,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 disabled={loading}
               >
                 <LinearGradient
-                  colors={['#00B894', '#0984E3']}
+                  colors={['#F0C38E', '#F1AA9B']}
                   style={styles.actionBtnGrad}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -584,7 +584,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                     }}
                   >
                     <Text style={styles.dropdownListItemText}>{d.name}</Text>
-                    {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#00B894" />}
+                    {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#F0C38E" />}
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -615,7 +615,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                     }}
                   >
                     <Text style={styles.dropdownListItemText}>{m.name}</Text>
-                    {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#00B894" />}
+                    {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#F0C38E" />}
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -631,21 +631,21 @@ const styles = StyleSheet.create({
   dropdownBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
   dropdownDisabled: {
     backgroundColor: '#E5E7EB',
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     opacity: 0.6,
   },
   dropdownText: {
     fontSize: 14,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   dropdownModalBg: {
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   dropdownListContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     width: '100%',
     maxHeight: '60%',
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
   dropdownListTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   dropdownListScroll: {
     flexGrow: 0,
@@ -706,12 +706,12 @@ const styles = StyleSheet.create({
   },
   dropdownListItemText: {
     fontSize: 15,
-    color: '#374151',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -728,17 +728,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginRight: 16,
   },
   flowTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   stepsContainer: {
     marginTop: 12,
@@ -753,10 +753,10 @@ const styles = StyleSheet.create({
   stepLabelText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: '#A5A1B8',
   },
   stepLabelActive: {
-    color: '#00B894',
+    color: '#F0C38E',
     fontWeight: '800',
   },
   barWrapper: {
@@ -772,17 +772,17 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   barActive: {
-    backgroundColor: '#00B894',
+    backgroundColor: '#F0C38E',
   },
   barInactive: {
     backgroundColor: '#E5E7EB',
   },
   formCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 28,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -792,11 +792,11 @@ const styles = StyleSheet.create({
   formHeading: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   formSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
     marginBottom: 20,
     fontWeight: '500',
@@ -807,16 +807,16 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#374151',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 14,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     paddingHorizontal: 14,
   },
   inputWrapperError: {
@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 14,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   fieldErrorRow: {
@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     marginTop: 10,
-    shadowColor: '#00B894',
+    shadowColor: '#F0C38E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -868,13 +868,13 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 4,
     marginTop: 8,
   },
   sectionSubHeading: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginBottom: 16,
     fontWeight: '500',
   },
@@ -882,19 +882,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.02,
     elevation: 1,
   },
   serviceSelectCardActive: {
-    borderColor: '#00B894',
+    borderColor: '#F0C38E',
     backgroundColor: '#ECFDF5',
   },
   serviceSelectIconBg: {
@@ -911,14 +911,14 @@ const styles = StyleSheet.create({
   serviceSelectTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   serviceSelectTitleActive: {
     color: '#065F46',
   },
   serviceSelectSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 2,
   },
   checkboxCircle: {
@@ -926,13 +926,13 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxCircleActive: {
-    borderColor: '#00B894',
-    backgroundColor: '#00B894',
+    borderColor: '#F0C38E',
+    backgroundColor: '#F0C38E',
   },
   customServiceToggle: {
     flexDirection: 'row',
@@ -943,29 +943,29 @@ const styles = StyleSheet.create({
   customServiceToggleText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: '#FFFFFF',
     flex: 1,
   },
   customInput: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
+    color: '#FFFFFF',
   },
   loadingSkillsContainer: {
     padding: 30,
     alignItems: 'center',
   },
   reviewCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginBottom: 10,
   },
   reviewItem: {
@@ -975,12 +975,12 @@ const styles = StyleSheet.create({
   },
   reviewLabel: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
   },
   reviewVal: {
     fontSize: 13,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   reviewDivider: {
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
   reviewHeader: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#9CA3AF',
+    color: '#A5A1B8',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 8,
@@ -1015,7 +1015,7 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
   },
   reviewEmptyText: {
-    color: '#9CA3AF',
+    color: '#A5A1B8',
     fontSize: 12,
     fontStyle: 'italic',
   },

@@ -86,7 +86,7 @@ export default function Withdrawals() {
     <div style={styles.container} className="animate-fade-in">
       <div style={styles.header}>
         <div style={styles.headerTitle}>
-          <Wallet size={28} color="#0984E3" style={{ marginRight: '12px' }} />
+          <Wallet size={28} color="#48426D" style={{ marginRight: '12px' }} />
           <h2>Referral Withdrawals</h2>
         </div>
         <p style={{ color: '#6B7280', marginTop: '8px' }}>Manage and process wallet withdrawal requests from users.</p>
@@ -144,7 +144,7 @@ export default function Withdrawals() {
                         <span style={{color: '#6B7280', fontSize: '0.85rem'}}>{w.userPhone}</span><br />
                         <button 
                           onClick={() => handleViewReferrals(w.user_id, w.userName)}
-                          style={{ background: 'none', border: 'none', color: '#0984E3', padding: 0, fontSize: '0.8rem', cursor: 'pointer', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}
+                          style={{ background: 'none', border: 'none', color: '#48426D', padding: 0, fontSize: '0.8rem', cursor: 'pointer', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}
                         >
                           <UsersIcon size={12} /> View Referrals
                         </button>
@@ -327,7 +327,7 @@ const styles = {
     transition: 'all 0.2s',
   },
   tabActive: {
-    backgroundColor: '#0984E3',
+    backgroundColor: '#48426D',
     color: '#FFFFFF',
     boxShadow: '0 2px 4px rgba(9, 132, 227, 0.2)',
   },

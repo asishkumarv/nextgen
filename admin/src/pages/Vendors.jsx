@@ -174,7 +174,7 @@ export default function Vendors() {
                             <span style={{ fontWeight: '600', color: '#F59E0B' }}>{v.assignedCount || 0} pending</span>
                           </div>
                         </td>
-                        <td style={{ fontWeight: '800', color: '#0984E3', fontSize: '0.95rem' }}>
+                        <td style={{ fontWeight: '800', color: '#48426D', fontSize: '0.95rem' }}>
                           ₹{(v.totalEarnings || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td>

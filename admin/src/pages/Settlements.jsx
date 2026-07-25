@@ -222,8 +222,8 @@ const styles = {
     transition: 'all 0.15s ease',
   },
   tabButtonActive: {
-    color: '#00B894',
-    borderBottomColor: '#00B894',
+    color: '#312C51',
+    borderBottomColor: '#312C51',
   },
   filterBar: {
     display: 'flex',

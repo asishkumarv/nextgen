@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { api, setAuthToken, setAdminProfile } from '../utils/api';
 import { Key, Mail, AlertTriangle, Eye, EyeOff } from 'lucide-react';
-import logo from '../assets/logo.png';
+import logo from '../assets/GoFixit.png';
 
 export default function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -36,8 +36,8 @@ export default function Login({ onLoginSuccess }) {
     <div style={styles.loginContainer}>
       <div style={styles.loginCard} className="animate-fade-in">
         <div style={styles.logoContainer}>
-          <img src={logo} alt="NextGen Logo" style={styles.logoImage} />
-          <h1 style={styles.title}>NextGen Power Care</h1>
+          <img src={logo} alt="Go Fixit Logo" style={styles.logoImage} />
+          <h1 style={styles.title}>Go Fixit</h1>
           <p style={styles.subtitle}>Administrator Control Center</p>
         </div>
 
@@ -57,7 +57,7 @@ export default function Login({ onLoginSuccess }) {
             <input
               type="email"
               className="input-field"
-              placeholder="e.g. admin@nextgen.com"
+              placeholder="e.g. admin@gofixit.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
@@ -114,7 +114,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #00B894 0%, #0984E3 100%)',
+    background: 'linear-gradient(135deg, #312C51 0%, #48426D 100%)',
     padding: '20px',
   },
   loginCard: {
@@ -137,7 +137,7 @@ const styles = {
     height: '90px',
     objectFit: 'contain',
     marginBottom: '16px',
-    filter: 'drop-shadow(0 4px 12px rgba(0, 184, 148, 0.3))',
+    filter: 'drop-shadow(0 4px 12px rgba(49, 44, 81, 0.3))',
   },
   title: {
     fontSize: '1.6rem',

@@ -49,8 +49,8 @@ export default function Referrals() {
       const shareUrl = `${window.location.origin}/signup?ref=${stats.referralCode}`;
       if (navigator.share) {
         navigator.share({
-          title: 'NextGen PowerCare',
-          text: `Use my referral code ${stats.referralCode} to sign up for NextGen PowerCare!`,
+          title: 'Go Fixit',
+          text: `Use my referral code ${stats.referralCode} to sign up for Go Fixit!`,
           url: shareUrl
         }).catch(err => console.log('Error sharing:', err));
       } else {
@@ -314,7 +314,7 @@ export default function Referrals() {
             </div>
             
             <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
-              Invite your friends to NextGen PowerCare and earn money directly into your wallet!
+              Invite your friends to Go Fixit and earn money directly into your wallet!
             </p>
             
             <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px', marginBottom: '20px' }}>

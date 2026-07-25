@@ -307,7 +307,7 @@ export default function Mandals() {
                 </div>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
                   <button onClick={() => handleOpenEditMandal(mandal)} style={styles.iconBtn} title="Edit Mandal Name">
-                    <Edit3 size={16} color="#0984E3" />
+                    <Edit3 size={16} color="#48426D" />
                   </button>
                   <button onClick={() => handleDeleteMandal(mandal.id)} style={styles.iconBtn} title="Delete Mandal">
                     <Trash2 size={16} color="#EF4444" />
@@ -503,7 +503,7 @@ const styles = {
   titleArea: { display: 'flex', flexDirection: 'column', gap: '4px' },
   title: { fontSize: '1.4rem', fontWeight: '850', color: '#111827' },
   subtitle: { fontSize: '0.85rem', color: '#6B7280', fontWeight: '500' },
-  addBtn: { display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '10px', backgroundColor: '#00B894', color: '#FFFFFF', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0, 184, 148, 0.15)', transition: 'all 0.15s ease' },
+  addBtn: { display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '10px', backgroundColor: '#312C51', color: '#FFFFFF', border: 'none', fontWeight: '700', fontSize: '0.88rem', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(49, 44, 81, 0.15)', transition: 'all 0.15s ease' },
   warningAlert: { padding: '12px 16px', backgroundColor: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '10px', color: '#D97706', fontSize: '0.85rem', marginBottom: '20px' },
   filterBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' },
   searchContainer: { display: 'flex', alignItems: 'center', backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '0 16px', width: '100%', maxWidth: '380px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' },
@@ -513,7 +513,7 @@ const styles = {
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' },
   card: { backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   cardTop: { padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid #F3F4F6' },
-  iconContainer: { width: '42px', height: '42px', borderRadius: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#E0F2FE', color: '#0984E3' },
+  iconContainer: { width: '42px', height: '42px', borderRadius: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#E0F2FE', color: '#48426D' },
   cardHeader: { display: 'flex', flexDirection: 'column', gap: '2px' },
   mandalName: { fontSize: '1.1rem', fontWeight: '800', color: '#111827' },
   districtBadge: { fontSize: '0.72rem', fontWeight: '750', backgroundColor: '#F3F4F6', color: '#4B5563', padding: '2px 8px', borderRadius: '6px', alignSelf: 'flex-start' },
@@ -532,7 +532,7 @@ const styles = {
   infoValDesc: { fontSize: '0.8rem', color: '#6B7280', lineHeight: '1.4' },
   slotsCode: { flex: 1, fontSize: '0.75rem', backgroundColor: '#F3F4F6', color: '#4B5563', padding: '6px 8px', borderRadius: '4px', fontWeight: '600', fontFamily: 'monospace', wordBreak: 'break-all', display: 'block', maxHeight: '64px', overflowY: 'auto', lineHeight: '1.4' },
   pricesRow: { display: 'flex', gap: '8px', marginTop: '4px' },
-  pricePill: { fontSize: '0.7rem', fontWeight: '700', backgroundColor: '#E6F4EA', color: '#00B894', padding: '2px 8px', borderRadius: '12px' },
+  pricePill: { fontSize: '0.7rem', fontWeight: '700', backgroundColor: '#E6F4EA', color: '#312C51', padding: '2px 8px', borderRadius: '12px' },
   noEventsText: { fontSize: '0.85rem', color: '#9CA3AF', fontStyle: 'italic' },
   loading: { padding: '100px 0', textAlign: 'center', color: '#6B7280', fontWeight: '700', fontSize: '1.1rem' },
   empty: { padding: '80px 0', textAlign: 'center', color: '#9CA3AF', fontWeight: '600', backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', alignItems: 'center' },
@@ -550,5 +550,5 @@ const styles = {
   formSelect: { padding: '12px 14px', borderRadius: '10px', border: '1px solid #D1D5DB', outline: 'none', fontSize: '0.9rem', width: '100%', backgroundColor: '#FFFFFF', cursor: 'pointer' },
   modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' },
   cancelBtn: { padding: '10px 18px', borderRadius: '8px', border: '1px solid #E5E7EB', backgroundColor: '#FFFFFF', color: '#4B5563', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' },
-  saveBtn: { padding: '10px 22px', borderRadius: '8px', border: 'none', backgroundColor: '#00B894', color: '#FFFFFF', fontWeight: '750', fontSize: '0.85rem', cursor: 'pointer' }
+  saveBtn: { padding: '10px 22px', borderRadius: '8px', border: 'none', backgroundColor: '#312C51', color: '#FFFFFF', fontWeight: '750', fontSize: '0.85rem', cursor: 'pointer' }
 };

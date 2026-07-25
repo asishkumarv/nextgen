@@ -81,7 +81,7 @@ const NotificationScreen = ({ navigation }) => {
       case 'task':
         return { name: 'checkmark-circle-outline', color: '#8b5cf6', bg: '#f5f3ff' };
       default:
-        return { name: 'notifications-outline', color: '#6b7280', bg: '#f3f4f6' };
+        return { name: 'notifications-outline', color: '#A5A1B8', bg: '#f3f4f6' };
     }
   };
 
@@ -101,7 +101,7 @@ const NotificationScreen = ({ navigation }) => {
         </View>
         {!item.is_read && (
           <TouchableOpacity style={styles.markReadBtn} onPress={() => markSingleAsRead(item.id)}>
-            <Ionicons name="checkmark-done-circle-outline" size={24} color="#00B894" />
+            <Ionicons name="checkmark-done-circle-outline" size={24} color="#F0C38E" />
           </TouchableOpacity>
         )}
       </View>
@@ -133,7 +133,7 @@ const NotificationScreen = ({ navigation }) => {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00B894']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#F0C38E']} />
           }
         />
       )}
@@ -144,7 +144,7 @@ const NotificationScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#25213E',
   },
   header: {
     flexDirection: 'row',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#48426D',
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
@@ -162,14 +162,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#FFFFFF',
   },
   listContent: {
     padding: 20,
   },
   notificationCard: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#48426D',
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   message: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   },
   time: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#A5A1B8',
   },
   unreadDot: {
     width: 10,
@@ -226,10 +226,10 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#9ca3af',
+    color: '#A5A1B8',
   },
   markAllText: {
-    color: '#00B894',
+    color: '#F0C38E',
     fontWeight: '600',
     fontSize: 14,
   },

@@ -23,7 +23,7 @@ import { api } from '../utils/api';
 import Header from '../components/Header';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
-import nextgenQr from '../assets/nextgenQr.jpeg';
+import gofixitQr from '../assets/GoFixitQr.jpeg';
 
 const { width } = Dimensions.get('window');
 const SLOT_SIZE = (width - 120) / 5;
@@ -312,18 +312,18 @@ export default function SlotsScreen() {
         contentContainerStyle={{ paddingBottom: 120, paddingTop: insets.top + 70 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#0F172A" />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#F0C38E" />
         }
       >
 
       {/* Subscription Card */}
       <View
-        style={[styles.gradientCard, { backgroundColor: '#0F172A' }]}
+        style={[styles.gradientCard, { backgroundColor: '#F0C38E' }]}
       >
         <View style={styles.badgeRow}>
           <View style={styles.sparkBadge}>
-            <Ionicons name="sparkles" size={12} color="#FFF" />
-            <Text style={styles.sparkBadgeText}>NextGen Power Care</Text>
+            <Ionicons name="sparkles" size={12} color="#312C51" />
+            <Text style={styles.sparkBadgeText}>Go Fixit</Text>
           </View>
         </View>
         <Text style={styles.cardTitle}>Subscription Portal</Text>
@@ -343,7 +343,7 @@ export default function SlotsScreen() {
 
         {/* District Dropdown */}
         <TouchableOpacity style={styles.dropdownBtn} onPress={() => setDistrictDropdownOpen(true)}>
-          <Text style={[styles.dropdownText, !selectedDistrict && { color: '#9CA3AF' }]}>
+          <Text style={[styles.dropdownText, !selectedDistrict && { color: '#A5A1B8' }]}>
             {selectedDistrict ? selectedDistrict.name : "Select District"}
           </Text>
           <Ionicons name="chevron-down" size={16} color="#6B7280" />
@@ -355,7 +355,7 @@ export default function SlotsScreen() {
           onPress={() => selectedDistrict && setMandalDropdownOpen(true)}
           disabled={!selectedDistrict}
         >
-          <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#9CA3AF' }]}>
+          <Text style={[styles.dropdownText, (!selectedMandal || !selectedDistrict) && { color: '#A5A1B8' }]}>
             {selectedMandal ? selectedMandal.name : "Select Mandal"}
           </Text>
           <Ionicons name="chevron-down" size={16} color="#6B7280" />
@@ -367,7 +367,7 @@ export default function SlotsScreen() {
           onPress={() => selectedMandal && setEventDropdownOpen(true)}
           disabled={!selectedMandal}
         >
-          <Text style={[styles.dropdownText, (!selectedEvent || !selectedMandal) && { color: '#9CA3AF' }]}>
+          <Text style={[styles.dropdownText, (!selectedEvent || !selectedMandal) && { color: '#A5A1B8' }]}>
             {selectedEvent ? selectedEvent.event_name : "Select Event"}
           </Text>
           <Ionicons name="chevron-down" size={16} color="#6B7280" />
@@ -376,10 +376,10 @@ export default function SlotsScreen() {
 
       {/* Legend Indicator Section */}
       {selectedEvent && (
-        <View style={{ marginHorizontal: 20, marginBottom: 16, backgroundColor: '#FFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' }}>
+        <View style={{ marginHorizontal: 20, marginBottom: 16, backgroundColor: '#48426D', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#3D3762' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-            <Ionicons name="information-circle-outline" size={20} color="#0984E3" style={{ marginRight: 6 }} />
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#111827' }}>Event Details</Text>
+            <Ionicons name="information-circle-outline" size={20} color="#F1AA9B" style={{ marginRight: 6 }} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF' }}>Event Details</Text>
           </View>
           <Text style={{ fontSize: 14, color: '#4B5563', lineHeight: 20 }}>
             {selectedEvent.description || 'No description provided.'}
@@ -401,7 +401,7 @@ export default function SlotsScreen() {
             <Text style={styles.legendText}>Booked</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#0984E3' }]} />
+            <View style={[styles.legendDot, { backgroundColor: '#F1AA9B' }]} />
             <Text style={styles.legendText}>Selected</Text>
           </View>
         </View>
@@ -413,7 +413,7 @@ export default function SlotsScreen() {
           <View style={styles.gridHeader}>
             <Text style={styles.gridHeading}>Available Slots</Text>
             {loadingBooked ? (
-              <ActivityIndicator size="small" color="#0984E3" />
+              <ActivityIndicator size="small" color="#F1AA9B" />
             ) : (
               <Text style={styles.gridActionText}>Choose 1 slot</Text>
             )}
@@ -427,18 +427,18 @@ export default function SlotsScreen() {
             <View>
               <TextInput
                 style={{
-                  backgroundColor: '#F9FAFB',
+                  backgroundColor: '#25213E',
                   borderWidth: 1,
-                  borderColor: '#E5E7EB',
+                  borderColor: '#3D3762',
                   borderRadius: 12,
                   paddingHorizontal: 16,
                   paddingVertical: 12,
                   marginBottom: 16,
                   fontSize: 14,
-                  color: '#111827'
+                  color: '#FFFFFF'
                 }}
                 placeholder="Search slot number..."
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#A5A1B8"
                 value={slotSearchQuery}
                 onChangeText={setSlotSearchQuery}
                 keyboardType="numeric"
@@ -508,7 +508,7 @@ export default function SlotsScreen() {
                     <Ionicons name="time-outline" size={18} color="#B45309" style={{ marginRight: 6 }} />
                     <Text style={{ color: '#B45309', fontWeight: '700', fontSize: 14 }}>PENDING APPROVAL</Text>
                   </View>
-                  <Text style={{ color: '#92400E', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Power Care Annual'}</Text>
+                  <Text style={{ color: '#92400E', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Annual Plan'}</Text>
                   <Text style={{ color: '#B45309', fontSize: 14, marginTop: 4 }}>
                     Slot #{sub.slotNumber} · Paid via {sub.paymentMode || 'Online'}
                   </Text>
@@ -527,19 +527,19 @@ export default function SlotsScreen() {
                 </View>
               ) : (
                 <View
-                  style={[styles.gradientCard, { padding: 16, marginTop: 0, backgroundColor: '#0F172A' }]}
+                  style={[styles.gradientCard, { padding: 16, marginTop: 0, backgroundColor: '#F0C38E' }]}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Ionicons name="checkmark-circle" size={18} color="#FFF" style={{ marginRight: 6 }} />
-                      <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>ACTIVE SUBSCRIPTION</Text>
+                      <Ionicons name="checkmark-circle" size={18} color="#312C51" style={{ marginRight: 6 }} />
+                      <Text style={{ color: '#312C51', fontWeight: '700', fontSize: 14 }}>ACTIVE SUBSCRIPTION</Text>
                     </View>
                     {sub.thumbnail && (
                       <Image source={{ uri: sub.thumbnail }} style={{ width: 40, height: 40, borderRadius: 6 }} />
                     )}
                   </View>
-                  <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Power Care Annual'}</Text>
-                  <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: 14, marginTop: 4 }}>
+                  <Text style={{ color: '#312C51', fontSize: 18, fontWeight: '800' }}>{sub.plan || 'Annual Plan'}</Text>
+                  <Text style={{ color: '#312C51', fontSize: 14, marginTop: 4 }}>
                     Slot #{sub.slotNumber} · Expires: {sub.date || (sub.validTill ? new Date(sub.validTill).toLocaleDateString() : 'Active')}
                   </Text>
                 </View>
@@ -582,7 +582,7 @@ export default function SlotsScreen() {
                   }}
                 >
                   <Text style={styles.dropdownListItemText}>{d.name}</Text>
-                  {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  {selectedDistrict?.id === d.id && <Ionicons name="checkmark" size={18} color="#10B981" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -614,7 +614,7 @@ export default function SlotsScreen() {
                   }}
                 >
                   <Text style={styles.dropdownListItemText}>{m.name}</Text>
-                  {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  {selectedMandal?.id === m.id && <Ionicons name="checkmark" size={18} color="#10B981" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -645,7 +645,7 @@ export default function SlotsScreen() {
                   }}
                 >
                   <Text style={styles.dropdownListItemText}>{e.event_name}</Text>
-                  {selectedEvent?.id === e.id && <Ionicons name="checkmark" size={18} color="#00C853" />}
+                  {selectedEvent?.id === e.id && <Ionicons name="checkmark" size={18} color="#10B981" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -677,7 +677,7 @@ export default function SlotsScreen() {
             </View>
 
             <View
-              style={[styles.subInfoCard, { backgroundColor: '#E5F1FF' }]}
+              style={[styles.subInfoCard, { backgroundColor: '#25213E' }]}
             >
               <View>
                 <Text style={styles.subInfoLabel}>Annual subscription</Text>
@@ -695,14 +695,14 @@ export default function SlotsScreen() {
                 style={[styles.paymentBtn, paymentMode === 'offline' && styles.paymentBtnActive]}
                 onPress={() => setPaymentMode('offline')}
               >
-                <Ionicons name="cash-outline" size={20} color={paymentMode === 'offline' ? '#00B894' : '#6B7280'} />
+                <Ionicons name="cash-outline" size={20} color={paymentMode === 'offline' ? '#F0C38E' : '#6B7280'} />
                 <Text style={[styles.paymentBtnText, paymentMode === 'offline' && styles.paymentBtnTextActive]}>Offline/Cash</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.paymentBtn, paymentMode === 'online' && styles.paymentBtnActive]}
                 onPress={() => setPaymentMode('online')}
               >
-                <Ionicons name="card-outline" size={20} color={paymentMode === 'online' ? '#00B894' : '#6B7280'} />
+                <Ionicons name="card-outline" size={20} color={paymentMode === 'online' ? '#F0C38E' : '#6B7280'} />
                 <Text style={[styles.paymentBtnText, paymentMode === 'online' && styles.paymentBtnTextActive]}>Online (UPI)</Text>
               </TouchableOpacity>
             </View>
@@ -710,8 +710,8 @@ export default function SlotsScreen() {
             {paymentMode === 'online' && (
               <View style={styles.onlinePaymentContainer}>
                 <View style={styles.qrPlaceholder}>
-                  <Image source={nextgenQr} style={{ width: 160, height: 160, borderRadius: 8, marginBottom: 12 }} resizeMode="contain" />
-                  <Text style={{ fontSize: 12, color: '#6B7280', marginBottom: 4 }}>Pay to UPI ID:</Text>
+                  <Image source={gofixitQr} style={{ width: 160, height: 160, borderRadius: 8, marginBottom: 12 }} resizeMode="contain" />
+                  <Text style={{ fontSize: 12, color: '#A5A1B8', marginBottom: 4 }}>Pay to UPI ID:</Text>
                   <TouchableOpacity 
                     style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
                     onPress={async () => {
@@ -719,8 +719,8 @@ export default function SlotsScreen() {
                       Alert.alert('Copied!', 'UPI ID copied to clipboard.');
                     }}
                   >
-                    <Text style={[styles.qrText, { marginRight: 8, color: '#0984E3' }]} selectable={true}>Vyapar.175693314872@hdfcbank</Text>
-                    <Ionicons name="copy-outline" size={16} color="#0984E3" />
+                    <Text style={[styles.qrText, { marginRight: 8, color: '#F1AA9B' }]} selectable={true}>Vyapar.175693314872@hdfcbank</Text>
+                    <Ionicons name="copy-outline" size={16} color="#F1AA9B" />
                   </TouchableOpacity>
                 </View>
                 
@@ -729,7 +729,7 @@ export default function SlotsScreen() {
                   placeholder="UPI Transaction ID *"
                   value={transactionId}
                   onChangeText={setTransactionId}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                 />
 
                 <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
@@ -795,73 +795,73 @@ const styles = StyleSheet.create({
   sparkBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(49, 44, 81, 0.12)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 100,
   },
   sparkBadgeText: {
-    color: '#FFF',
+    color: '#312C51',
     fontSize: 12,
     fontWeight: '700',
     marginLeft: 5,
   },
   cardTitle: {
-    color: '#FFF',
+    color: '#312C51',
     fontSize: 24,
     fontWeight: '800',
     marginBottom: 6,
   },
   cardSubtitle: {
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: '#312C51',
     fontSize: 14,
     fontWeight: '500',
   },
   filterSection: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 20,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   sectionHeading: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 14,
   },
   dropdownBtn: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 12,
   },
   dropdownDisabled: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     borderColor: '#F3F4F6',
     opacity: 0.6,
   },
   dropdownText: {
-    color: '#374151',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   legendContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 16,
     paddingVertical: 14,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   legendItem: {
     flexDirection: 'row',
@@ -879,12 +879,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   gridCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -901,13 +901,13 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   gridHeading: {
-    color: '#111827',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
     flex: 1,
   },
   gridActionText: {
-    color: '#0984E3',
+    color: '#F1AA9B',
     fontSize: 13,
     fontWeight: '750',
   },
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noSlotsText: {
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -946,9 +946,9 @@ const styles = StyleSheet.create({
     borderColor: '#FCA5A5',
   },
   slotSelected: {
-    backgroundColor: '#0984E3',
+    backgroundColor: '#F1AA9B',
     borderWidth: 1,
-    borderColor: '#0984E3',
+    borderColor: '#F1AA9B',
   },
   slotLabel: {
     fontSize: 11,
@@ -961,13 +961,13 @@ const styles = StyleSheet.create({
     color: '#B91C1C',
   },
   slotTextSelected: {
-    color: '#FFF',
+    color: '#312C51',
   },
   blockOverlay: {
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 7,
     width: 14,
     height: 14,
@@ -988,7 +988,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dropdownListContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '60%',
@@ -1005,7 +1005,7 @@ const styles = StyleSheet.create({
   dropdownListTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   dropdownListScroll: {
     paddingHorizontal: 10,
@@ -1020,7 +1020,7 @@ const styles = StyleSheet.create({
   },
   dropdownListItemText: {
     fontSize: 15,
-    color: '#374151',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   modalBackdrop: {
@@ -1034,7 +1034,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomSheet: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
@@ -1051,13 +1051,13 @@ const styles = StyleSheet.create({
   },
   sheetLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
   },
   sheetSlotNumber: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginVertical: 4,
   },
   sheetCloseBtn: {
@@ -1082,16 +1082,16 @@ const styles = StyleSheet.create({
   subInfoPrice: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   unlimitedBadge: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
   },
   unlimitedText: {
-    color: '#00C853',
+    color: '#10B981',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -1112,20 +1112,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     borderRadius: 12,
     gap: 8,
   },
   paymentBtnActive: {
-    borderColor: '#00B894',
+    borderColor: '#F0C38E',
     backgroundColor: '#F0FDF4',
   },
   paymentBtnText: {
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#A5A1B8',
   },
   paymentBtnTextActive: {
-    color: '#00B894',
+    color: '#F0C38E',
   },
   onlinePaymentContainer: {
     marginBottom: 20,
@@ -1135,10 +1135,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -1147,11 +1147,11 @@ const styles = StyleSheet.create({
   },
   qrText: {
     fontWeight: '600',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
@@ -1168,7 +1168,7 @@ const styles = StyleSheet.create({
   },
   uploadBtnText: {
     fontWeight: '600',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   screenshotPreview: {
     width: '100%',
@@ -1177,7 +1177,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sheetConfirmBtnWrapper: {
-    shadowColor: '#0091EA',
+    shadowColor: '#F1AA9B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1198,7 +1198,7 @@ const styles = StyleSheet.create({
     padding: 24,
     marginTop: 10,
     alignItems: 'center',
-    shadowColor: '#00C853',
+    shadowcolor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 10,
@@ -1208,7 +1208,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -1246,7 +1246,7 @@ const styles = StyleSheet.create({
     fontWeight: '750',
   },
   slotDetailCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 24,
     marginTop: -20,
@@ -1257,33 +1257,33 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   slotDetailHeader: {
     fontSize: 12,
     fontWeight: '750',
-    color: '#6B7280',
+    color: '#A5A1B8',
     letterSpacing: 1,
     marginBottom: 8,
   },
   slotDetailNumber: {
     fontSize: 48,
     fontWeight: '900',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   slotDetailFooter: {
     fontSize: 13,
-    color: '#00C853',
+    color: '#10B981',
     fontWeight: '600',
   },
   infoList: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 20,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   infoRow: {
     flexDirection: 'row',
@@ -1302,13 +1302,13 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
     marginBottom: 2,
   },
   infoValue: {
     fontSize: 15,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   rowDivider: {

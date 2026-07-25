@@ -215,7 +215,7 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00B894']} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#F0C38E']} />
         }
       >
         <Text style={styles.heading}>Profile</Text>
@@ -224,7 +224,7 @@ export default function ProfileScreen() {
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             <LinearGradient
-              colors={['#0984E3', '#00B894']}
+              colors={['#F1AA9B', '#F0C38E']}
               style={styles.avatarGrad}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -252,7 +252,7 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>My Service Offerings</Text>
             {!addMode && (
               <TouchableOpacity onPress={() => setAddMode(true)} style={styles.addSkillBtn}>
-                <Ionicons name="add-circle" size={18} color="#00B894" />
+                <Ionicons name="add-circle" size={18} color="#F0C38E" />
                 <Text style={styles.addSkillBtnText}>Add Skill</Text>
               </TouchableOpacity>
             )}
@@ -302,7 +302,7 @@ export default function ProfileScreen() {
                           <Ionicons 
                             name={item.icon || 'construct-outline'} 
                             size={16} 
-                            color={isSelected ? '#00B894' : '#6B7280'} 
+                            color={isSelected ? '#F0C38E' : '#6B7280'} 
                             style={{ marginRight: 8 }}
                           />
                           <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextActive]}>
@@ -321,7 +321,7 @@ export default function ProfileScreen() {
                     <TextInput
                       style={styles.textInput}
                       placeholder="Service Title"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor="#A5A1B8"
                       value={customTitle}
                       onChangeText={setCustomTitle}
                     />
@@ -332,7 +332,7 @@ export default function ProfileScreen() {
                     <TextInput
                       style={styles.textInput}
                       placeholder="e.g. General filters and water jet cleaning"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor="#A5A1B8"
                       value={customSubtitle}
                       onChangeText={setCustomSubtitle}
                     />
@@ -343,7 +343,7 @@ export default function ProfileScreen() {
                     <TextInput
                       style={styles.textInput}
                       placeholder="e.g. 399"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor="#A5A1B8"
                       keyboardType="numeric"
                       value={customPrice}
                       onChangeText={setCustomPrice}
@@ -407,7 +407,7 @@ export default function ProfileScreen() {
               style={styles.calendarTrigger}
               onPress={() => setCalendarVisible(true)}
             >
-              <Ionicons name="calendar-outline" size={18} color="#00B894" style={{ marginRight: 8 }} />
+              <Ionicons name="calendar-outline" size={18} color="#F0C38E" style={{ marginRight: 8 }} />
               <Text style={styles.calendarTriggerText}>
                 {selectedDate
                   ? selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -464,7 +464,7 @@ export default function ProfileScreen() {
                 style={styles.toggleFormBtn}
                 onPress={() => setShowPasswordForm(true)}
               >
-                <Ionicons name="lock-closed-outline" size={14} color="#0984E3" style={{ marginRight: 4 }} />
+                <Ionicons name="lock-closed-outline" size={14} color="#F1AA9B" style={{ marginRight: 4 }} />
                 <Text style={styles.toggleFormBtnText}>Change Password</Text>
               </TouchableOpacity>
             )}
@@ -477,7 +477,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Enter current password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={true}
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
@@ -489,7 +489,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Minimum 6 characters"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={true}
                   value={newPassword}
                   onChangeText={setNewPassword}
@@ -501,7 +501,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Re-enter new password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={true}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -632,23 +632,23 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   heading: {
     fontSize: 28,
     fontWeight: '850',
-    color: '#111827',
+    color: '#FFFFFF',
     paddingHorizontal: 20,
     marginTop: 16,
     marginBottom: 20,
   },
   profileCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     marginHorizontal: 20,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     alignItems: 'center',
     marginBottom: 24,
     shadowColor: '#000',
@@ -668,18 +668,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarText: {
-    color: '#FFF',
+    color: '#312C51',
     fontSize: 28,
     fontWeight: '800',
   },
   vendorName: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   vendorPhone: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
     marginTop: 4,
   },
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   addSkillBtn: {
     flexDirection: 'row',
@@ -721,17 +721,17 @@ const styles = StyleSheet.create({
   addSkillBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#00B894',
+    color: '#F0C38E',
   },
   skillCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginBottom: 10,
   },
   skillLeft: {
@@ -750,11 +750,11 @@ const styles = StyleSheet.create({
   skillTitle: {
     fontSize: 14.5,
     fontWeight: '800',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   skillSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 2,
   },
   skillPrice: {
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderWidth: 1,
     borderColor: '#FCA5A5',
     borderRadius: 16,
@@ -780,25 +780,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   emptySkills: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
   },
   emptySkillsText: {
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontSize: 13,
     fontWeight: '600',
   },
 
   // Add Skill Card Styles
   addSkillCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
   addSkillTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   closeAddBtn: {
     padding: 2,
@@ -835,15 +835,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   toggleBtnActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
   },
   toggleText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6B7280',
+    color: '#A5A1B8',
   },
   toggleTextActive: {
-    color: '#111827',
+    color: '#FFFFFF',
   },
   dropdownContainer: {
     marginTop: 4,
@@ -860,13 +860,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     borderRadius: 10,
     marginVertical: 4,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
   },
   dropdownItemActive: {
-    borderColor: '#00B894',
+    borderColor: '#F0C38E',
     backgroundColor: '#ECFDF5',
   },
   dropdownItemText: {
@@ -879,7 +879,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   allLinkedText: {
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontSize: 13,
     fontStyle: 'italic',
     paddingVertical: 8,
@@ -890,17 +890,17 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 10,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 13,
-    color: '#111827',
+    color: '#FFFFFF',
   },
   submitSkillBtn: {
     marginTop: 14,
-    backgroundColor: '#00B894',
+    backgroundColor: '#F0C38E',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -913,18 +913,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     marginHorizontal: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginBottom: 24,
     marginTop: 24,
   },
   sectionDescription: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
     marginBottom: 14,
     lineHeight: 16,
@@ -938,9 +938,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 10,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     paddingHorizontal: 12,
     paddingVertical: 10,
     flex: 1,
@@ -948,11 +948,11 @@ const styles = StyleSheet.create({
   },
   calendarTriggerText: {
     fontSize: 13,
-    color: '#374151',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   addLeaveBtn: {
-    backgroundColor: '#00B894',
+    backgroundColor: '#F0C38E',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -961,7 +961,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   addLeaveBtnDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundcolor: '#A5A1B8',
   },
   addLeaveBtnText: {
     color: '#FFF',
@@ -969,7 +969,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   noLeavesText: {
-    color: '#9CA3AF',
+    color: '#A5A1B8',
     fontSize: 12,
     fontStyle: 'italic',
     textAlign: 'center',
@@ -979,11 +979,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   leaveCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1002,7 +1002,7 @@ const styles = StyleSheet.create({
   leaveCardDate: {
     fontSize: 14.5,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   leaveCardLabel: {
     fontSize: 11,
@@ -1043,7 +1043,7 @@ const styles = StyleSheet.create({
   toggleFormBtnText: {
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#0984E3',
+    color: '#F1AA9B',
   },
   passwordActionsRow: {
     flexDirection: 'row',
@@ -1053,7 +1053,7 @@ const styles = StyleSheet.create({
   cancelPasswordBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
@@ -1066,7 +1066,7 @@ const styles = StyleSheet.create({
   },
   submitPasswordBtn: {
     flex: 1,
-    backgroundColor: '#0984E3',
+    backgroundColor: '#F1AA9B',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   calendarModalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 20,
     width: '90%',
@@ -1113,7 +1113,7 @@ const styles = StyleSheet.create({
   calendarMonthTitle: {
     fontSize: 15.5,
     fontWeight: '850',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   weekdaysRow: {
     flexDirection: 'row',
@@ -1125,7 +1125,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: '#A5A1B8',
   },
   daysGrid: {
     flexDirection: 'row',
@@ -1141,7 +1141,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   dayCellActive: {
-    backgroundColor: '#00B894',
+    backgroundColor: '#F0C38E',
   },
   dayCellDisabled: {
     backgroundColor: 'transparent',
@@ -1153,7 +1153,7 @@ const styles = StyleSheet.create({
   dayText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   dayTextActive: {
     color: '#FFFFFF',
@@ -1165,14 +1165,14 @@ const styles = StyleSheet.create({
   closeCalendarBtn: {
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeCalendarBtnText: {
-    color: '#374151',
+    color: '#FFFFFF',
     fontSize: 13.5,
     fontWeight: '700',
   },

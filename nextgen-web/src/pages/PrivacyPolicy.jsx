@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
         <div className="glass-card decorative-bg" style={{ padding: '30px', textAlign: 'left' }}>
           <h2 className="text-gradient" style={{ marginBottom: '15px' }}>1. Introduction</h2>
           <p style={{ marginBottom: '20px', lineHeight: '1.6' }}>
-            Welcome to NextGen PowerCare. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our application and use our services.
+            Welcome to Go Fixit. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our application and use our services.
           </p>
 
           <h2 className="text-gradient" style={{ marginBottom: '15px' }}>2. Information We Collect</h2>
@@ -39,7 +39,7 @@ export default function PrivacyPolicy() {
 
           <h2 className="text-gradient" style={{ marginBottom: '15px' }}>5. Contact Us</h2>
           <p style={{ marginBottom: '20px', lineHeight: '1.6' }}>
-            If you have questions or comments about this notice, you may email us at nextgenpowecarenpc@gmail.com.
+            If you have questions or comments about this notice, you may email us at Go Fixitpowecarenpc@gmail.com.
           </p>
         </div>
       </div>

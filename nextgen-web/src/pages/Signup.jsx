@@ -93,7 +93,7 @@ export default function Signup() {
       <div className="auth-card glass-card animate-fade-in">
         <div className="auth-header">
           <h2>Create Account</h2>
-          <p>Join NextGen PowerCare to schedule priority electrical services</p>
+          <p>Join Go Fixit to schedule priority electrical services</p>
         </div>
 
         {error && (

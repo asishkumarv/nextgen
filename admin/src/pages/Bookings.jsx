@@ -325,8 +325,8 @@ const styles = {
     transition: 'all 0.15s ease',
   },
   tabButtonActive: {
-    color: '#00B894',
-    borderBottomColor: '#00B894',
+    color: '#312C51',
+    borderBottomColor: '#312C51',
   },
   filterBar: {
     display: 'flex',
@@ -541,9 +541,9 @@ const styles = {
     width: '100%',
   },
   vendorItemBtnActive: {
-    borderColor: '#00B894',
+    borderColor: '#312C51',
     backgroundColor: '#ECFDF5',
-    boxShadow: '0 0 0 2px rgba(0, 184, 148, 0.15)',
+    boxShadow: '0 0 0 2px rgba(49, 44, 81, 0.15)',
   },
   modalVendorName: {
     fontWeight: '700',
@@ -570,7 +570,7 @@ const styles = {
     cursor: 'pointer',
   },
   modalConfirmBtn: {
-    backgroundColor: '#00B894',
+    backgroundColor: '#312C51',
     border: 'none',
     borderRadius: '8px',
     padding: '8px 16px',
@@ -578,7 +578,7 @@ const styles = {
     fontWeight: '700',
     color: '#FFFFFF',
     cursor: 'pointer',
-    boxShadow: '0 2px 4px rgba(0, 184, 148, 0.2)',
+    boxShadow: '0 2px 4px rgba(49, 44, 81, 0.2)',
   },
   loading: {
     padding: '80px',

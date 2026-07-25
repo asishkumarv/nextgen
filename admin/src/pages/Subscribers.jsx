@@ -84,7 +84,7 @@ export default function Subscribers() {
               <tbody>
                 {subscribers.map((s) => (
                   <tr key={s.subId}>
-                    <td style={{ fontWeight: '800', color: '#00B894', fontSize: '1rem' }}>
+                    <td style={{ fontWeight: '800', color: '#312C51', fontSize: '1rem' }}>
                       #{s.slotNumber}
                     </td>
                     <td style={{ fontWeight: '750', color: '#111827' }}>{s.name}</td>
@@ -100,7 +100,7 @@ export default function Subscribers() {
                     </td>
                     <td style={{ fontFamily: 'monospace', fontWeight: '600' }}>{s.subId}</td>
                     <td>{formatDate(s.subscribedAt)}</td>
-                    <td style={{ color: '#0984E3', fontWeight: '700' }}>{formatDate(s.validTill)}</td>
+                    <td style={{ color: '#48426D', fontWeight: '700' }}>{formatDate(s.validTill)}</td>
                     <td>
                       <span className="badge badge-success" style={{ backgroundColor: '#E0F2FE', color: '#0284C7' }}>
                         <Sparkles size={12} />
@@ -109,7 +109,7 @@ export default function Subscribers() {
                     </td>
                     <td>
                       {s.screenshotUrl ? (
-                        <button onClick={() => setSelectedImage(s.screenshotUrl)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '600', color: '#0984E3', backgroundColor: '#F0F9FF', padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>
+                        <button onClick={() => setSelectedImage(s.screenshotUrl)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '600', color: '#48426D', backgroundColor: '#F0F9FF', padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>
                           <FileImage size={14} /> View Screenshot
                         </button>
                       ) : (

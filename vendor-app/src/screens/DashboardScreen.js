@@ -94,7 +94,7 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#00B894']} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#F0C38E']} />
         }
       >
         {/* Welcome Header */}
@@ -104,13 +104,13 @@ export default function DashboardScreen() {
             <Text style={styles.vendorName}>{vendor?.name || 'Partner'}</Text>
           </View>
           <TouchableOpacity onPress={handleRefresh} style={styles.syncBtn}>
-            <Ionicons name="refresh-circle-outline" size={26} color="#00B894" />
+            <Ionicons name="refresh-circle-outline" size={26} color="#F0C38E" />
           </TouchableOpacity>
         </View>
 
         {/* Stats Grid Dashboard Card */}
         <LinearGradient
-          colors={['#00B894', '#0984E3']}
+          colors={['#F0C38E', '#F1AA9B']}
           style={styles.statsCard}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -322,7 +322,7 @@ export default function DashboardScreen() {
               <TextInput
                 style={styles.otpTextInput}
                 placeholder="0000"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#A5A1B8"
                 keyboardType="number-pad"
                 maxLength={4}
                 value={otpInput}
@@ -370,7 +370,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   header: {
     flexDirection: 'row',
@@ -382,13 +382,13 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
   },
   vendorName: {
     fontSize: 24,
     fontWeight: '900',
-    color: '#111827',
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   syncBtn: {
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     marginHorizontal: 20,
     padding: 24,
-    shadowColor: '#00B894',
+    shadowColor: '#F0C38E',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -410,21 +410,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statsLabel: {
-    color: 'rgba(255, 255, 255, 0.75)',
+    color: 'rgba(49, 44, 81, 0.75)',
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   revenueVal: {
-    color: '#FFFFFF',
+    color: '#312C51',
     fontSize: 32,
     fontWeight: '900',
     marginTop: 6,
   },
   statsDivider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(49, 44, 81, 0.15)',
     marginBottom: 16,
   },
   statsRow: {
@@ -437,12 +437,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statsColNum: {
-    color: '#FFFFFF',
+    color: '#312C51',
     fontSize: 18,
     fontWeight: '800',
   },
   statsColLabel: {
-    color: 'rgba(255, 255, 255, 0.75)',
+    color: 'rgba(49, 44, 81, 0.75)',
     fontSize: 11,
     fontWeight: '600',
     marginTop: 3,
@@ -450,12 +450,12 @@ const styles = StyleSheet.create({
   statsVerticalDivider: {
     width: 1,
     height: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(49, 44, 81, 0.15)',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     paddingHorizontal: 20,
     marginBottom: 12,
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
   },
   tabActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -484,10 +484,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#6B7280',
+    color: '#A5A1B8',
   },
   tabTextActive: {
-    color: '#111827',
+    color: '#FFFFFF',
   },
   listContainer: {
     paddingHorizontal: 20,
@@ -495,28 +495,28 @@ const styles = StyleSheet.create({
   emptyList: {
     alignItems: 'center',
     paddingVertical: 48,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
   },
   emptyText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#374151',
+    color: '#FFFFFF',
     marginTop: 12,
   },
   emptySubText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
   },
   taskCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   },
   taskCardCompleted: {
     borderColor: '#D1FAE5',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
   },
   taskCardHeader: {
     flexDirection: 'row',
@@ -549,11 +549,11 @@ const styles = StyleSheet.create({
   taskServiceName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   taskId: {
     fontSize: 11,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 1,
     fontWeight: '600',
   },
@@ -580,18 +580,18 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 12.5,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginRight: 6,
   },
   detailVal: {
     fontSize: 12.5,
     fontWeight: '700',
-    color: '#374151',
+    color: '#FFFFFF',
   },
   callBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0984E3',
+    backgroundColor: '#F1AA9B',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   modalContent: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 24,
     padding: 24,
     shadowColor: '#000',
@@ -662,11 +662,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   modalSub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     lineHeight: 18,
     marginBottom: 20,
     fontWeight: '500',
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   },
   otpTextInput: {
     borderWidth: 1.5,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 14,
@@ -686,8 +686,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
     maxWidth: 200,
-    color: '#111827',
-    backgroundColor: '#F9FAFB',
+    color: '#FFFFFF',
+    backgroundColor: '#25213E',
     letterSpacing: 8,
   },
   modalActionRow: {
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
   },
   modalCancelBtn: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     justifyContent: 'center',
     alignItems: 'center',
   },

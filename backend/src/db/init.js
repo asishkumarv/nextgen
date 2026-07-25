@@ -133,10 +133,15 @@ const createTables = async (dropExisting = false) => {
         title VARCHAR(100) NOT NULL,
         subtitle VARCHAR(255) NOT NULL,
         price NUMERIC(10, 2) NOT NULL,
-        icon VARCHAR(50) DEFAULT 'construct-outline',
+        icon TEXT DEFAULT 'construct-outline',
         status VARCHAR(20) DEFAULT 'Active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    // Migrate existing column to TEXT if it is still VARCHAR
+    await client.query(`
+      ALTER TABLE services ALTER COLUMN icon TYPE TEXT;
     `);
 
     // Create Vendor Services Linker Table

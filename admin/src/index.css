@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --primary: #00B894;
-  --primary-hover: #00A383;
-  --secondary: #0984E3;
-  --secondary-hover: #0770C2;
+  --primary: #312C51;
+  --primary-hover: #25213E;
+  --secondary: #48426D;
+  --secondary-hover: #393457;
   --dark: #1F2937;
   --dark-light: #374151;
   --light: #FFFFFF;
-  --background: #F5F7FB;
-  --text: #374151;
+  --background: #FAF6F0;
+  --text: #312C51;
   --text-muted: #6B7280;
   --success: #22C55E;
   --success-bg: #DCFCE7;
@@ -183,7 +183,7 @@ tr:hover td {
 .input-field:focus {
   border-color: var(--primary);
   background-color: var(--light);
-  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.15);
+  box-shadow: 0 0 0 3px rgba(49, 44, 81, 0.15);
 }
 
 /* Buttons */
@@ -204,12 +204,12 @@ tr:hover td {
 .btn-primary {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: var(--light);
-  box-shadow: 0 4px 10px rgba(0, 184, 148, 0.2);
+  box-shadow: 0 4px 10px rgba(49, 44, 81, 0.2);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(0, 184, 148, 0.3);
+  box-shadow: 0 6px 14px rgba(49, 44, 81, 0.3);
 }
 
 .btn-primary:active {

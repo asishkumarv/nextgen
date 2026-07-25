@@ -169,7 +169,7 @@ export default function Services() {
         </div>
         <div style={styles.statusStats}>
           Total: <strong style={{ color: '#111827' }}>{services.length}</strong> | 
-          Active: <strong style={{ color: '#00B894', marginLeft: '4px' }}>{services.filter(s => s.status === 'Active').length}</strong> | 
+          Active: <strong style={{ color: '#312C51', marginLeft: '4px' }}>{services.filter(s => s.status === 'Active').length}</strong> | 
           Suspended: <strong style={{ color: '#F59E0B', marginLeft: '4px' }}>{services.filter(s => s.status === 'Hold').length}</strong>
         </div>
       </div>
@@ -201,9 +201,15 @@ export default function Services() {
                   <div style={{
                     ...styles.iconContainer,
                     backgroundColor: isActive ? '#E6F9F5' : '#FEF3C7',
-                    color: isActive ? '#00B894' : '#F59E0B'
+                    color: isActive ? '#312C51' : '#F59E0B',
+                    padding: service.icon && (service.icon.startsWith('data:') || service.icon.startsWith('http')) ? '0' : '10px',
+                    overflow: 'hidden'
                   }}>
-                    <Sparkles size={20} />
+                    {service.icon && (service.icon.startsWith('data:') || service.icon.startsWith('http')) ? (
+                      <img src={service.icon} alt="icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Sparkles size={20} />
+                    )}
                   </div>
                   <span style={{
                     ...styles.statusTag,
@@ -224,8 +230,12 @@ export default function Services() {
                   </div>
 
                   <div style={styles.iconBadgeRow}>
-                    <span style={styles.iconNameLabel}>Icon Name: </span>
-                    <code style={styles.iconNameCode}>{service.icon}</code>
+                    <span style={styles.iconNameLabel}>Illustration: </span>
+                    {service.icon && (service.icon.startsWith('data:') || service.icon.startsWith('http')) ? (
+                      <img src={service.icon} alt="illustration" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #E5E7EB' }} />
+                    ) : (
+                      <code style={styles.iconNameCode}>{service.icon}</code>
+                    )}
                   </div>
                 </div>
 
@@ -235,7 +245,7 @@ export default function Services() {
                     onClick={() => handleToggleHold(service)} 
                     style={{
                       ...styles.actionIconBtn,
-                      color: isActive ? '#F59E0B' : '#00B894',
+                      color: isActive ? '#F59E0B' : '#312C51',
                       backgroundColor: isActive ? '#FEF3C7' : '#E6F9F5'
                     }}
                     title={isActive ? 'Hold/Suspend Service' : 'Activate Service'}
@@ -248,7 +258,7 @@ export default function Services() {
                     onClick={() => handleOpenEdit(service)} 
                     style={{
                       ...styles.actionIconBtn,
-                      color: '#0984E3',
+                      color: '#48426D',
                       backgroundColor: '#E3F2FD'
                     }}
                     title="Edit Details"
@@ -327,16 +337,63 @@ export default function Services() {
                 </div>
 
                 <div style={{ ...styles.inputGroup, flex: 1 }}>
-                  <label style={styles.label}>Device Icon *</label>
-                  <select
-                    style={styles.formSelect}
-                    value={formData.icon}
-                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  >
-                    {presetIcons.map(icon => (
-                      <option key={icon.value} value={icon.value}>{icon.label}</option>
-                    ))}
-                  </select>
+                  <label style={styles.label}>Illustration / Device Icon *</label>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <select
+                      style={{ ...styles.formSelect, flex: 1 }}
+                      value={formData.icon && (formData.icon.startsWith('data:') || formData.icon.startsWith('http')) ? 'custom' : formData.icon}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val !== 'custom') {
+                          setFormData({ ...formData, icon: val });
+                        }
+                      }}
+                    >
+                      {presetIcons.map(icon => (
+                        <option key={icon.value} value={icon.value}>{icon.label}</option>
+                      ))}
+                      <option value="custom">✨ Custom Uploaded Image</option>
+                    </select>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="illustration-upload"
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const uploadFormData = new FormData();
+                        uploadFormData.append('image', file);
+
+                        try {
+                          const response = await api.upload('/upload', uploadFormData);
+                          if (response && response.url) {
+                            setFormData({ ...formData, icon: response.url });
+                          }
+                        } catch (err) {
+                          alert('Failed to upload image: ' + err.message);
+                        }
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('illustration-upload').click()}
+                      className="btn btn-secondary-outline"
+                      style={{ padding: '8px 12px', whiteSpace: 'nowrap', cursor: 'pointer', border: '1px solid #D1D5DB', borderRadius: '6px', background: '#FFF' }}
+                    >
+                      Upload File
+                    </button>
+                  </div>
+
+                  {formData.icon && (formData.icon.startsWith('data:') || formData.icon.startsWith('http')) && (
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img src={formData.icon} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #E5E7EB' }} />
+                      <span style={{ fontSize: '0.8rem', color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>Custom Uploaded Image</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -410,13 +467,13 @@ const styles = {
     gap: '8px',
     padding: '10px 18px',
     borderRadius: '10px',
-    backgroundColor: '#00B894',
+    backgroundColor: '#312C51',
     color: '#FFFFFF',
     border: 'none',
     fontWeight: '700',
     fontSize: '0.88rem',
     cursor: 'pointer',
-    boxShadow: '0 4px 6px -1px rgba(0, 184, 148, 0.15)',
+    boxShadow: '0 4px 6px -1px rgba(49, 44, 81, 0.15)',
     transition: 'all 0.15s ease',
   },
   filterBar: {
@@ -530,7 +587,7 @@ const styles = {
   priceVal: {
     fontSize: '1.25rem',
     fontWeight: '850',
-    color: '#00B894',
+    color: '#312C51',
   },
   iconBadgeRow: {
     display: 'flex',
@@ -702,7 +759,7 @@ const styles = {
     padding: '10px 22px',
     borderRadius: '8px',
     border: 'none',
-    backgroundColor: '#00B894',
+    backgroundColor: '#312C51',
     color: '#FFFFFF',
     fontWeight: '750',
     fontSize: '0.85rem',

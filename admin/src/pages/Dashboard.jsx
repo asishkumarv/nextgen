@@ -59,8 +59,8 @@ export default function Dashboard({ onNavigateToView }) {
   }
 
   const statCards = [
-    { label: 'Total Customers', value: stats.users, icon: Users, color: '#00B894', bg: '#E6F9F5', link: 'users' },
-    { label: 'Active Subscribers', value: stats.subscribers, icon: CreditCard, color: '#0984E3', bg: '#E3F2FD', link: 'subscribers' },
+    { label: 'Total Customers', value: stats.users, icon: Users, color: '#312C51', bg: '#E6F9F5', link: 'users' },
+    { label: 'Active Subscribers', value: stats.subscribers, icon: CreditCard, color: '#48426D', bg: '#E3F2FD', link: 'subscribers' },
     { label: 'Total Bookings', value: stats.bookings, icon: Calendar, color: '#F59E0B', bg: '#FEF3C7', link: 'bookings' },
     { label: 'Calculated Revenue', value: `₹${stats.revenue.toLocaleString('en-IN')}`, icon: IndianRupee, color: '#10B981', bg: '#ECFDF5', link: 'subscribers' }
   ];
@@ -350,12 +350,12 @@ export default function Dashboard({ onNavigateToView }) {
               {/* Subscription Row */}
               <div style={styles.breakdownRow}>
                 <div style={styles.breakdownLabelGroup}>
-                  <div style={{ ...styles.rowIconBg, backgroundColor: '#E3F2FD', color: '#0984E3' }}>
+                  <div style={{ ...styles.rowIconBg, backgroundColor: '#E3F2FD', color: '#48426D' }}>
                     <CreditCard size={18} />
                   </div>
                   <div>
                     <span style={styles.breakdownLabelName}>Subscription Plans</span>
-                    <span style={styles.breakdownLabelDesc}>Power Care slots reserved</span>
+                    <span style={styles.breakdownLabelDesc}>Go Fixit slots reserved</span>
                   </div>
                 </div>
                 <span style={styles.breakdownValue}>
@@ -392,7 +392,7 @@ export default function Dashboard({ onNavigateToView }) {
                     style={{ 
                       height: '100%',
                       width: `${stats.revenue > 0 ? (stats.subscriptionRevenue / stats.revenue) * 100 : 0}%`,
-                      backgroundColor: '#0984E3',
+                      backgroundColor: '#48426D',
                       transition: 'width 0.3s ease'
                     }} 
                   />
@@ -407,7 +407,7 @@ export default function Dashboard({ onNavigateToView }) {
                 </div>
                 <div style={styles.legendRow}>
                   <div style={styles.legendItem}>
-                    <span style={{ ...styles.legendDot, backgroundColor: '#0984E3' }} />
+                    <span style={{ ...styles.legendDot, backgroundColor: '#48426D' }} />
                     <span>Subscriptions</span>
                   </div>
                   <div style={styles.legendItem}>
@@ -454,7 +454,7 @@ const styles = {
   boxLink: {
     backgroundColor: 'transparent',
     border: 'none',
-    color: '#0984E3',
+    color: '#48426D',
     fontWeight: '700',
     fontSize: '0.85rem',
     cursor: 'pointer',

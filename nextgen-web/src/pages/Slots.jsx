@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import { Calendar, Shield, CreditCard, CheckCircle2, ChevronRight, AlertTriangle, QrCode, Upload, Info } from 'lucide-react';
-import nextgenQr from '../assets/nextgenQr.jpeg';
+import gofixitQr from '../assets/GoFixitQr.jpeg';
 import './Slots.css';
 
 const compressImage = (file) => {
@@ -350,7 +350,7 @@ export default function Slots() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Info size={18} />
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: '700' }}>PENDING APPROVAL: {sub.plan || 'Power Care Annual'}</span>
+                        <span style={{ fontWeight: '700' }}>PENDING APPROVAL: {sub.plan || 'Annual Plan'}</span>
                         <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>Slot #{sub.slotNumber} · Paid via {sub.paymentMode || 'Online'}</span>
                       </div>
                     </div>
@@ -373,7 +373,7 @@ export default function Slots() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <CheckCircle2 size={18} />
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: '700' }}>ACTIVE SUBSCRIPTION: {sub.plan || 'Power Care Annual'}</span>
+                        <span style={{ fontWeight: '700' }}>ACTIVE SUBSCRIPTION: {sub.plan || 'Annual Plan'}</span>
                         <span style={{ fontSize: '0.9rem', marginTop: '4px' }}>Slot #{sub.slotNumber} · Expires: {sub.expiry_date ? new Date(sub.expiry_date).toLocaleDateString() : 'Active'}</span>
                       </div>
                     </div>
@@ -591,7 +591,7 @@ export default function Slots() {
                 <div className="online-payment-details">
                   <div className="qr-section">
                     <div className="qr-placeholder" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', textAlign: 'center', width: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}>
-                      <img src={nextgenQr} alt="Payment QR Code" style={{ width: '100%', height: 'auto', borderRadius: '8px', marginBottom: '12px' }} />
+                      <img src={gofixitQr} alt="Payment QR Code" style={{ width: '100%', height: 'auto', borderRadius: '8px', marginBottom: '12px' }} />
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Pay to UPI ID:</span>
                       <strong 
                         style={{ 

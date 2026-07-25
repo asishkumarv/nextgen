@@ -30,7 +30,7 @@ export default function Contact() {
     setLoading(true);
     
     try {
-      const response = await fetch('https://api.nextgenpowercare.com/api/contact', {
+      const response = await fetch('https://api.gofixit.com/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -80,7 +80,7 @@ export default function Contact() {
                 <Mail className="detail-icon" size={20} />
                 <div>
                   <h4>Email Us</h4>
-                  <p>nextgenpowecarenpc@gmail.com</p>
+                  <p>Go Fixitpowecarenpc@gmail.com</p>
                 </div>
               </div>
 
@@ -113,7 +113,7 @@ export default function Contact() {
               <div className="submission-success text-center">
                 <CheckCircle2 size={48} className="success-icon" />
                 <h2>Message Sent!</h2>
-                <p>Thank you for reaching out. A NextGen support representative will contact you via email within the next 2 hours.</p>
+                <p>Thank you for reaching out. A Go Fixit support representative will contact you via email within the next 2 hours.</p>
                 <button onClick={() => setSubmitted(false)} className="btn btn-primary btn-block">
                   Send Another Message
                 </button>

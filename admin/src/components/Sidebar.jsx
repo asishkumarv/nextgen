@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, Users, CreditCard, CalendarRange, Wrench, LogOut, Briefcase, Coins, Map, MapPin, Mail } from 'lucide-react';
 import { removeAuthToken, removeAdminProfile } from '../utils/api';
-import logo from '../assets/logo.png';
+import logo from '../assets/GoFixit.png';
 
 export default function Sidebar({ activeView, onViewChange, onLogout, adminName }) {
   const menuItems = [
@@ -28,9 +28,9 @@ export default function Sidebar({ activeView, onViewChange, onLogout, adminName 
   return (
     <aside style={styles.sidebar}>
       <div style={styles.branding}>
-        <img src={logo} alt="NextGen Logo" style={styles.logoImage} />
+        <img src={logo} alt="Go Fixit Logo" style={styles.logoImage} />
         <div style={styles.brandingText}>
-          <h2 style={styles.brandTitle}>NextGen</h2>
+          <h2 style={styles.brandTitle}>Go Fixit</h2>
           <span style={styles.brandSubtitle}>Admin Console</span>
         </div>
       </div>
@@ -103,7 +103,7 @@ const styles = {
     height: '40px',
     objectFit: 'contain',
     flexShrink: 0,
-    filter: 'drop-shadow(0 2px 6px rgba(0, 184, 148, 0.4))',
+    filter: 'drop-shadow(0 2px 6px rgba(49, 44, 81, 0.4))',
   },
   brandingText: {
     display: 'flex',
@@ -157,9 +157,9 @@ const styles = {
     position: 'relative',
   },
   navButtonActive: {
-    backgroundColor: '#00B894',
+    backgroundColor: '#312C51',
     color: '#FFFFFF',
-    boxShadow: '0 4px 10px rgba(0, 184, 148, 0.25)',
+    boxShadow: '0 4px 10px rgba(49, 44, 81, 0.25)',
   },
   activeIndicator: {
     position: 'absolute',
@@ -185,7 +185,7 @@ const styles = {
     width: '40px',
     height: '40px',
     borderRadius: '10px',
-    background: 'linear-gradient(135deg, #0984E3 0%, #00B894 100%)',
+    background: 'linear-gradient(135deg, #48426D 0%, #312C51 100%)',
     color: '#FFFFFF',
     display: 'flex',
     justifyContent: 'center',

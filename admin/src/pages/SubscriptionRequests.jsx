@@ -351,7 +351,7 @@ const styles = {
   proofContainer: { display: 'flex', flexDirection: 'column', gap: '6px' },
   viewProofBtn: {
     display: 'inline-flex', alignItems: 'center', gap: '4px',
-    fontSize: '0.75rem', fontWeight: '600', color: '#0984E3',
+    fontSize: '0.75rem', fontWeight: '600', color: '#48426D',
     backgroundColor: '#F0F9FF', padding: '4px 8px', borderRadius: '4px',
     alignSelf: 'flex-start', border: 'none', cursor: 'pointer'
   },

@@ -5,7 +5,7 @@ export default function About() {
   return (
     <div className="about-page container">
       <section className="about-hero text-center">
-        <h1 className="about-title">About <span className="text-gradient">NextGen PowerCare</span></h1>
+        <h1 className="about-title">About <span className="text-gradient">Go Fixit</span></h1>
         <p className="about-subtitle">
           Pioneering smart dispatch systems and subscription-based home care since 2024.
         </p>
@@ -24,7 +24,7 @@ export default function About() {
         <div className="about-text-content">
           <h2>Who We Are</h2>
           <p>
-            NextGen PowerCare was established to address the fragmentation and delays in calling local technicians. Our automated workflow engine routes service requests dynamically depending on live vendor availability, reducing repair lead times by over 70%.
+            Go Fixit was established to address the fragmentation and delays in calling local technicians. Our automated workflow engine routes service requests dynamically depending on live vendor availability, reducing repair lead times by over 70%.
           </p>
           <p>
             For premium customers, we offer our signature subscription slots. By choosing a slot number within their Mandal and District, subscribers enjoy immediate priority service, with booking fees completely waived for a full year.

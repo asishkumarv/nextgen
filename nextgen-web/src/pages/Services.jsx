@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import { Calendar, Clock, MapPin, Wrench, CheckCircle, AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
+import { getServiceIllustration } from '../utils/illustrations';
 
 export default function Services() {
   const { user } = useAuth();
@@ -205,14 +206,16 @@ export default function Services() {
                 className={`service-selection-card glass-card ${selectedService?.id === service.id ? 'selected' : ''}`}
                 onClick={() => handleServiceSelect(service)}
               >
-                <div className="card-icon-title">
-                  <div className="service-icon-bg">
-                    <Wrench size={22} className="service-icon" />
-                  </div>
-                  <div>
-                    <h4>{service.title}</h4>
-                    <p className="card-sub">{service.subtitle}</p>
-                  </div>
+                <div className="web-grid-icon-wrapper">
+                  <img
+                    src={getServiceIllustration(service.title, service.icon)}
+                    className="web-grid-illustration-img"
+                    alt={service.title}
+                  />
+                </div>
+                <div className="web-grid-details">
+                  <h4>{service.title}</h4>
+                  <p className="card-sub">{service.subtitle}</p>
                 </div>
                 <div className="card-footer-row">
                   <span className="price-tag">

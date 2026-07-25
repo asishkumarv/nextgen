@@ -106,7 +106,7 @@ export default function ReferralScreen({ navigation }) {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#00B894" />
+        <ActivityIndicator size="large" color="#F0C38E" />
       </View>
     );
   }
@@ -120,7 +120,7 @@ export default function ReferralScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Wallet</Text>
         <TouchableOpacity onPress={() => setTermsVisible(true)} style={styles.infoBtn}>
-          <Ionicons name="information-circle-outline" size={24} color="#0984E3" />
+          <Ionicons name="information-circle-outline" size={24} color="#F1AA9B" />
         </TouchableOpacity>
       </View>
 
@@ -128,7 +128,7 @@ export default function ReferralScreen({ navigation }) {
         
         {/* Balance Card */}
         <LinearGradient
-          colors={['#00B894', '#0984E3']}
+          colors={['#F0C38E', '#F1AA9B']}
           style={styles.balanceCard}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -151,7 +151,7 @@ export default function ReferralScreen({ navigation }) {
           <View style={styles.codeWrapper}>
             <Text style={styles.codeText}>{stats?.referralCode || '...'}</Text>
             <TouchableOpacity onPress={copyCode} style={styles.copyBtn}>
-              <Ionicons name="copy-outline" size={20} color="#00B894" />
+              <Ionicons name="copy-outline" size={20} color="#F0C38E" />
             </TouchableOpacity>
           </View>
           <Text style={styles.subText}>Share this code with friends to earn wallet money!</Text>
@@ -170,7 +170,7 @@ export default function ReferralScreen({ navigation }) {
                   <Text style={styles.listSub}>{new Date(ref.created_at).toLocaleDateString()}</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#00B894' }}>+₹{ref.amount}</Text>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#F0C38E' }}>+₹{ref.amount}</Text>
                   <View style={{ 
                     backgroundColor: ref.type === 'Direct' ? '#D1FAE5' : '#DBEAFE',
                     paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginTop: 4
@@ -270,9 +270,9 @@ export default function ReferralScreen({ navigation }) {
               <Text style={{ fontWeight: 'bold', marginTop: 8, marginBottom: 8 }}>2nd Level Referrals:</Text>
               <Text style={styles.tierText}>• Flat ₹100 for every sub-referral</Text>
             </View>
-            <Text style={{ color: '#6B7280', fontSize: 13, marginBottom: 4 }}>• Min withdrawal is ₹100.</Text>
-            <Text style={{ color: '#6B7280', fontSize: 13, marginBottom: 4 }}>• Processed within 2-3 business days.</Text>
-            <Text style={{ color: '#0984E3', fontSize: 13, fontWeight: '500' }}>• Note: Referral amount will be rewarded to your wallet once the referred user takes a subscription plan.</Text>
+            <Text style={{ color: '#A5A1B8', fontSize: 13, marginBottom: 4 }}>• Min withdrawal is ₹100.</Text>
+            <Text style={{ color: '#A5A1B8', fontSize: 13, marginBottom: 4 }}>• Processed within 2-3 business days.</Text>
+            <Text style={{ color: '#F1AA9B', fontSize: 13, fontWeight: '500' }}>• Note: Referral amount will be rewarded to your wallet once the referred user takes a subscription plan.</Text>
             <TouchableOpacity style={styles.submitBtn} onPress={() => setTermsVisible(false)}>
               <Text style={styles.submitBtnText}>I Understand</Text>
             </TouchableOpacity>
@@ -286,36 +286,36 @@ export default function ReferralScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FB' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFF' },
+  container: { flex: 1, backgroundColor: '#312C51' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#48426D' },
   backBtn: { padding: 4 },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
   infoBtn: { padding: 4 },
   scrollContent: { padding: 16, paddingBottom: 40 },
   balanceCard: { borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 24 },
   balanceLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 14, fontWeight: '500' },
   balanceAmt: { color: '#FFF', fontSize: 40, fontWeight: '800', marginVertical: 8 },
-  withdrawBtn: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, marginTop: 12 },
-  withdrawBtnText: { color: '#0984E3', fontWeight: '700', fontSize: 14 },
-  section: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 16 },
+  withdrawBtn: { backgroundColor: '#48426D', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, marginTop: 12 },
+  withdrawBtnText: { color: '#F1AA9B', fontWeight: '700', fontSize: 14 },
+  section: { backgroundColor: '#48426D', borderRadius: 16, padding: 16, marginBottom: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', marginBottom: 16 },
   codeWrapper: { backgroundColor: '#F3F4F6', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  codeText: { fontSize: 24, fontWeight: '800', letterSpacing: 4, color: '#111827' },
+  codeText: { fontSize: 24, fontWeight: '800', letterSpacing: 4, color: '#FFFFFF' },
   copyBtn: { padding: 8 },
-  subText: { color: '#6B7280', fontSize: 13 },
+  subText: { color: '#A5A1B8', fontSize: 13 },
   listItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  listMain: { fontSize: 15, fontWeight: '600', color: '#111827' },
-  listSub: { fontSize: 12, color: '#6B7280', marginTop: 4 },
+  listMain: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  listSub: { fontSize: 12, color: '#A5A1B8', marginTop: 4 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   statusText: { fontSize: 12, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '80%' },
+  modalContent: { backgroundColor: '#48426D', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '80%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
   inputGroup: { marginBottom: 16 },
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
-  input: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
-  submitBtn: { backgroundColor: '#00B894', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 12 },
+  inputLabel: { fontSize: 13, fontWeight: '600', color: '#FFFFFF', marginBottom: 6 },
+  input: { backgroundColor: '#25213E', borderWidth: 1, borderColor: '#3D3762', borderRadius: 10, padding: 12, fontSize: 15, color: '#FFFFFF' },
+  submitBtn: { backgroundColor: '#F0C38E', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 12 },
   submitBtnText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
-  tierText: { color: '#374151', marginBottom: 4 }
+  tierText: { color: '#FFFFFF', marginBottom: 4 }
 });

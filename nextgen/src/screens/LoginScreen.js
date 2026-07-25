@@ -103,13 +103,13 @@ export default function LoginScreen({ onNavigateToRegister }) {
           <View style={styles.headerArea}>
             <View style={styles.logoWrapper}>
               <Image
-                source={require('../assets/logo.png')}
+                source={require('../assets/GoFixit.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.title}>NextGen</Text>
-            <Text style={styles.subtitle}>Power Care Smart Support</Text>
+            <Text style={styles.title}>Go Fixit</Text>
+            <Text style={styles.subtitle}>Smart Support</Text>
           </View>
 
           {/* Form Card */}
@@ -125,7 +125,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="+91 98765 43210"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   keyboardType="phone-pad"
                   value={phone}
                   onChangeText={(t) => { setPhone(t); setPhoneError(''); }}
@@ -148,7 +148,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Enter your password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
@@ -174,7 +174,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={['#00B894', '#0984E3']}
+                colors={['#F0C38E', '#F1AA9B']}
                 style={styles.loginButtonGrad}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -184,7 +184,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
                 ) : (
                   <View style={styles.btnContent}>
                     <Text style={styles.loginButtonText}>Sign In</Text>
-                    <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                    <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                   </View>
                 )}
               </LinearGradient>
@@ -213,7 +213,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -229,11 +229,11 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 28,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: '#00B894',
+    shadowColor: '#F0C38E',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -249,21 +249,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#111827',
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
     marginTop: 4,
   },
   formCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 28,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -273,11 +273,11 @@ const styles = StyleSheet.create({
   formHeading: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   formSub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
     marginBottom: 20,
     fontWeight: '500',
@@ -321,16 +321,16 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#374151',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 14,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     paddingHorizontal: 14,
   },
   inputIcon: {
@@ -340,12 +340,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 14,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   loginButton: {
     marginTop: 10,
-    shadowColor: '#00B894',
+    shadowColor: '#F0C38E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginButtonText: {
-    color: '#FFF',
+    color: '#312C51',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -374,12 +374,12 @@ const styles = StyleSheet.create({
   },
   signupText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '500',
   },
   signupLink: {
     fontSize: 13,
-    color: '#0984E3',
+    color: '#F1AA9B',
     fontWeight: '700',
   },
 });

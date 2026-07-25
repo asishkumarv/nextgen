@@ -18,7 +18,7 @@ export default function Home() {
             <span className="text-gradient">Zero-Cost Scheduling</span>
           </h1>
           <p className="hero-subtitle animate-slide-up">
-            NextGen PowerCare provides certified, on-demand technician routing. Book services directly or unlock unlimited free repairs with our annual subscription slots.
+            Go Fixit provides certified, on-demand technician routing. Book services directly or unlock unlimited free repairs with our annual subscription slots.
           </p>
           <div className="hero-actions animate-slide-up">
             {token ? (
@@ -72,7 +72,7 @@ export default function Home() {
       <section className="features-section">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose NextGen PowerCare?</h2>
+            <h2>Why Choose Go Fixit?</h2>
             <p>Our intelligent scheduling platform ensures premium repairs with zero delays.</p>
           </div>
 
@@ -156,7 +156,7 @@ export default function Home() {
       <section className="cta-banner">
         <div className="container cta-container">
           <div className="cta-text">
-            <h2>Ready to experience hassle-free power care?</h2>
+            <h2>Ready to experience hassle-free support?</h2>
             <p>Create an account in seconds to secure your subscription slot or book a verified technician.</p>
           </div>
           <div className="cta-action">

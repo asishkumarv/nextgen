@@ -11,8 +11,8 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#F5F7FB"
+        barStyle="light-content"
+        backgroundColor="#312C51"
       />
       <VendorProvider>
         <VendorNavigator />

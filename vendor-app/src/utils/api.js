@@ -3,7 +3,7 @@ import { Platform, DeviceEventEmitter } from 'react-native';
 
 const getApiUrl = () => {
   // Production URL (Render backend)
-  // return 'https://nextgen-8hi5.onrender.com/api';
+  // return 'https://Go Fixit-8hi5.onrender.com/api';
   return 'https://api.nextgenpowercare.com/api';
 };
 

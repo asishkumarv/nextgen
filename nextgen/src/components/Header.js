@@ -11,12 +11,11 @@ export default function Header() {
     <View style={styles.container}>
       <View style={styles.leftSection}>
         <Image
-          source={require('../assets/logo.png')}
+          source={require('../assets/GoFixit.png')}
           style={styles.logo}
         />
         <View style={styles.textContainer}>
-          <Text style={styles.title}>NEXT GEN</Text>
-          <Text style={styles.subTitle}>Power Care</Text>
+          <Text style={styles.subTitle}>Go Fixit</Text>
         </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -47,7 +46,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   leftSection: {
     flexDirection: 'row',
@@ -65,13 +64,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#6B7280',
+    color: '#A5A1B8',
     letterSpacing: 1,
   },
   subTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
     marginTop: -2,
   },
   bellButton: {
@@ -94,4 +93,4 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#E8F1FC',
   },
-});
+});

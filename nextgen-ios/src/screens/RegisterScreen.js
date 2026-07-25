@@ -179,13 +179,13 @@ export default function RegisterScreen({ onNavigateToLogin }) {
           <View style={styles.headerArea}>
             <View style={styles.logoWrapper}>
               <Image
-                source={require('../assets/logo.png')}
+                source={require('../assets/GoFixit.png')}
                 style={styles.logoImage}
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.title}>NextGen</Text>
-            <Text style={styles.subtitle}>Power Care Smart Support</Text>
+            <Text style={styles.title}>Go Fixit</Text>
+            <Text style={styles.subtitle}>Smart Support</Text>
           </View>
 
           {/* Form Card */}
@@ -201,7 +201,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="John Doe"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   value={name}
                   onChangeText={(t) => { setName(t); setNameError(''); }}
                   editable={!loading}
@@ -223,7 +223,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="+91 98765 43210"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   keyboardType="phone-pad"
                   value={phone}
                   onChangeText={(t) => { setPhone(t); setPhoneError(''); }}
@@ -246,7 +246,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Enter email address"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
@@ -271,7 +271,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
               </TouchableOpacity>
               {districtDropdownOpen && (
-                <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, marginTop: 4, maxHeight: 150 }}>
+                <View style={{ backgroundColor: '#48426D', borderWidth: 1, borderColor: '#3D3762', borderRadius: 12, marginTop: 4, maxHeight: 150 }}>
                   <ScrollView nestedScrollEnabled>
                     {districts.map(opt => (
                       <TouchableOpacity 
@@ -283,7 +283,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                           setDistrictDropdownOpen(false);
                         }}
                       >
-                        <Text style={{ color: '#374151' }}>{opt.name}</Text>
+                        <Text style={{ color: '#FFFFFF' }}>{opt.name}</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
@@ -306,7 +306,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
               </TouchableOpacity>
               {mandalDropdownOpen && (
-                <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, marginTop: 4, maxHeight: 150 }}>
+                <View style={{ backgroundColor: '#48426D', borderWidth: 1, borderColor: '#3D3762', borderRadius: 12, marginTop: 4, maxHeight: 150 }}>
                   <ScrollView nestedScrollEnabled>
                     {mandals.map(opt => (
                       <TouchableOpacity 
@@ -317,7 +317,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                           setMandalDropdownOpen(false);
                         }}
                       >
-                        <Text style={{ color: '#374151' }}>{opt.name}</Text>
+                        <Text style={{ color: '#FFFFFF' }}>{opt.name}</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
@@ -333,7 +333,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Enter your address (optional)"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   value={address}
                   onChangeText={(t) => setAddress(t)}
                   editable={!loading}
@@ -349,7 +349,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Min. 6 characters"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
@@ -384,7 +384,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Confirm your password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   secureTextEntry={!showConfirmPassword}
                   value={confirmPassword}
                   onChangeText={(t) => { setConfirmPassword(t); setConfirmError(''); }}
@@ -410,7 +410,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Enter 7-digit code"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#A5A1B8"
                   value={referralCode}
                   onChangeText={(t) => setReferralCode(t.toUpperCase())}
                   maxLength={7}
@@ -432,7 +432,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 ) : (
                   <View style={styles.btnContent}>
                     <Text style={styles.registerButtonText}>Register</Text>
-                    <Ionicons name="arrow-forward" size={16} color="#FFF" style={{ marginLeft: 8 }} />
+                    <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
                   </View>
                 )}
               </View>
@@ -461,7 +461,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: '#312C51',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 28,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#48426D',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -497,21 +497,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#111827',
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '600',
     marginTop: 4,
   },
   formCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 28,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#3D3762',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -521,11 +521,11 @@ const styles = StyleSheet.create({
   formHeading: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   formSub: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
     marginBottom: 20,
     fontWeight: '500',
@@ -592,16 +592,16 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#374151',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3D3762',
     borderRadius: 14,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#25213E',
     paddingHorizontal: 14,
   },
   inputIcon: {
@@ -611,19 +611,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 14,
-    color: '#111827',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   registerButton: {
     marginTop: 10,
-    shadowColor: '#007AFF',
+    shadowColor: '#F0C38E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   registerButtonGrad: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#F0C38E',
     borderRadius: 14,
     paddingVertical: 14,
     justifyContent: 'center',
@@ -646,12 +646,12 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#A5A1B8',
     fontWeight: '500',
   },
   loginLink: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#F0C38E',
     fontWeight: '700',
   },
 });

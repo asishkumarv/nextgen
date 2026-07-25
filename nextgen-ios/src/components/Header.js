@@ -15,12 +15,11 @@ export default function Header() {
     <BlurView intensity={80} tint="light" style={[styles.container, { paddingTop: insets.top + 8 }]}>
       <View style={styles.leftSection}>
         <Image
-          source={require('../assets/logo.png')}
+          source={require('../assets/GoFixit.png')}
           style={styles.logo}
         />
         <View style={styles.textContainer}>
-          <Text style={styles.title}>NEXT GEN</Text>
-          <Text style={styles.subTitle}>Power Care</Text>
+          <Text style={styles.subTitle}>Go Fixit</Text>
         </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#0F172A',
+    color: '#F0C38E',
     marginTop: -2,
   },
   bellButton: {
@@ -106,4 +105,4 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#E8F1FC',
   },
-});
+});

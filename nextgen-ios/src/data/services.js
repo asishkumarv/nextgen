@@ -34,4 +34,4 @@ export const services = [
     price: 99,
     icon: 'toggle-outline',
   },
-];
+];

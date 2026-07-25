@@ -20,7 +20,7 @@ export default function ServiceCard({ item }) {
 
         <TouchableOpacity>
           <View
-            style={[styles.button, { backgroundColor: '#007AFF' }]}
+            style={[styles.button, { backgroundColor: '#F0C38E' }]}
           >
             <Text style={styles.buttonText}>Book</Text>
           </View>
@@ -32,7 +32,7 @@ export default function ServiceCard({ item }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#48426D',
     borderRadius: 20,
     padding: 16,
     marginBottom: 14,
@@ -47,10 +47,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
+    color: '#FFFFFF',
   },
   sub: {
-    color: '#6B7280',
+    color: '#A5A1B8',
     marginTop: 4,
   },
   rightSection: {
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
-    color: '#00B894',
+    color: '#F0C38E',
   },
   button: {
     paddingHorizontal: 18,

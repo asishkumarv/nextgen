@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Menu, X, LogOut, LayoutDashboard, Calendar, Wrench, Shield, Home, Info, PhoneCall, Sun, Moon, User, Wallet } from 'lucide-react';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/GoFixit.png';
 
 export default function Navbar() {
   const { token, logout, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem('nextgen_theme') || 'light');
+  const [theme, setTheme] = useState(localStorage.getItem('gofixit_theme') || 'dark');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('nextgen_theme', theme);
+    localStorage.setItem('gofixit_theme', theme);
   }, [theme]);
 
   useEffect(() => {
@@ -59,8 +59,8 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo" onClick={() => setMobileMenuOpen(false)}>
-          <img src={logoImg} alt="NextGen Logo" className="logo-img" />
-          <span>NextGen <span className="logo-accent">PowerCare</span></span>
+          <img src={logoImg} alt="Go Fixit Logo" className="logo-img" />
+          <span>Go Fixit</span>
         </Link>
 
         {/* Desktop Navigation Links */}

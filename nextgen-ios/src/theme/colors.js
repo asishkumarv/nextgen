@@ -1,11 +1,11 @@
 export default {
-  primary: '#0F172A', // Deep Navy / Slate
-  secondary: '#334155', // Slate
-  dark: '#000000', // Obsidian Black
-  light: '#FFFFFF',
-  background: '#F8FAFC', // Very light sleek background
-  text: '#0F172A', // Navy text
+  primary: '#F0C38E', // Peach Accent
+  secondary: '#F1AA9B', // Coral Accent
+  dark: '#25213E', // Slate Dark
+  light: '#48426D', // Slate Medium Purple (replaces white cards)
+  background: '#312C51', // Slate Dark Purple Background
+  text: '#FFFFFF', // White Text
   success: '#10B981', // Emerald Green
-  border: '#E2E8F0', // Soft border
-  accent: '#38BDF8', // Light blue accent for links/small elements
+  border: '#3D3762', // Slate Purple Border
+  accent: '#F0C38E', // Peach accent
 };

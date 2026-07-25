@@ -103,7 +103,7 @@ export default function Users() {
                     <td style={{ fontWeight: '750', color: '#111827' }}>{u.name}</td>
                     <td>{u.phone}</td>
                     <td>{formatDate(u.createdAt)}</td>
-                    <td style={{ fontWeight: '700', color: '#0984E3' }}>
+                    <td style={{ fontWeight: '700', color: '#48426D' }}>
                       {u.bookingCount || 0} bookings
                     </td>
                     <td>

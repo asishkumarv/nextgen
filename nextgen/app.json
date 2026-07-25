@@ -1,42 +1,42 @@
 {
   "expo": {
-    "name": "nextgen",
-    "slug": "nextgen",
+    "name": "Go Fixit",
+    "slug": "gofixit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/logo.png",
-    "scheme": "nextgen",
+    "icon": "./src/assets/GoFixit.png",
+    "scheme": "gofixit",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./src/assets/logo.png",
-      "bundleIdentifier": "com.asishkumarv.nextgen",
+      "icon": "./src/assets/GoFixit.png",
+      "bundleIdentifier": "com.asishkumarv.gofixit",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./src/assets/logo.png",
-        "backgroundImage": "./src/assets/logo.png",
-        "monochromeImage": "./src/assets/logo.png"
+        "backgroundColor": "#FAF6F0",
+        "foregroundImage": "./src/assets/GoFixit.png",
+        "backgroundImage": "./src/assets/GoFixit.png",
+        "monochromeImage": "./src/assets/GoFixit.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.asishkumarv.nextgen",
+      "package": "com.asishkumarv.gofixit",
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "output": "static",
-      "favicon": "./src/assets/logo.png"
+      "favicon": "./src/assets/GoFixit.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#312C51",
           "android": {
-            "image": "./src/assets/logo.png",
+            "image": "./src/assets/GoFixit.png",
             "imageWidth": 76
           }
         }
