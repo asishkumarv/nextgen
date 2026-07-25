@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import { Calendar, Clock, MapPin, Wrench, CheckCircle, AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
@@ -8,6 +8,7 @@ import { getServiceIllustration } from '../utils/illustrations';
 export default function Services() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // State Variables
   const [services, setServices] = useState([]);
@@ -32,7 +33,14 @@ export default function Services() {
   // Reverse Geocoding via OpenStreetMap Nominatim
   const reverseGeocode = async (latitude, longitude) => {
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+        {
+          headers: {
+            'User-Agent': 'GoFixitWeb/1.0.0 (contact@nextgenpowercare.com)'
+          }
+        }
+      );
       const data = await response.json();
       if (data && data.display_name) {
         setAddress(data.display_name);
@@ -40,6 +48,34 @@ export default function Services() {
     } catch (e) {
       console.warn('Reverse geocoding error:', e);
     }
+  };
+
+  const parseGoogleMapsLink = async (text) => {
+    let targetUrl = text.trim();
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      return null;
+    }
+    try {
+      if (targetUrl.includes('goo.gl') || targetUrl.includes('maps.app')) {
+        const res = await fetch(targetUrl, { method: 'GET' });
+        targetUrl = res.url;
+      }
+      const atMatch = targetUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (atMatch) {
+        return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+      }
+      const qMatch = targetUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (qMatch) {
+        return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+      }
+      const llMatch = targetUrl.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (llMatch) {
+        return { lat: parseFloat(llMatch[1]), lng: parseFloat(llMatch[2]) };
+      }
+    } catch (e) {
+      console.warn('Failed to parse Google Maps link:', e);
+    }
+    return null;
   };
 
   // Get current device location coordinates
@@ -72,8 +108,37 @@ export default function Services() {
   // Search Address on OSM Nominatim
   const handleSearchAddressOnMap = async () => {
     if (!mapSearchQuery.trim()) return;
+
+    const isLink = mapSearchQuery.includes('google.com/maps') || mapSearchQuery.includes('maps.app.goo.gl') || mapSearchQuery.includes('goo.gl/maps');
+    if (isLink) {
+      const coords = await parseGoogleMapsLink(mapSearchQuery);
+      if (coords) {
+        const formattedLat = coords.lat.toFixed(6);
+        const formattedLng = coords.lng.toFixed(6);
+        setLat(formattedLat);
+        setLng(formattedLng);
+        if (window.leafletMapObj && window.leafletMarkerObj) {
+          const latlng = [coords.lat, coords.lng];
+          window.leafletMapObj.setView(latlng, 15);
+          window.leafletMarkerObj.setLatLng(latlng);
+        }
+        reverseGeocode(coords.lat, coords.lng);
+        return;
+      } else {
+        alert('Could not parse Google Maps link coordinates.');
+        return;
+      }
+    }
+
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}`,
+        {
+          headers: {
+            'User-Agent': 'GoFixitWeb/1.0.0 (contact@nextgenpowercare.com)'
+          }
+        }
+      );
       const data = await response.json();
       if (data && data.length > 0) {
         const { lat: searchedLat, lon: searchedLng, display_name } = data[0];
@@ -151,6 +216,7 @@ export default function Services() {
       window.leafletMarkerObj = marker;
     }, 300);
 
+    window.scrollTo(0, 0);
     return () => clearTimeout(timer);
   }, [currentStep]);
 
@@ -170,6 +236,16 @@ export default function Services() {
     };
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    if (location.state && location.state.preSelectedService && services.length > 0) {
+      const found = services.find(s => s.id === location.state.preSelectedService.id);
+      if (found) {
+        setSelectedService(found);
+        setCurrentStep(2);
+      }
+    }
+  }, [location.state, services]);
 
   const handleServiceSelect = (service) => {
     setSelectedService(service);

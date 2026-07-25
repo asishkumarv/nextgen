@@ -9,6 +9,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import HomeScreen from '../screens/HomeScreen';
 import SlotsScreen from '../screens/SlotsScreen';
 import ServicesScreen from '../screens/ServicesScreen';
+import ServiceDetailScreen from '../screens/ServiceDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -120,6 +121,15 @@ export default function AppNavigator() {
             component={NotificationScreen}
             options={{ 
               title: 'Notifications', 
+              tabBarItemStyle: { display: 'none' }
+            }}
+          />
+
+          <Tab.Screen
+            name="ServiceDetail"
+            component={ServiceDetailScreen}
+            options={{ 
+              title: 'Service Details',
               tabBarItemStyle: { display: 'none' }
             }}
           />

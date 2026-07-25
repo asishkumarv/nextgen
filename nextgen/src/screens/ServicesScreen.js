@@ -35,6 +35,7 @@ export default function ServicesScreen() {
     setActiveBookingService, 
     addBooking,
     services,
+    isServiceIncluded,
     refreshData
   } = useApp();
 
@@ -136,10 +137,10 @@ export default function ServicesScreen() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   
   // Address form states
-  const [houseNo, setHouseNo] = useState('Flat 405, Block B');
-  const [street, setStreet] = useState('Green Glen Layout');
-  const [landmark, setLandmark] = useState('Near Central Mall');
-  const [pincode, setPincode] = useState('560103');
+  const [houseNo, setHouseNo] = useState('');
+  const [street, setStreet] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [pincode, setPincode] = useState('');
 
   // GPS Coordinates & Map Search states
   const [latitude, setLatitude] = useState('17.3850');
@@ -178,10 +179,67 @@ export default function ServicesScreen() {
     }
   };
 
+  const parseGoogleMapsLink = async (text) => {
+    let targetUrl = text.trim();
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      return null;
+    }
+    try {
+      if (targetUrl.includes('goo.gl') || targetUrl.includes('maps.app')) {
+        const res = await fetch(targetUrl, { method: 'GET' });
+        targetUrl = res.url;
+      }
+      const atMatch = targetUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (atMatch) {
+        return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+      }
+      const qMatch = targetUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (qMatch) {
+        return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+      }
+      const llMatch = targetUrl.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (llMatch) {
+        return { lat: parseFloat(llMatch[1]), lng: parseFloat(llMatch[2]) };
+      }
+    } catch (e) {
+      console.warn('Failed to parse Google Maps link:', e);
+    }
+    return null;
+  };
+
   const handleSearchOnMap = async () => {
     if (!mapSearchText.trim()) return;
+    
+    const isLink = mapSearchText.includes('google.com/maps') || mapSearchText.includes('maps.app.goo.gl') || mapSearchText.includes('goo.gl/maps');
+    if (isLink) {
+      const coords = await parseGoogleMapsLink(mapSearchText);
+      if (coords) {
+        const latVal = coords.lat.toFixed(6);
+        const lngVal = coords.lng.toFixed(6);
+        setLatitude(latVal);
+        setLongitude(lngVal);
+        if (webViewRef.current) {
+          webViewRef.current.postMessage(
+            JSON.stringify({ type: 'center', lat: coords.lat, lng: coords.lng })
+          );
+        }
+        reverseGeocode(coords.lat, coords.lng);
+        return;
+      } else {
+        alert('Could not parse Google Maps link coordinates.');
+        return;
+      }
+    }
+
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchText)}`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchText)}`,
+        {
+          headers: {
+            'User-Agent': 'GoFixitApp/1.0.0 (contact@nextgenpowercare.com)'
+          }
+        }
+      );
       const data = await response.json();
       if (data && data.length > 0) {
         const { lat, lon, display_name } = data[0];
@@ -211,7 +269,14 @@ export default function ServicesScreen() {
 
   const reverseGeocode = async (lat, lng) => {
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        {
+          headers: {
+            'User-Agent': 'GoFixitApp/1.0.0 (contact@nextgenpowercare.com)'
+          }
+        }
+      );
       const data = await response.json();
       if (data && data.address) {
         const { road, suburb, city, county, postcode } = data.address;
@@ -264,20 +329,7 @@ export default function ServicesScreen() {
   const activeSubs = subscriptions?.filter(s => s.status === 'Active') || [];
   const activeSub = activeSubs[0]; // fallback for legacy uses
 
-  const isServiceIncluded = (serviceTitle) => {
-    if (!serviceTitle || activeSubs.length === 0) return false;
-    for (const sub of activeSubs) {
-      let included = sub.includedServices;
-      if (typeof included === 'string') {
-        try { included = JSON.parse(included); } catch(e) { included = []; }
-      }
-      if (!Array.isArray(included)) included = [];
-      if (included.some(s => s?.toLowerCase() === serviceTitle.toLowerCase())) {
-        return true;
-      }
-    }
-    return false;
-  };
+
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
@@ -399,7 +451,7 @@ export default function ServicesScreen() {
     if (activeBookingService) {
       setSelectedDate(availableDates[0].formatted);
       setSelectedTimeSlot('Morning (9 AM - 12 PM)');
-      setBookingStep(1);
+      setBookingStep(3);
       setBookingSuccess(false);
       // Reset area selections
       setSelectedDistrict(null);
@@ -423,8 +475,9 @@ export default function ServicesScreen() {
 
   const handleBackStep = () => {
     if (bookingStep === 3) {
-      setBookingStep(1);
-    } else if (bookingStep > 1) {
+      setActiveBookingService(null);
+      navigation.goBack();
+    } else if (bookingStep > 3) {
       setBookingStep(bookingStep - 1);
     } else {
       setActiveBookingService(null);
@@ -510,7 +563,7 @@ export default function ServicesScreen() {
               <TouchableOpacity
                 key={item.id}
                 style={styles.gridCardItem}
-                onPress={() => handleStartBooking(item)}
+                onPress={() => navigation.navigate('ServiceDetail', { service: item })}
                 activeOpacity={0.8}
               >
                 <View style={styles.gridCardIconWrapper}>
@@ -633,11 +686,18 @@ export default function ServicesScreen() {
                   >
                     <View style={styles.serviceSelectLeft}>
                       <View style={[styles.serviceSelectIconBg, isSelected && styles.serviceSelectIconBgActive]}>
-                        <Ionicons 
-                          name={item.icon || 'construct-outline'} 
-                          size={20} 
-                          color={isSelected ? '#15803D' : '#6B7280'} 
-                        />
+                        {item.icon && (item.icon.startsWith('data:') || item.icon.startsWith('http')) ? (
+                          <Image 
+                            source={{ uri: item.icon }} 
+                            style={{ width: 20, height: 20, borderRadius: 10 }} 
+                          />
+                        ) : (
+                          <Ionicons 
+                            name={(item.icon && item.icon.length < 30) ? item.icon : 'construct-outline'} 
+                            size={20} 
+                            color={isSelected ? '#15803D' : '#6B7280'} 
+                          />
+                        )}
                       </View>
                       <View style={{ marginLeft: 12, flex: 1 }}>
                         <Text style={[styles.serviceSelectTitle, isSelected && styles.serviceSelectTitleActive]}>
@@ -801,7 +861,7 @@ export default function ServicesScreen() {
                     <Ionicons 
                       name={slot.includes('Morning') ? 'sunny-outline' : slot.includes('Afternoon') ? 'partly-sunny-outline' : 'moon-outline'} 
                       size={20} 
-                      color={isSelected ? '#F0C38E' : '#6B7280'} 
+                      color={isSelected ? '#312C51' : '#6B7280'} 
                       style={{ marginRight: 12 }}
                     />
                     <Text style={[styles.timeSlotText, isSelected && styles.timeSlotTextActive]}>{slot}</Text>
@@ -1563,7 +1623,7 @@ const styles = StyleSheet.create({
   },
   timeSlotCardActive: {
     borderColor: '#F0C38E',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#F0C38E',
   },
   timeSlotText: {
     fontSize: 14,
@@ -1571,8 +1631,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   timeSlotTextActive: {
-    color: '#065F46',
-    fontWeight: '700',
+    color: '#312C51',
+    fontWeight: '800',
   },
 
   // Step 3 Address styling
@@ -1589,7 +1649,7 @@ const styles = StyleSheet.create({
   inputHeading: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#4B5563',
+    color: '#A5A1B8',
     marginBottom: 6,
   },
   addressInput: {
@@ -1624,7 +1684,7 @@ const styles = StyleSheet.create({
   reviewServicePrice: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#15803D',
+    color: '#4ADE80',
   },
   reviewSubtitle: {
     fontSize: 13,
@@ -1633,7 +1693,7 @@ const styles = StyleSheet.create({
   },
   reviewDivider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#3D3762',
     marginVertical: 14,
   },
   reviewItem: {
@@ -1643,8 +1703,8 @@ const styles = StyleSheet.create({
   },
   reviewText: {
     fontSize: 14,
-    color: '#4B5563',
-    fontWeight: '500',
+    color: '#D1CDE8',
+    fontWeight: '600',
     flex: 1,
   },
   paymentMethod: {

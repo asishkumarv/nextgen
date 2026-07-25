@@ -23,24 +23,9 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, subscriptions, services, setActiveBookingService, refreshData } = useApp();
+  const { user, bookedSlot, subscriptions, services, isServiceIncluded, refreshData } = useApp();
   const activeSub = subscriptions?.find(s => s.status !== 'Rejected') || subscriptions?.[0];
 
-  const isServiceIncluded = (serviceTitle) => {
-    if (!serviceTitle || !subscriptions || subscriptions.length === 0) return false;
-    const activeSubs = subscriptions.filter(s => s.status === 'Active');
-    for (const sub of activeSubs) {
-      let included = sub.includedServices;
-      if (typeof included === 'string') {
-        try { included = JSON.parse(included); } catch(e) { included = []; }
-      }
-      if (!Array.isArray(included)) included = [];
-      if (included.some(s => s?.toLowerCase() === serviceTitle.toLowerCase())) {
-        return true;
-      }
-    }
-    return false;
-  };
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -53,8 +38,7 @@ export default function HomeScreen() {
   };
 
   const handleBookService = (service) => {
-    setActiveBookingService(service);
-    navigation.navigate('Services');
+    navigation.navigate('ServiceDetail', { service });
   };
 
   return (

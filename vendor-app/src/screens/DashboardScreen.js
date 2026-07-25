@@ -10,6 +10,7 @@ import {
   Linking,
   Modal,
   TextInput,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -177,7 +178,18 @@ export default function DashboardScreen() {
                   <View style={styles.taskCardHeader}>
                     <View style={styles.taskServiceLeft}>
                       <View style={styles.taskIconBg}>
-                        <Ionicons name={item.icon || 'construct'} size={18} color="#15803D" />
+                        {item.icon && (item.icon.startsWith('data:') || item.icon.startsWith('http')) ? (
+                          <Image 
+                            source={{ uri: item.icon }} 
+                            style={{ width: 18, height: 18, borderRadius: 9 }} 
+                          />
+                        ) : (
+                          <Ionicons 
+                            name={(item.icon && item.icon.length < 30) ? item.icon : 'construct'} 
+                            size={18} 
+                            color="#15803D" 
+                          />
+                        )}
                       </View>
                       <View style={{ marginLeft: 10 }}>
                         <Text style={styles.taskServiceName}>{item.serviceName}</Text>

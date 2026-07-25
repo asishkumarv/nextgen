@@ -280,8 +280,8 @@ export default function ProfileScreen() {
                           style={styles.userCallBtn} 
                           onPress={() => Linking.openURL(`tel:${booking.vendorPhone}`)}
                         >
-                          <Ionicons name="call" size={12} color="#FFF" style={{ marginRight: 4 }} />
-                          <Text style={styles.userCallBtnText}>Call</Text>
+                          <Ionicons name="call" size={12} color="#312C51" style={{ marginRight: 4 }} />
+                          <Text style={[styles.userCallBtnText, { color: '#312C51' }]}>Call</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -1022,14 +1022,15 @@ const styles = StyleSheet.create({
   },
   bookingCardExpanded: {
     borderColor: '#F0C38E',
-    backgroundColor: '#FCFDFE',
+    backgroundColor: '#25213E',
+    borderWidth: 1.5,
   },
   expandedContent: {
     marginTop: 12,
   },
   expandedDivider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#3D3762',
     marginBottom: 12,
   },
   otpRow: {
@@ -1043,17 +1044,17 @@ const styles = StyleSheet.create({
     color: '#A5A1B8',
   },
   otpBadge: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#A5D6A7',
+    backgroundColor: '#1A3E26',
+    borderColor: '#2E7D32',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
   otpText: {
-    color: '#2E7D32',
+    color: '#4ADE80',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '850',
     letterSpacing: 1,
   },
   otpSubText: {

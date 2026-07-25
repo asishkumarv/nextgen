@@ -2669,7 +2669,35 @@
   }
 
   .services-list-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .service-selection-card {
+    padding: 12px;
+    min-height: 180px;
+  }
+
+  .service-selection-card .card-sub {
+    display: none;
+  }
+
+  .service-selection-card .web-grid-details h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0;
+  }
+
+  .service-selection-card .card-footer-row {
+    margin-top: 12px;
+  }
+
+  .service-selection-card .card-footer-row .price-tag {
+    font-size: 0.9rem;
+  }
+
+  .service-selection-card .card-footer-row button {
+    padding: 6px 8px;
+    font-size: 0.75rem;
   }
 
   .slots-grid {
