@@ -216,6 +216,35 @@ export default function DashboardScreen() {
                     <Text style={[styles.detailVal, { flex: 1, lineHeight: 18 }]}>{item.address}</Text>
                   </View>
 
+                  {/* GPS Navigate Button — always visible */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      const url = (item.latitude && item.longitude)
+                        ? `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address || '')}`;
+                      Linking.openURL(url).catch(() => alert('Unable to open Google Maps'));
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#132040',
+                      borderWidth: 1.5,
+                      borderColor: '#4285F4',
+                      borderRadius: 10,
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                      marginTop: 10,
+                      marginBottom: 2,
+                    }}
+                    activeOpacity={0.75}
+                  >
+                    <Ionicons name="navigate-circle" size={18} color="#4285F4" style={{ marginRight: 8 }} />
+                    <Text style={{ color: '#4285F4', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 }}>
+                      Navigate via Google Maps
+                    </Text>
+                  </TouchableOpacity>
+
                   {/* Complete Task Trigger Action */}
                   <TouchableOpacity
                     style={styles.completeBtn}

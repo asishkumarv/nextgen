@@ -24,6 +24,136 @@ export default function Services() {
   const [bookingError, setBookingError] = useState('');
   const [createdBooking, setCreatedBooking] = useState(null);
 
+  // GPS Coordinates & Map Search state
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  const [mapSearchQuery, setMapSearchQuery] = useState('');
+
+  // Reverse Geocoding via OpenStreetMap Nominatim
+  const reverseGeocode = async (latitude, longitude) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+      const data = await response.json();
+      if (data && data.display_name) {
+        setAddress(data.display_name);
+      }
+    } catch (e) {
+      console.warn('Reverse geocoding error:', e);
+    }
+  };
+
+  // Get current device location coordinates
+  const handleUseCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const formattedLat = latitude.toFixed(6);
+          const formattedLng = longitude.toFixed(6);
+          setLat(formattedLat);
+          setLng(formattedLng);
+          
+          if (window.leafletMapObj && window.leafletMarkerObj) {
+            const latlng = [latitude, longitude];
+            window.leafletMapObj.setView(latlng, 15);
+            window.leafletMarkerObj.setLatLng(latlng);
+          }
+          reverseGeocode(latitude, longitude);
+        },
+        (error) => {
+          alert('Failed to get location: ' + error.message);
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser.');
+    }
+  };
+
+  // Search Address on OSM Nominatim
+  const handleSearchAddressOnMap = async () => {
+    if (!mapSearchQuery.trim()) return;
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}`);
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const { lat: searchedLat, lon: searchedLng, display_name } = data[0];
+        const numLat = parseFloat(searchedLat);
+        const numLng = parseFloat(searchedLng);
+        const formattedLat = numLat.toFixed(6);
+        const formattedLng = numLng.toFixed(6);
+        
+        setLat(formattedLat);
+        setLng(formattedLng);
+        setAddress(display_name);
+        
+        if (window.leafletMapObj && window.leafletMarkerObj) {
+          const latlng = [numLat, numLng];
+          window.leafletMapObj.setView(latlng, 15);
+          window.leafletMarkerObj.setLatLng(latlng);
+        }
+      } else {
+        alert('No locations found for your search query.');
+      }
+    } catch (e) {
+      console.warn('Search geocoding error:', e);
+    }
+  };
+
+  // Initialize Leaflet Map in Step 3
+  useEffect(() => {
+    if (currentStep !== 3) return;
+
+    const timer = setTimeout(() => {
+      const defaultLat = 17.3850; // Hyderabad/Default center
+      const defaultLng = 78.4867;
+      
+      const initialLat = lat ? parseFloat(lat) : defaultLat;
+      const initialLng = lng ? parseFloat(lng) : defaultLng;
+
+      const container = document.getElementById('map');
+      if (!container || !window.L) return;
+      
+      if (window.leafletMapObj) {
+        window.leafletMapObj.remove();
+      }
+
+      const map = window.L.map('map').setView([initialLat, initialLng], 13);
+      window.leafletMapObj = map;
+
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const marker = window.L.marker([initialLat, initialLng], {
+        draggable: true
+      }).addTo(map);
+
+      if (!lat || !lng) {
+        setLat(initialLat.toFixed(6));
+        setLng(initialLng.toFixed(6));
+      }
+
+      marker.on('dragend', function () {
+        const position = marker.getLatLng();
+        setLat(position.lat.toFixed(6));
+        setLng(position.lng.toFixed(6));
+        reverseGeocode(position.lat, position.lng);
+      });
+
+      map.on('click', function(event) {
+        const clickedLatLng = event.latlng;
+        marker.setLatLng(clickedLatLng);
+        setLat(clickedLatLng.lat.toFixed(6));
+        setLng(clickedLatLng.lng.toFixed(6));
+        reverseGeocode(clickedLatLng.lat, clickedLatLng.lng);
+      });
+
+      window.leafletMarkerObj = marker;
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [currentStep]);
+
   // Fetch active services on mount
   useEffect(() => {
     const fetchServices = async () => {
@@ -51,8 +181,8 @@ export default function Services() {
       setBookingError('Please select both a date and a time slot.');
       return;
     }
-    if (currentStep === 3 && !address.trim()) {
-      setBookingError('Please enter a valid service address.');
+    if (currentStep === 3 && (!address.trim() || !lat || !lng)) {
+      setBookingError('Please enter a valid address and make sure GPS coordinates are pinned on the map.');
       return;
     }
     setBookingError('');
@@ -65,7 +195,7 @@ export default function Services() {
   };
 
   const handleConfirmBooking = async () => {
-    if (!selectedService || !bookingDate || !timeSlot || !address.trim()) {
+    if (!selectedService || !bookingDate || !timeSlot || !address.trim() || !lat || !lng) {
       setBookingError('Missing required booking details. Please verify your entries.');
       return;
     }
@@ -73,15 +203,15 @@ export default function Services() {
     setBookingLoading(true);
     setBookingError('');
     
-    // Construct request payload
-    // Skipped districtId and mandalId for both subscribed and non-subscribed users. 
-    // Subscribed users will have their location auto-assigned in the backend using their active subscription data.
+    // Construct request payload with GPS coordinates
     const payload = {
       serviceName: selectedService.title,
       price: selectedService.price,
       date: bookingDate,
       timeSlot: timeSlot,
       address: address.trim(),
+      latitude: lat,
+      longitude: lng,
     };
 
     try {
@@ -308,14 +438,70 @@ export default function Services() {
               <MapPin className="input-icon textarea-icon" size={16} />
               <textarea
                 id="service-address"
-                rows="4"
+                rows="3"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="House No, Street, Landmark, City / Village Name..."
                 required
               ></textarea>
             </div>
-            <p className="field-hint">Note: Mandal and District parameters are skipped for easy scheduling.</p>
+          </div>
+
+          <div className="form-group" style={{ marginTop: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Pin Location via Map *</label>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              <input
+                type="text"
+                value={mapSearchQuery}
+                onChange={(e) => setMapSearchQuery(e.target.value)}
+                placeholder="Search town, street, area..."
+                style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearchAddressOnMap();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleSearchAddressOnMap}
+                style={{ padding: '8px 16px', background: '#F0C38E', color: '#312C51', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+              >
+                Search
+              </button>
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                style={{ padding: '8px 16px', background: '#F1AA9B', color: '#312C51', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+              >
+                My Location
+              </button>
+            </div>
+
+            <div id="map" style={{ height: '240px', width: '100%', borderRadius: '12px', border: '1px solid var(--border-color)', position: 'relative', zIndex: 1, marginBottom: '12px' }}></div>
+            
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: '0.8rem', color: '#A5A1B8', display: 'block', marginBottom: '4px' }}>Latitude:</span>
+                <input
+                  type="text"
+                  readOnly
+                  value={lat}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: '#A5A1B8', fontSize: '0.85rem' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: '0.8rem', color: '#A5A1B8', display: 'block', marginBottom: '4px' }}>Longitude:</span>
+                <input
+                  type="text"
+                  readOnly
+                  value={lng}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: '#A5A1B8', fontSize: '0.85rem' }}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="step-navigation-buttons">
@@ -355,6 +541,10 @@ export default function Services() {
             <div className="review-item">
               <span className="r-label">Service Address</span>
               <span className="r-value">{address}</span>
+            </div>
+            <div className="review-item">
+              <span className="r-label">GPS Coordinates</span>
+              <span className="r-value">{lat}, {lng}</span>
             </div>
 
             {isServiceIncluded(selectedService?.title) ? (

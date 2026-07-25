@@ -2021,8 +2021,9 @@
 }
 
 .web-grid-illustration-img {
-  height: 80%;
-  max-height: 90px;
+  height: 95%;
+  width: 95%;
+  max-height: 105px;
   object-fit: contain;
 }
 

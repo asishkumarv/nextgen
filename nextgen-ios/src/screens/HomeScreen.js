@@ -15,7 +15,6 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Header from '../components/Header';
-import { services } from '../data/services';
 import { useApp } from '../context/AppContext';
 import { getServiceIllustration } from '../utils/illustrations';
 
@@ -24,7 +23,7 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { user, bookedSlot, subscriptions, setActiveBookingService, refreshData } = useApp();
+  const { user, bookedSlot, subscriptions, services, setActiveBookingService, refreshData } = useApp();
   const activeSub = subscriptions?.find(s => s.status !== 'Rejected') || subscriptions?.[0];
 
   const isServiceIncluded = (serviceTitle) => {
@@ -473,8 +472,8 @@ const styles = StyleSheet.create({
     borderColor: '#3D3762',
   },
   gridCardImg: {
-    width: 52,
-    height: 52,
+    width: '85%',
+    height: '85%',
     resizeMode: 'contain',
   },
   gridCardTitle: {

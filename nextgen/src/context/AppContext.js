@@ -255,7 +255,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const addBooking = async (serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName) => {
+  const addBooking = async (serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName, latitude, longitude) => {
     try {
       const newBooking = await api.post('/bookings', {
         serviceName,
@@ -266,7 +266,9 @@ export const AppProvider = ({ children }) => {
         districtId,
         mandalId,
         slotNumber,
-        eventName
+        eventName,
+        latitude,
+        longitude
       });
 
       // Update state list

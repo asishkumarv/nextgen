@@ -192,6 +192,8 @@ const createTables = async (dropExisting = false) => {
         status VARCHAR(20) DEFAULT 'Booked',
         icon VARCHAR(50) NOT NULL,
         address TEXT NOT NULL,
+        latitude VARCHAR(50),
+        longitude VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         vendor_id INTEGER REFERENCES vendors(id) ON DELETE SET NULL,
         otp VARCHAR(4) DEFAULT '1234',

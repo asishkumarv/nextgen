@@ -12,6 +12,8 @@ import {
   RefreshControl,
   Image,
 } from 'react-native';
+import WebView from '../components/MapWebView';
+import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -50,6 +52,84 @@ export default function ServicesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredServices, setFilteredServices] = useState([]);
 
+  // Leaflet HTML template string
+  const leafletHTML = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+      body, html, #map {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background: #312C51;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      var map;
+      var marker;
+      var currentLat = 17.3850;
+      var currentLng = 78.4867;
+
+      document.addEventListener("message", function(event) {
+        handleMsg(event.data);
+      });
+      window.addEventListener("message", function(event) {
+        handleMsg(event.data);
+      });
+
+      function handleMsg(dataStr) {
+        try {
+          var data = JSON.parse(dataStr);
+          if (data.type === 'center') {
+            var latlng = [data.lat, data.lng];
+            map.setView(latlng, 15);
+            marker.setLatLng(latlng);
+          }
+        } catch (e) {}
+      }
+
+      function sendCoordinates(lat, lng) {
+        var coords = { type: 'coords', lat: lat, lng: lng };
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify(coords));
+        }
+      }
+
+      function initMap() {
+        map = L.map('map', { zoomControl: false }).setView([currentLat, currentLng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        marker = L.marker([currentLat, currentLng], { draggable: true }).addTo(map);
+
+        marker.on('dragend', function() {
+          var pos = marker.getLatLng();
+          sendCoordinates(pos.lat.toFixed(6), pos.lng.toFixed(6));
+        });
+
+        map.on('click', function(e) {
+          marker.setLatLng(e.latlng);
+          sendCoordinates(e.latlng.lat.toFixed(6), e.latlng.lng.toFixed(6));
+        });
+
+        sendCoordinates(currentLat.toFixed(6), currentLng.toFixed(6));
+      }
+
+      initMap();
+    </script>
+  </body>
+  </html>
+  `;
+
   // Booking flow states
   const [bookingStep, setBookingStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
@@ -60,6 +140,99 @@ export default function ServicesScreen() {
   const [street, setStreet] = useState('Green Glen Layout');
   const [landmark, setLandmark] = useState('Near Central Mall');
   const [pincode, setPincode] = useState('560103');
+
+  // GPS Coordinates & Map Search states
+  const [latitude, setLatitude] = useState('17.3850');
+  const [longitude, setLongitude] = useState('78.4867');
+  const [mapSearchText, setMapSearchText] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
+  const webViewRef = React.useRef(null);
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      setIsLocating(true);
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Permission to access location was denied');
+        setIsLocating(false);
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      const latVal = location.coords.latitude.toFixed(6);
+      const lngVal = location.coords.longitude.toFixed(6);
+      setLatitude(latVal);
+      setLongitude(lngVal);
+
+      if (webViewRef.current) {
+        webViewRef.current.postMessage(
+          JSON.stringify({ type: 'center', lat: location.coords.latitude, lng: location.coords.longitude })
+        );
+      }
+      
+      reverseGeocode(location.coords.latitude, location.coords.longitude);
+    } catch (err) {
+      alert('Failed to get location: ' + err.message);
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
+  const handleSearchOnMap = async () => {
+    if (!mapSearchText.trim()) return;
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchText)}`);
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const { lat, lon, display_name } = data[0];
+        const numLat = parseFloat(lat);
+        const numLng = parseFloat(lon);
+        setLatitude(numLat.toFixed(6));
+        setLongitude(numLng.toFixed(6));
+
+        if (webViewRef.current) {
+          webViewRef.current.postMessage(
+            JSON.stringify({ type: 'center', lat: numLat, lng: numLng })
+          );
+        }
+
+        if (display_name) {
+          const parts = display_name.split(',');
+          if (parts[0]) setStreet(parts[0].trim());
+          if (parts[1]) setLandmark(parts[1].trim());
+        }
+      } else {
+        alert('No locations found for your search query.');
+      }
+    } catch (err) {
+      console.warn('Geocoding search failed:', err.message);
+    }
+  };
+
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await response.json();
+      if (data && data.address) {
+        const { road, suburb, city, county, postcode } = data.address;
+        if (road) setStreet(road);
+        if (suburb || city || county) setLandmark(suburb || city || county);
+        if (postcode) setPincode(postcode);
+      }
+    } catch (e) {
+      console.warn('Reverse geocoding failed:', e);
+    }
+  };
+
+  const onMapMessage = (event) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'coords') {
+        setLatitude(data.lat);
+        setLongitude(data.lng);
+      }
+    } catch (err) {}
+  };
 
   // Success view state
   const [bookingSuccess, setBookingSuccess] = useState(false);
@@ -79,6 +252,9 @@ export default function ServicesScreen() {
         setMandalDropdownOpen(false);
         setEventDropdownOpen(false);
         setSelectedSlot(null);
+        setLatitude('17.3850');
+        setLongitude('78.4867');
+        setMapSearchText('');
       };
     }, [setActiveBookingService])
   );
@@ -271,7 +447,9 @@ export default function ServicesScreen() {
         bookedSlot ? activeSub?.districtId : (selectedDistrict?.id || null),
         bookedSlot ? activeSub?.mandalId : (selectedMandal?.id || null),
         bookedSlot ? activeSub?.slotNumber : null,
-        bookedSlot ? activeSub?.eventName : null
+        bookedSlot ? activeSub?.eventName : null,
+        latitude,
+        longitude
       );
       setCreatedBookingId(newId);
       setBookingSuccess(true);
@@ -698,6 +876,67 @@ export default function ServicesScreen() {
                 </View>
               </View>
 
+              {/* GPS Map Section */}
+              <View style={{ marginTop: 16, paddingHorizontal: 4 }}>
+                <Text style={[styles.inputHeading, { marginBottom: 8, fontSize: 14, color: '#F0C38E' }]}>
+                  📍 Pin Your Location on Map
+                </Text>
+
+                {/* Search + My Location buttons */}
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                  <TextInput
+                    style={[styles.addressInput, { flex: 1, marginBottom: 0 }]}
+                    value={mapSearchText}
+                    onChangeText={setMapSearchText}
+                    placeholder="Search area or city..."
+                    placeholderTextColor="#6B7280"
+                    returnKeyType="search"
+                    onSubmitEditing={handleSearchOnMap}
+                  />
+                  <TouchableOpacity
+                    onPress={handleSearchOnMap}
+                    style={{ backgroundColor: '#F0C38E', paddingHorizontal: 12, borderRadius: 8, justifyContent: 'center' }}
+                  >
+                    <Ionicons name="search" size={18} color="#312C51" />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleUseCurrentLocation}
+                  disabled={isLocating}
+                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E1A2E', borderWidth: 1, borderColor: '#F1AA9B', borderRadius: 8, padding: 10, marginBottom: 10 }}
+                >
+                  <Ionicons name={isLocating ? 'sync' : 'locate'} size={16} color="#F1AA9B" style={{ marginRight: 6 }} />
+                  <Text style={{ color: '#F1AA9B', fontWeight: '700', fontSize: 13 }}>
+                    {isLocating ? 'Getting Location...' : 'Use My Current Location'}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Leaflet WebView Map */}
+                <WebView
+                  ref={webViewRef}
+                  source={{ html: leafletHTML }}
+                  style={{ height: 240, width: '100%', borderRadius: 12, overflow: 'hidden' }}
+                  onMessage={onMapMessage}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                  originWhitelist={['*']}
+                  scrollEnabled={false}
+                />
+
+                {/* Coordinates display */}
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+                  <View style={{ flex: 1, backgroundColor: '#1E1A2E', padding: 8, borderRadius: 8, borderWidth: 1, borderColor: '#312C51' }}>
+                    <Text style={{ color: '#6B7280', fontSize: 10, marginBottom: 2 }}>Latitude</Text>
+                    <Text style={{ color: '#F0C38E', fontSize: 12, fontWeight: '700' }}>{latitude}</Text>
+                  </View>
+                  <View style={{ flex: 1, backgroundColor: '#1E1A2E', padding: 8, borderRadius: 8, borderWidth: 1, borderColor: '#312C51' }}>
+                    <Text style={{ color: '#6B7280', fontSize: 10, marginBottom: 2 }}>Longitude</Text>
+                    <Text style={{ color: '#F0C38E', fontSize: 12, fontWeight: '700' }}>{longitude}</Text>
+                  </View>
+                </View>
+              </View>
+
               <TouchableOpacity style={styles.nextStepBtn} onPress={handleNextStep}>
                 <LinearGradient
                   colors={['#F0C38E', '#F1AA9B']}
@@ -1014,8 +1253,8 @@ const styles = StyleSheet.create({
     borderColor: '#3D3762',
   },
   gridCardImg: {
-    width: 52,
-    height: 52,
+    width: '85%',
+    height: '85%',
     resizeMode: 'contain',
   },
   gridCardTitle: {

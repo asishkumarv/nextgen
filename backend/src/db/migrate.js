@@ -41,6 +41,12 @@ const migrate = async () => {
     await client.query(`
       ALTER TABLE services ALTER COLUMN icon TYPE TEXT;
     `);
+
+    // Add latitude and longitude to bookings table
+    await client.query(`
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS latitude VARCHAR(50);
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS longitude VARCHAR(50);
+    `);
     
     console.log('Successfully migrated database tables.');
   } catch (error) {

@@ -22,7 +22,7 @@ const getMyBookings = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT b.id, b.service_name AS "serviceName", b.date, b.price, b.status, b.icon, b.address, b.created_at, b.otp,
+      `SELECT b.id, b.service_name AS "serviceName", b.date, b.price, b.status, b.icon, b.address, b.created_at, b.otp, b.latitude, b.longitude,
               v.name AS "vendorName", v.phone AS "vendorPhone"
        FROM bookings b
        LEFT JOIN vendors v ON b.vendor_id = v.id
@@ -39,7 +39,7 @@ const getMyBookings = async (req, res) => {
 };
 
 const createBooking = async (req, res) => {
-  const { serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName } = req.body;
+  const { serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName, latitude, longitude } = req.body;
   const userId = req.user.id;
 
   if (!serviceName || !date || !address) {
@@ -159,11 +159,12 @@ const createBooking = async (req, res) => {
 
     // Insert booking
     const newBooking = await pool.query(
-      `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_name, slot_number, service_name, date, price, status, icon, address, vendor_id, otp) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+      `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_name, slot_number, service_name, date, price, status, icon, address, vendor_id, otp, latitude, longitude) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
        RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId", otp,
-                 district_id AS "districtId", mandal_id AS "mandalId", event_name AS "eventName", slot_number AS "slotNumber"`,
-      [randomId, userId, finalDistrictId || null, finalMandalId || null, finalEventName || null, finalSlotNumber || null, serviceName, dateAndSlot, computedPrice, bookingStatus, iconName, address, assignedVendorId, otp]
+                 district_id AS "districtId", mandal_id AS "mandalId", event_name AS "eventName", slot_number AS "slotNumber",
+                 latitude, longitude`,
+      [randomId, userId, finalDistrictId || null, finalMandalId || null, finalEventName || null, finalSlotNumber || null, serviceName, dateAndSlot, computedPrice, bookingStatus, iconName, address, assignedVendorId, otp, latitude || null, longitude || null]
     );
 
     res.status(201).json(newBooking.rows[0]);

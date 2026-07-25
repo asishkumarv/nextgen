@@ -211,7 +211,7 @@ const getVendorMe = async (req, res) => {
     // 3. Fetch assigned bookings (tasks)
     const bookingsRes = await pool.query(`
       SELECT b.id, b.service_name AS "serviceName", b.date, b.price, b.status, b.icon, b.address, b.created_at,
-             u.name AS "userName", u.phone AS "userPhone"
+             b.latitude, b.longitude, u.name AS "userName", u.phone AS "userPhone"
       FROM bookings b
       JOIN users u ON b.user_id = u.id
       WHERE b.vendor_id = $1 AND b.status != 'Cancelled'
