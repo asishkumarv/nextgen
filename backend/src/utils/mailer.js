@@ -4,8 +4,8 @@ const path = require('path');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'info.gofixit@gmail.com',
-    pass: 'dvll hvts sibn yvvb'
+    user: process.env.EMAIL_USER || 'info.gofixit@gmail.com',
+    pass: process.env.EMAIL_PASS || 'dvll hvts sibn yvvb'
   }
 });
 
