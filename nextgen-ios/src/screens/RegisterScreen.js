@@ -45,6 +45,12 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState('error');
 
+  // OTP Verification States
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+
   const showToast = (msg, type = 'error') => {
     setToastMsg(msg);
     setToastType(type);
@@ -149,19 +155,71 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     }
 
     setLoading(true);
-    const result = await register(name.trim(), phone.trim(), password, referralCode ? referralCode.toUpperCase() : undefined, districtId || null, mandalId || null, address || null, email || null);
-    setLoading(false);
-
-    if (!result.success) {
-      const msg = result.message || '';
-      if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('taken')) {
-        showToast('User already exists. Please sign in instead.', 'error');
-        setPhoneError('Phone number already registered');
-      } else if (msg.toLowerCase().includes('server')) {
-        showToast('Server error. Please try again later.', 'error');
+    try {
+      const otpRes = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'user' });
+      setLoading(false);
+      if (otpRes.success) {
+        setOtpError('');
+        setOtpCode('');
+        setShowOtpModal(true);
+        showToast('Verification code sent to your email', 'success');
       } else {
-        showToast(msg || 'Registration failed. Please try again.', 'error');
+        showToast(otpRes.message || 'Failed to send verification code', 'error');
       }
+    } catch (err) {
+      setLoading(false);
+      showToast(err.message || 'Failed to send verification code', 'error');
+    }
+  };
+
+  const handleVerifyAndRegister = async () => {
+    Keyboard.dismiss();
+    if (!otpCode.trim()) {
+      setOtpError('Verification code is required');
+      return;
+    }
+    if (otpCode.trim().length < 6) {
+      setOtpError('Enter a valid 6-digit code');
+      return;
+    }
+
+    setOtpLoading(true);
+    setOtpError('');
+    const result = await register(
+      name.trim(),
+      phone.trim(),
+      password,
+      referralCode ? referralCode.toUpperCase() : undefined,
+      districtId || null,
+      mandalId || null,
+      address || null,
+      email || null,
+      otpCode.trim()
+    );
+    setOtpLoading(false);
+
+    if (result.success) {
+      setShowOtpModal(false);
+    } else {
+      setOtpError(result.message || 'Verification failed. Please try again.');
+      showToast(result.message || 'Verification failed', 'error');
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setOtpLoading(true);
+    setOtpError('');
+    try {
+      const otpRes = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'user' });
+      setOtpLoading(false);
+      if (otpRes.success) {
+        showToast('Verification code resent to your email', 'success');
+      } else {
+        showToast(otpRes.message || 'Failed to send verification code', 'error');
+      }
+    } catch (err) {
+      setOtpLoading(false);
+      showToast(err.message || 'Failed to send verification code', 'error');
     }
   };
 
@@ -454,6 +512,78 @@ export default function RegisterScreen({ onNavigateToLogin }) {
           onHide={() => setToastVisible(false)}
         />
       </KeyboardAvoidingView>
+
+      {/* OTP Verification Modal Overlay */}
+      {showOtpModal && (
+        <View style={styles.otpOverlay}>
+          <View style={styles.otpCard}>
+            <View style={styles.otpHeaderArea}>
+              <View style={styles.otpLogoWrapper}>
+                <Image
+                  source={require('../assets/GoFixit.png')}
+                  style={styles.otpLogoImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.otpTitle}>Verify Your Email</Text>
+              <Text style={styles.otpSubtitle}>We have sent a 6-digit code to</Text>
+              <Text style={styles.otpEmailText}>{email}</Text>
+            </View>
+
+            <View style={styles.otpInputGroup}>
+              <Text style={styles.otpInputLabel}>Enter Verification Code</Text>
+              <View style={[styles.otpInputWrapper, otpError ? styles.otpInputWrapperError : null]}>
+                <Ionicons name="shield-checkmark-outline" size={18} color={otpError ? '#EF4444' : '#6B7280'} style={styles.otpInputIcon} />
+                <TextInput
+                  style={styles.otpTextInput}
+                  placeholder="123456"
+                  placeholderTextColor="#A5A1B8"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={otpCode}
+                  onChangeText={(t) => { setOtpCode(t); setOtpError(''); }}
+                  editable={!otpLoading}
+                />
+              </View>
+              {otpError ? (
+                <View style={styles.otpFieldErrorRow}>
+                  <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                  <Text style={styles.otpFieldErrorText}>{otpError}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            {/* Action Buttons */}
+            <TouchableOpacity
+              style={styles.otpVerifyButton}
+              onPress={handleVerifyAndRegister}
+              disabled={otpLoading}
+              activeOpacity={0.8}
+            >
+              <View style={styles.otpVerifyButtonGrad}>
+                {otpLoading ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <View style={styles.otpBtnContent}>
+                    <Text style={styles.otpVerifyButtonText}>Verify & Sign Up</Text>
+                    <Ionicons name="checkmark-circle-outline" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.otpActionsRow}>
+              <TouchableOpacity onPress={handleResendOtp} disabled={otpLoading} style={{ padding: 8 }}>
+                <Text style={styles.otpResendText}>Resend Code</Text>
+              </TouchableOpacity>
+              <Text style={{ color: '#A5A1B8' }}>|</Text>
+              <TouchableOpacity onPress={() => setShowOtpModal(false)} disabled={otpLoading} style={{ padding: 8 }}>
+                <Text style={styles.otpCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -652,6 +782,154 @@ const styles = StyleSheet.create({
   loginLink: {
     fontSize: 13,
     color: '#F0C38E',
+    fontWeight: '700',
+  },
+  otpOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(49, 44, 81, 0.98)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    zIndex: 9999,
+  },
+  otpCard: {
+    backgroundColor: '#48426D',
+    borderRadius: 28,
+    padding: 24,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#3D3762',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  otpHeaderArea: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  otpLogoWrapper: {
+    width: 70,
+    height: 70,
+    borderRadius: 20,
+    backgroundColor: '#312C51',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  otpLogoImage: {
+    width: 50,
+    height: 50,
+  },
+  otpTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  otpSubtitle: {
+    fontSize: 13,
+    color: '#A5A1B8',
+    fontWeight: '500',
+  },
+  otpEmailText: {
+    fontSize: 14,
+    color: '#F0C38E',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  otpInputGroup: {
+    marginBottom: 20,
+  },
+  otpInputLabel: {
+    fontSize: 13,
+    fontWeight: '750',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  otpInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#3D3762',
+    borderRadius: 14,
+    backgroundColor: '#25213E',
+    paddingHorizontal: 14,
+  },
+  otpInputWrapperError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FFF5F5',
+  },
+  otpInputIcon: {
+    marginRight: 10,
+  },
+  otpTextInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 4,
+    textAlign: 'center',
+  },
+  otpFieldErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+    justifyContent: 'center',
+    gap: 4,
+  },
+  otpFieldErrorText: {
+    color: '#EF4444',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  otpVerifyButton: {
+    marginTop: 5,
+    shadowColor: '#F0C38E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  otpVerifyButtonGrad: {
+    backgroundColor: '#F0C38E',
+    borderRadius: 14,
+    paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  otpBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  otpVerifyButtonText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  otpActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 16,
+  },
+  otpResendText: {
+    fontSize: 13,
+    color: '#F0C38E',
+    fontWeight: '700',
+  },
+  otpCancelText: {
+    fontSize: 13,
+    color: '#A5A1B8',
     fontWeight: '700',
   },
 });

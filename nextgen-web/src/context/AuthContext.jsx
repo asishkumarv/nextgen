@@ -50,11 +50,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, phone, password, referralCode, district_id, mandal_id, address, email) => {
+  const signup = async (name, phone, password, referralCode, district_id, mandal_id, address, email, otp) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.post('/auth/register', { name, phone, password, referralCode, district_id, mandal_id, address, email });
+      const data = await api.post('/auth/register', { name, phone, password, referralCode, district_id, mandal_id, address, email, otp });
       localStorage.setItem('Go Fixit_token', data.token);
       setToken(data.token);
       return data;

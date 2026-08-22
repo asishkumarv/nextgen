@@ -3076,3 +3076,112 @@
 .screenshot-img { max-width: 150px; max-height: 150px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: cover; }
 .change-img-btn { background: none; border: none; color: var(--secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 0; }
 
+/* OTP Modal Overlay */
+.otp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(49, 44, 81, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.otp-modal-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-lg);
+  padding: 32px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+}
+
+.otp-modal-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--border-radius-md);
+  background-color: var(--bg-tertiary);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.otp-modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.otp-modal-header p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.otp-modal-email {
+  display: block;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 4px;
+  font-size: 0.95rem;
+}
+
+.otp-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.otp-modal-actions button {
+  background: none;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 6px 12px;
+  transition: all 0.2s;
+}
+
+.otp-modal-actions .btn-resend {
+  color: var(--secondary);
+}
+
+.otp-modal-actions .btn-resend:hover {
+  opacity: 0.8;
+}
+
+.otp-modal-actions .btn-cancel {
+  color: var(--text-muted);
+}
+
+.otp-modal-actions .btn-cancel:hover {
+  color: var(--danger);
+}
+
+.otp-modal-actions .divider {
+  color: var(--border-color);
+}
+
+.success-banner {
+  background-color: rgba(0, 230, 118, 0.08) !important;
+  border-color: rgba(0, 230, 118, 0.3) !important;
+  color: #00C853 !important;
+}
+.success-banner .error-icon {
+  color: #00C853 !important;
+}
+
+

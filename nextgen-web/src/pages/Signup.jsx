@@ -24,6 +24,12 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // OTP States
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+
   const location = useLocation();
 
   React.useEffect(() => {
@@ -78,13 +84,59 @@ export default function Signup() {
     setError('');
     setLoading(true);
     try {
-      await signup(name, phone, password, referralCode || undefined, districtId || null, mandalId || null, address || null, email || null);
-      // Success, route to dashboard
+      const res = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'user' });
+      setLoading(false);
+      if (res.success) {
+        setOtpError('');
+        setOtpCode('');
+        setShowOtpModal(true);
+      } else {
+        setError(res.message || 'Failed to send verification code');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to send verification code');
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyAndSignup = async (e) => {
+    e.preventDefault();
+    if (!otpCode.trim()) {
+      setOtpError('Verification code is required');
+      return;
+    }
+    if (otpCode.trim().length < 6) {
+      setOtpError('Verification code must be 6 digits');
+      return;
+    }
+
+    setOtpLoading(true);
+    setOtpError('');
+    try {
+      await signup(name, phone, password, referralCode || undefined, districtId || null, mandalId || null, address || null, email || null, otpCode.trim());
+      setShowOtpModal(false);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || 'Registration failed. Phone number might be already in use.');
+      setOtpError(err.message || 'Verification failed. Please check the code.');
     } finally {
-      setLoading(false);
+      setOtpLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setOtpLoading(true);
+    setOtpError('');
+    try {
+      const res = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'user' });
+      if (res.success) {
+        setOtpError('Verification code resent successfully!');
+      } else {
+        setOtpError(res.message || 'Failed to resend verification code');
+      }
+    } catch (err) {
+      setOtpError(err.message || 'Failed to resend verification code');
+    } finally {
+      setOtpLoading(false);
     }
   };
 
@@ -293,6 +345,69 @@ export default function Signup() {
         <div className="auth-footer-text">
           Already have an account? <Link to="/login">Sign in here</Link>
         </div>
+
+        {showOtpModal && (
+          <div className="otp-modal-overlay">
+            <div className="otp-modal-card animate-slide-up">
+              <div className="otp-modal-header">
+                <div className="otp-modal-logo">
+                  <UserPlus size={32} />
+                </div>
+                <h3>Verify Your Email</h3>
+                <p>We've sent a 6-digit verification code to</p>
+                <span className="otp-modal-email">{email}</span>
+              </div>
+
+              {otpError && (
+                <div className={`auth-error-banner ${otpError.includes('resent') || otpError.includes('successfully') ? 'success-banner' : ''}`} style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <ShieldAlert size={16} className="error-icon" />
+                  <span>{otpError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleVerifyAndSignup} className="auth-form">
+                <div className="form-group">
+                  <label htmlFor="otpCode" style={{ textAlign: 'center', display: 'block' }}>Enter 6-Digit Code</label>
+                  <input
+                    type="text"
+                    id="otpCode"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                    placeholder="123456"
+                    maxLength={6}
+                    required
+                    style={{ textAlign: 'center', fontSize: '20px', letterSpacing: '8px', fontWeight: 'bold' }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-block btn-auth"
+                  disabled={otpLoading}
+                >
+                  {otpLoading ? (
+                    <span>Verifying Code...</span>
+                  ) : (
+                    <>
+                      <span>Verify & Sign Up</span>
+                      <UserPlus size={16} />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="otp-modal-actions">
+                <button type="button" onClick={handleResendOtp} disabled={otpLoading} className="btn-resend">
+                  Resend Code
+                </button>
+                <span className="divider">|</span>
+                <button type="button" onClick={() => setShowOtpModal(false)} disabled={otpLoading} className="btn-cancel">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

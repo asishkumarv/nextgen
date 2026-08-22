@@ -28,7 +28,14 @@ export default function RegisterScreen({ onNavigateToLogin }) {
   // Step 1: Account Details
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // OTP Verification States
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
 
   // Step 2: Existing Services Multi-Select
   const [selectedServices, setSelectedServices] = useState([]);
@@ -99,6 +106,11 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     } else if (phone.trim().replace(/\D/g, '').length < 10) {
       localErrors.phone = 'Enter a valid 10-digit phone number';
     }
+    if (!email.trim()) {
+      localErrors.email = 'Email address is required';
+    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
+      localErrors.email = 'Enter a valid email address';
+    }
     if (!password) {
       localErrors.password = 'Password is required';
     } else if (password.length < 6) {
@@ -162,6 +174,37 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     }
 
     setLoading(true);
+    try {
+      const otpRes = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'vendor' });
+      setLoading(false);
+      if (otpRes.success) {
+        setOtpError('');
+        setOtpCode('');
+        setShowOtpModal(true);
+        showToast('Verification code sent to your email', 'success');
+      } else {
+        showToast(otpRes.message || 'Failed to send verification code', 'error');
+      }
+    } catch (err) {
+      setLoading(false);
+      showToast(err.message || 'Failed to send verification code', 'error');
+    }
+  };
+
+  const handleVerifyAndRegisterSubmit = async () => {
+    Keyboard.dismiss();
+    if (!otpCode.trim()) {
+      setOtpError('Verification code is required');
+      return;
+    }
+    if (otpCode.trim().length < 6) {
+      setOtpError('Enter a valid 6-digit code');
+      return;
+    }
+
+    setOtpLoading(true);
+    setOtpError('');
+
     const newServiceObj = addCustomService ? {
       title: customTitle.trim(),
       subtitle: customSubtitle.trim(),
@@ -176,15 +219,36 @@ export default function RegisterScreen({ onNavigateToLogin }) {
       selectedServices,
       newServiceObj,
       selectedDistrict ? selectedDistrict.id : null,
-      selectedMandal ? selectedMandal.id : null
+      selectedMandal ? selectedMandal.id : null,
+      email.trim(),
+      otpCode.trim()
     );
-    setLoading(false);
+    setOtpLoading(false);
 
     if (result.success) {
+      setShowOtpModal(false);
       alert('Registration successful!\n\nYour account has been created. Once the system administrator reviews and approves your details, you will be able to log in.');
       onNavigateToLogin();
     } else {
-      showToast(result.message || 'Registration failed.', 'error');
+      setOtpError(result.message || 'Verification failed. Please try again.');
+      showToast(result.message || 'Verification failed', 'error');
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setOtpLoading(true);
+    setOtpError('');
+    try {
+      const otpRes = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'vendor' });
+      setOtpLoading(false);
+      if (otpRes.success) {
+        showToast('Verification code resent to your email', 'success');
+      } else {
+        showToast(otpRes.message || 'Failed to send verification code', 'error');
+      }
+    } catch (err) {
+      setOtpLoading(false);
+      showToast(err.message || 'Failed to send verification code', 'error');
     }
   };
 
@@ -265,6 +329,29 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                   <View style={styles.fieldErrorRow}>
                     <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
                     <Text style={styles.fieldErrorText}>{errors.phone}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Email Address */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email Address</Text>
+                <View style={[styles.inputWrapper, errors.email ? styles.inputWrapperError : null]}>
+                  <Ionicons name="mail-outline" size={18} color={errors.email ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="partner@gofixit.com"
+                    placeholderTextColor="#A5A1B8"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={(t) => { setEmail(t); setErrors(prev => ({ ...prev, email: '' })); }}
+                  />
+                </View>
+                {errors.email ? (
+                  <View style={styles.fieldErrorRow}>
+                    <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                    <Text style={styles.fieldErrorText}>{errors.email}</Text>
                   </View>
                 ) : null}
               </View>
@@ -488,6 +575,11 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 </View>
 
                 <View style={styles.reviewItem}>
+                  <Text style={styles.reviewLabel}>Email Address</Text>
+                  <Text style={styles.reviewVal}>{email}</Text>
+                </View>
+
+                <View style={styles.reviewItem}>
                   <Text style={styles.reviewLabel}>District</Text>
                   <Text style={styles.reviewVal}>{selectedDistrict?.name}</Text>
                 </View>
@@ -559,6 +651,80 @@ export default function RegisterScreen({ onNavigateToLogin }) {
           visible={toastVisible}
           onHide={() => setToastVisible(false)}
         />
+      </KeyboardAvoidingView>
+
+      {/* OTP Verification Modal Overlay */}
+      {showOtpModal && (
+        <View style={styles.otpOverlay}>
+          <View style={styles.otpCard}>
+            <View style={styles.otpHeaderArea}>
+              <View style={styles.otpLogoWrapper}>
+                <Ionicons name="construct-outline" size={32} color="#F0C38E" />
+              </View>
+              <Text style={styles.otpTitle}>Verify Your Email</Text>
+              <Text style={styles.otpSubtitle}>We have sent a 6-digit code to</Text>
+              <Text style={styles.otpEmailText}>{email}</Text>
+            </View>
+
+            <View style={styles.otpInputGroup}>
+              <Text style={styles.otpInputLabel}>Enter Verification Code</Text>
+              <View style={[styles.otpInputWrapper, otpError ? styles.otpInputWrapperError : null]}>
+                <Ionicons name="shield-checkmark-outline" size={18} color={otpError ? '#EF4444' : '#6B7280'} style={styles.otpInputIcon} />
+                <TextInput
+                  style={styles.otpTextInput}
+                  placeholder="123456"
+                  placeholderTextColor="#A5A1B8"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={otpCode}
+                  onChangeText={(t) => { setOtpCode(t); setOtpError(''); }}
+                  editable={!otpLoading}
+                />
+              </View>
+              {otpError ? (
+                <View style={styles.otpFieldErrorRow}>
+                  <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                  <Text style={styles.otpFieldErrorText}>{otpError}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            {/* Action Buttons */}
+            <TouchableOpacity
+              style={styles.otpVerifyButton}
+              onPress={handleVerifyAndRegisterSubmit}
+              disabled={otpLoading}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['#F0C38E', '#F1AA9B']}
+                style={styles.otpVerifyButtonGrad}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                {otpLoading ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <View style={styles.otpBtnContent}>
+                    <Text style={styles.otpVerifyButtonText}>Verify & Submit Application</Text>
+                    <Ionicons name="checkmark-circle-outline" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                  </View>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <View style={styles.otpActionsRow}>
+              <TouchableOpacity onPress={handleResendOtp} disabled={otpLoading} style={{ padding: 8 }}>
+                <Text style={styles.otpResendText}>Resend Code</Text>
+              </TouchableOpacity>
+              <Text style={{ color: '#A5A1B8' }}>|</Text>
+              <TouchableOpacity onPress={() => setShowOtpModal(false)} disabled={otpLoading} style={{ padding: 8 }}>
+                <Text style={styles.otpCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
 
         {/* District Dropdown Modal Overlay */}
         {districtDropdownOpen && (
@@ -622,7 +788,6 @@ export default function RegisterScreen({ onNavigateToLogin }) {
             </View>
           </View>
         )}
-      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -1042,5 +1207,148 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0D47A1',
     marginTop: 4,
+  },
+  otpOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(49, 44, 81, 0.98)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    zIndex: 9999,
+  },
+  otpCard: {
+    backgroundColor: '#48426D',
+    borderRadius: 28,
+    padding: 24,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#3D3762',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  otpHeaderArea: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  otpLogoWrapper: {
+    width: 70,
+    height: 70,
+    borderRadius: 20,
+    backgroundColor: '#312C51',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#F0C38E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  otpTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  otpSubtitle: {
+    fontSize: 13,
+    color: '#A5A1B8',
+    fontWeight: '500',
+  },
+  otpEmailText: {
+    fontSize: 14,
+    color: '#F0C38E',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  otpInputGroup: {
+    marginBottom: 20,
+  },
+  otpInputLabel: {
+    fontSize: 13,
+    fontWeight: '750',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  otpInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#3D3762',
+    borderRadius: 14,
+    backgroundColor: '#25213E',
+    paddingHorizontal: 14,
+  },
+  otpInputWrapperError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FFF5F5',
+  },
+  otpInputIcon: {
+    marginRight: 10,
+  },
+  otpTextInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 4,
+    textAlign: 'center',
+  },
+  otpFieldErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+    justifyContent: 'center',
+    gap: 4,
+  },
+  otpFieldErrorText: {
+    color: '#EF4444',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  otpVerifyButton: {
+    marginTop: 5,
+    shadowColor: '#F0C38E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  otpVerifyButtonGrad: {
+    borderRadius: 16,
+    paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  otpBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  otpVerifyButtonText: {
+    color: '#312C51',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  otpActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 16,
+  },
+  otpResendText: {
+    fontSize: 13,
+    color: '#F1AA9B',
+    fontWeight: '700',
+  },
+  otpCancelText: {
+    fontSize: 13,
+    color: '#A5A1B8',
+    fontWeight: '700',
   },
 });

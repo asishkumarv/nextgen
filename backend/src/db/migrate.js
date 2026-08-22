@@ -25,6 +25,22 @@ const migrate = async () => {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
     `);
+
+    // Add email column to vendors table
+    await client.query(`
+      ALTER TABLE vendors ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+    `);
+
+    // Create Email OTPs Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS email_otps (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        otp VARCHAR(10) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL
+      );
+    `);
     
     // Add remark column to subscriptions table
     await client.query(`

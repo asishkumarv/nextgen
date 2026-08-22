@@ -9,7 +9,7 @@ const createTables = async (dropExisting = false) => {
     if (dropExisting) {
       // Drop existing tables to perform clean migration
       console.log('Dropping existing tables to migrate schema...');
-      await client.query('DROP TABLE IF EXISTS bookings, subscriptions, events, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, withdrawals, users, admins CASCADE;');
+      await client.query('DROP TABLE IF EXISTS bookings, subscriptions, events, mandals, districts, vendor_services, vendor_leaves, settlements, vendors, services, withdrawals, users, admins, email_otps CASCADE;');
     }
 
     // Create Districts Table
@@ -119,10 +119,22 @@ const createTables = async (dropExisting = false) => {
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
         status VARCHAR(20) DEFAULT 'Pending',
         district_id INTEGER REFERENCES districts(id) ON DELETE SET NULL,
         mandal_id INTEGER REFERENCES mandals(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Create Email OTPs Table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS email_otps (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        otp VARCHAR(10) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL
       );
     `);
 

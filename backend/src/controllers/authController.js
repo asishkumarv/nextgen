@@ -2,17 +2,31 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const { sendOtpEmail } = require('../utils/mailer');
 
 const register = async (req, res) => {
-  const { name, phone, password, referralCode, district_id, mandal_id, address, email } = req.body;
+  const { name, phone, password, referralCode, district_id, mandal_id, address, email, otp } = req.body;
 
-  if (!name || !phone || !password || !district_id || !mandal_id || !email) {
-    return res.status(400).json({ message: 'Please enter all required fields including district, mandal, and email' });
+  if (!name || !phone || !password || !district_id || !mandal_id || !email || !otp) {
+    return res.status(400).json({ message: 'Please enter all required fields including email and verification code' });
   }
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+
+    // Verify OTP
+    const otpCheck = await client.query(
+      'SELECT * FROM email_otps WHERE email = $1 AND otp = $2 AND expires_at > CURRENT_TIMESTAMP',
+      [email, otp]
+    );
+    if (otpCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: 'Invalid or expired verification code' });
+    }
+
+    // Delete used OTP
+    await client.query('DELETE FROM email_otps WHERE email = $1', [email]);
     
     // Check if phone number exists
     const userExist = await client.query('SELECT * FROM users WHERE phone = $1', [phone]);
@@ -265,10 +279,61 @@ const changePassword = async (req, res) => {
   }
 };
 
+const sendOtp = async (req, res) => {
+  const { email, phone, type } = req.body; // type can be 'user' or 'vendor'
+
+  if (!email || !phone) {
+    return res.status(400).json({ message: 'Email and phone number are required' });
+  }
+
+  try {
+    // Validate if user already exists
+    if (type === 'vendor') {
+      const phoneCheck = await pool.query('SELECT id FROM vendors WHERE phone = $1', [phone]);
+      if (phoneCheck.rows.length > 0) {
+        return res.status(400).json({ message: 'A partner with this phone number already exists' });
+      }
+      const emailCheck = await pool.query('SELECT id FROM vendors WHERE email = $1', [email]);
+      if (emailCheck.rows.length > 0) {
+        return res.status(400).json({ message: 'A partner with this email address already exists' });
+      }
+    } else {
+      const phoneCheck = await pool.query('SELECT id FROM users WHERE phone = $1', [phone]);
+      if (phoneCheck.rows.length > 0) {
+        return res.status(400).json({ message: 'User with this phone number already exists. Please sign in instead.' });
+      }
+      const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+      if (emailCheck.rows.length > 0) {
+        return res.status(400).json({ message: 'User with this email address already exists. Please sign in instead.' });
+      }
+    }
+
+    // Generate 6-digit OTP code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    // Clear old OTPs and insert new
+    await pool.query('DELETE FROM email_otps WHERE email = $1', [email]);
+    await pool.query(
+      'INSERT INTO email_otps (email, otp, expires_at) VALUES ($1, $2, $3)',
+      [email, otp, expiresAt]
+    );
+
+    // Send email
+    await sendOtpEmail(email, otp);
+
+    res.json({ success: true, message: 'Verification code sent successfully' });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ message: 'Failed to send verification code. Please check your email address.' });
+  }
+};
+
 module.exports = {
   register,
   login,
   getMe,
   updateProfile,
-  changePassword
+  changePassword,
+  sendOtp
 };

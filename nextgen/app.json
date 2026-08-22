@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Go Fixit",
-    "slug": "gofixit",
+    "slug": "nextgen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/GoFixit.png",

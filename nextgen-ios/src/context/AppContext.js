@@ -158,9 +158,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, phone, password, referralCode, district_id, mandal_id, address, email) => {
+  const register = async (name, phone, password, referralCode, district_id, mandal_id, address, email, otp) => {
     try {
-      const data = await api.post('/auth/register', { name, phone, password, referralCode, district_id, mandal_id, address, email });
+      const data = await api.post('/auth/register', { name, phone, password, referralCode, district_id, mandal_id, address, email, otp });
       await setAuthToken(data.token);
       
       // Load all data before setting token state so transition is instant

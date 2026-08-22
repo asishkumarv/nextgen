@@ -1,0 +1,22 @@
+# Task Checklist: OTP Verification Signup
+
+- [x] Install dependencies (`nodemailer` in `backend`)
+- [x] Database Schema updates:
+  - [x] Modify `backend/src/db/init.js`
+  - [x] Modify `backend/src/db/migrate.js`
+  - [x] Modify `backend/migration.sql`
+  - [x] Run migration query to apply changes to database (Updated local URL, executed schema changes)
+- [x] Backend Mailer & Asset setup:
+  - [x] Copy `GoFixit.png` logo to `backend/src/assets/GoFixit.png`
+  - [x] Create `backend/src/utils/mailer.js`
+- [x] Backend Controllers & Routes:
+  - [x] Add `sendOtp` controller and endpoint inside `authController.js` and `authRoutes.js`
+  - [x] Update `register` in `authController.js` to require and check `otp`
+  - [x] Update `vendorRegister` in `vendorController.js` to require `email` and `otp` and check `otp`
+- [x] Frontend integration:
+  - [x] Add OTP Dialog overlay and verify API calls in User Android App (`nextgen/src/screens/RegisterScreen.js`)
+  - [x] Add OTP Dialog overlay and verify API calls in User iOS App (`nextgen-ios/src/screens/RegisterScreen.js`)
+  - [x] Add email field, OTP Dialog overlay, and verify API calls in Vendor App (`vendor-app/src/screens/RegisterScreen.js`)
+  - [x] Add OTP Dialog overlay in User Web App (`nextgen-web/src/pages/Signup.jsx`)
+  - [x] Style the Web OTP Modal in `nextgen-web/src/App.css`
+- [x] Verification and Walkthrough

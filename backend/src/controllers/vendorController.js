@@ -5,15 +5,28 @@ require('dotenv').config();
 const { Notification } = require('../models/dbModel');
 
 const vendorRegister = async (req, res) => {
-  const { name, phone, password, existingServices, newService, districtId, mandalId } = req.body;
+  const { name, phone, password, existingServices, newService, districtId, mandalId, email, otp } = req.body;
 
-  if (!name || !phone || !password || !districtId || !mandalId) {
-    return res.status(400).json({ message: 'Please enter all required fields including District and Mandal' });
+  if (!name || !phone || !password || !districtId || !mandalId || !email || !otp) {
+    return res.status(400).json({ message: 'Please enter all required fields including email and verification code' });
   }
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+
+    // Verify OTP
+    const otpCheck = await client.query(
+      'SELECT * FROM email_otps WHERE email = $1 AND otp = $2 AND expires_at > CURRENT_TIMESTAMP',
+      [email, otp]
+    );
+    if (otpCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: 'Invalid or expired verification code' });
+    }
+
+    // Delete used OTP
+    await client.query('DELETE FROM email_otps WHERE email = $1', [email]);
 
     // Check if phone number exists in vendors
     const vendorExist = await client.query('SELECT * FROM vendors WHERE phone = $1', [phone]);
@@ -22,14 +35,21 @@ const vendorRegister = async (req, res) => {
       return res.status(400).json({ message: 'Vendor with this phone number already exists' });
     }
 
+    // Check if email exists in vendors
+    const vendorEmailExist = await client.query('SELECT * FROM vendors WHERE email = $1', [email]);
+    if (vendorEmailExist.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: 'Vendor with this email address already exists' });
+    }
+
     // Hash password
     const salt = bcrypt.genSaltSync(10);
     const passwordHash = bcrypt.hashSync(password, salt);
 
     // Insert vendor
     const newVendorRes = await client.query(
-      'INSERT INTO vendors (name, phone, password, status, district_id, mandal_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, phone, status',
-      [name, phone, passwordHash, 'Pending', districtId, mandalId]
+      'INSERT INTO vendors (name, phone, password, status, district_id, mandal_id, email) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, phone, status, email',
+      [name, phone, passwordHash, 'Pending', districtId, mandalId, email]
     );
     const vendor = newVendorRes.rows[0];
 
