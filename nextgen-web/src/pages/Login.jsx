@@ -7,7 +7,7 @@ import { api } from '../utils/api';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [phone, setPhone] = useState('');
+  const [phoneOrEmail, setPhoneOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -21,14 +21,14 @@ export default function Login() {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!phone) {
-      setError('Phone number is required');
+    if (!phoneOrEmail) {
+      setError('Phone number or email is required');
       return;
     }
     setError('');
     setOtpLoading(true);
     try {
-      const res = await api.post('/auth/send-otp', { phone: phone.trim(), type: 'user', action: 'login' });
+      const res = await api.post('/auth/send-otp', { phoneOrEmail: phoneOrEmail.trim(), type: 'user', action: 'login' });
       if (res.success) {
         setShowOtpField(true);
         setOtp('');
@@ -45,7 +45,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!phone) {
+    if (!phoneOrEmail) {
       setError('Please fill in all fields');
       return;
     }
@@ -64,7 +64,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(
-        phone.trim(),
+        phoneOrEmail.trim(),
         loginMethod === 'password' ? password : undefined,
         loginMethod === 'otp' ? otp.trim() : undefined
       );
@@ -94,15 +94,15 @@ export default function Login() {
 
         <form onSubmit={loginMethod === 'otp' && !showOtpField ? handleSendOtp : handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="phone">Phone Number</label>
+            <label htmlFor="phoneOrEmail">Phone Number or Email Address</label>
             <div className="input-with-icon">
               <Phone className="input-icon" size={16} />
               <input
                 type="text"
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Enter registered phone number"
+                id="phoneOrEmail"
+                value={phoneOrEmail}
+                onChange={(e) => setPhoneOrEmail(e.target.value)}
+                placeholder="Enter phone or email"
                 required
                 disabled={loading || otpLoading}
               />

@@ -101,10 +101,10 @@ const vendorRegister = async (req, res) => {
 };
 
 const vendorLogin = async (req, res) => {
-  const { phone, password, otp } = req.body;
+  const { phoneOrEmail, password, otp } = req.body;
 
-  if (!phone) {
-    return res.status(400).json({ message: 'Phone number is required' });
+  if (!phoneOrEmail) {
+    return res.status(400).json({ message: 'Phone number or email is required' });
   }
 
   if (!password && !otp) {
@@ -112,7 +112,7 @@ const vendorLogin = async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM vendors WHERE phone = $1', [phone]);
+    const result = await pool.query('SELECT * FROM vendors WHERE phone = $1 OR email = $2', [phoneOrEmail, phoneOrEmail]);
     if (result.rows.length === 0) {
       return res.status(400).json({ message: 'Vendor does not exist. Please register to login.' });
     }

@@ -35,11 +35,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = async (phone, password, otp) => {
+  const login = async (phoneOrEmail, password, otp) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.post('/auth/login', { phone, password, otp });
+      const data = await api.post('/auth/login', { phoneOrEmail, password, otp });
       localStorage.setItem('Go Fixit_token', data.token);
       setToken(data.token);
       return data;

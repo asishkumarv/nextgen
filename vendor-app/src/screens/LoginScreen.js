@@ -22,10 +22,10 @@ import { api } from '../utils/api';
 export default function LoginScreen({ onNavigateToRegister }) {
   const insets = useSafeAreaInsets();
   const { login } = useVendor();
-  const [phone, setPhone] = useState('');
+  const [phoneOrEmail, setPhoneOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [phoneError, setPhoneError] = useState('');
+  const [phoneOrEmailError, setPhoneOrEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   
   const [toastMsg, setToastMsg] = useState('');
@@ -46,24 +46,21 @@ export default function LoginScreen({ onNavigateToRegister }) {
   };
 
   const clearFieldErrors = () => {
-    setPhoneError('');
+    setPhoneOrEmailError('');
     setPasswordError('');
   };
 
   const handleSendOtp = async () => {
     Keyboard.dismiss();
-    setPhoneError('');
-    if (!phone.trim()) {
-      setPhoneError('Phone number is required');
-      return;
-    } else if (phone.trim().replace(/\D/g, '').length < 10) {
-      setPhoneError('Enter a valid 10-digit phone number');
+    setPhoneOrEmailError('');
+    if (!phoneOrEmail.trim()) {
+      setPhoneOrEmailError('Phone number or email is required');
       return;
     }
 
     setOtpLoading(true);
     try {
-      const res = await api.post('/auth/send-otp', { phone: phone.trim(), type: 'vendor', action: 'login' });
+      const res = await api.post('/auth/send-otp', { phoneOrEmail: phoneOrEmail.trim(), type: 'vendor', action: 'login' });
       setOtpLoading(false);
       if (res.success) {
         setShowOtpField(true);
@@ -84,11 +81,8 @@ export default function LoginScreen({ onNavigateToRegister }) {
     clearFieldErrors();
     let hasError = false;
 
-    if (!phone.trim()) {
-      setPhoneError('Phone number is required');
-      hasError = true;
-    } else if (phone.trim().replace(/\D/g, '').length < 10) {
-      setPhoneError('Enter a valid 10-digit phone number');
+    if (!phoneOrEmail.trim()) {
+      setPhoneOrEmailError('Phone number or email is required');
       hasError = true;
     }
 
@@ -114,7 +108,7 @@ export default function LoginScreen({ onNavigateToRegister }) {
 
     setLoading(true);
     const result = await login(
-      phone.trim(), 
+      phoneOrEmail.trim(), 
       loginMethod === 'password' ? password : undefined, 
       loginMethod === 'otp' ? otp.trim() : undefined
     );
@@ -131,8 +125,8 @@ export default function LoginScreen({ onNavigateToRegister }) {
         } else if (msg.toLowerCase().includes('rejected')) {
           showToast('Your registration request was rejected by the administrator.', 'error');
         } else if (msg.toLowerCase().includes('does not exist') || msg.toLowerCase().includes('not exist')) {
-          showToast('Vendor does not exist. Please register to login.', 'error');
-          setPhoneError('Vendor does not exist');
+          showToast('Account does not exist. Please register to login.', 'error');
+          setPhoneOrEmailError('Account does not exist');
         } else if (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('incorrect') || msg.toLowerCase().includes('password')) {
           showToast('Invalid credentials. Password is incorrect.', 'error');
           setPasswordError('Incorrect password');
@@ -171,25 +165,26 @@ export default function LoginScreen({ onNavigateToRegister }) {
             <Text style={styles.formHeading}>Vendor Portal</Text>
             <Text style={styles.formSub}>Log in to manage your tasks & revenue</Text>
 
-            {/* Phone Number Input */}
+            {/* Phone or Email Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Registered Phone Number</Text>
-              <View style={[styles.inputWrapper, phoneError ? styles.inputWrapperError : null]}>
-                <Ionicons name="call-outline" size={18} color={phoneError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+              <Text style={styles.inputLabel}>Phone Number or Email Address</Text>
+              <View style={[styles.inputWrapper, phoneOrEmailError ? styles.inputWrapperError : null]}>
+                <Ionicons name="person-outline" size={18} color={phoneOrEmailError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
-                  placeholder="+91 98765 43210"
+                  placeholder="Enter phone or email"
                   placeholderTextColor="#A5A1B8"
-                  keyboardType="phone-pad"
-                  value={phone}
-                  onChangeText={(t) => { setPhone(t); setPhoneError(''); }}
+                  keyboardType="default"
+                  autoCapitalize="none"
+                  value={phoneOrEmail}
+                  onChangeText={(t) => { setPhoneOrEmail(t); setPhoneOrEmailError(''); }}
                   editable={!loading}
                 />
               </View>
-              {phoneError ? (
+              {phoneOrEmailError ? (
                 <View style={styles.fieldErrorRow}>
                   <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
-                  <Text style={styles.fieldErrorText}>{phoneError}</Text>
+                  <Text style={styles.fieldErrorText}>{phoneOrEmailError}</Text>
                 </View>
               ) : null}
             </View>

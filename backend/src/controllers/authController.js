@@ -111,10 +111,10 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { phone, password, otp } = req.body;
+  const { phoneOrEmail, password, otp } = req.body;
 
-  if (!phone) {
-    return res.status(400).json({ message: 'Phone number is required' });
+  if (!phoneOrEmail) {
+    return res.status(400).json({ message: 'Phone number or email is required' });
   }
 
   if (!password && !otp) {
@@ -123,7 +123,7 @@ const login = async (req, res) => {
 
   try {
     // Find user
-    const result = await pool.query('SELECT * FROM users WHERE phone = $1', [phone]);
+    const result = await pool.query('SELECT * FROM users WHERE phone = $1 OR email = $2', [phoneOrEmail, phoneOrEmail]);
     if (result.rows.length === 0) {
       return res.status(400).json({ message: 'User does not exist. Please register to login.' });
     }
@@ -302,11 +302,11 @@ const changePassword = async (req, res) => {
 };
 
 const sendOtp = async (req, res) => {
-  const { email, phone, type, action } = req.body; // type can be 'user' or 'vendor', action can be 'login' or 'register'
+  const { email, phone, type, action, phoneOrEmail } = req.body; // type can be 'user' or 'vendor', action can be 'login' or 'register'
 
   if (action === 'login') {
-    if (!phone) {
-      return res.status(400).json({ message: 'Phone number is required' });
+    if (!phoneOrEmail) {
+      return res.status(400).json({ message: 'Phone number or email is required' });
     }
   } else {
     if (!email || !phone) {
@@ -319,9 +319,9 @@ const sendOtp = async (req, res) => {
 
     if (action === 'login') {
       if (type === 'vendor') {
-        const vendorCheck = await pool.query('SELECT email, status FROM vendors WHERE phone = $1', [phone]);
+        const vendorCheck = await pool.query('SELECT email, status FROM vendors WHERE phone = $1 OR email = $2', [phoneOrEmail, phoneOrEmail]);
         if (vendorCheck.rows.length === 0) {
-          return res.status(400).json({ message: 'No registered partner account found with this phone number' });
+          return res.status(400).json({ message: 'No registered partner account found with this phone number or email' });
         }
         const vendor = vendorCheck.rows[0];
         if (vendor.status === 'Pending') {
@@ -335,9 +335,9 @@ const sendOtp = async (req, res) => {
         }
         targetEmail = vendor.email;
       } else {
-        const userCheck = await pool.query('SELECT email FROM users WHERE phone = $1', [phone]);
+        const userCheck = await pool.query('SELECT email FROM users WHERE phone = $1 OR email = $2', [phoneOrEmail, phoneOrEmail]);
         if (userCheck.rows.length === 0) {
-          return res.status(400).json({ message: 'No registered user account found with this phone number' });
+          return res.status(400).json({ message: 'No registered user account found with this phone number or email' });
         }
         targetEmail = userCheck.rows[0].email;
       }

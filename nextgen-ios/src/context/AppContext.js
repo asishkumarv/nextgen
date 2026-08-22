@@ -141,9 +141,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const login = async (phone, password, otp) => {
+  const login = async (phoneOrEmail, password, otp) => {
     try {
-      const data = await api.post('/auth/login', { phone, password, otp });
+      const data = await api.post('/auth/login', { phoneOrEmail, password, otp });
       await setAuthToken(data.token);
       
       // Load all data before setting token state so transition is instant
