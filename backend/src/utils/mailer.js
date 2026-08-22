@@ -43,11 +43,6 @@ const sendOtpEmail = async (email, otp) => {
             padding: 30px;
             text-align: center;
           }
-          .logo {
-            width: 70px;
-            height: 70px;
-            margin-bottom: 10px;
-          }
           .brand-title {
             color: #FFFFFF;
             font-size: 24px;
@@ -99,7 +94,6 @@ const sendOtpEmail = async (email, otp) => {
       <body>
         <div class="email-container">
           <div class="header">
-            <img src="cid:logo" alt="Go Fixit Logo" class="logo" />
             <h1 class="brand-title">Go Fixit</h1>
           </div>
           <div class="content">
@@ -117,11 +111,7 @@ const sendOtpEmail = async (email, otp) => {
       </body>
       </html>
     `,
-    attachments: [{
-      filename: 'GoFixit.png',
-      path: path.join(__dirname, '../assets/GoFixit.png'),
-      cid: 'logo'
-    }]
+    text: `Your Go Fixit verification code is: ${otp}. This code is valid for 10 minutes.`
   };
 
   return transporter.sendMail(mailOptions);

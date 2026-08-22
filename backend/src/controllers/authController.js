@@ -111,10 +111,14 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { phone, password } = req.body;
+  const { phone, password, otp } = req.body;
 
-  if (!phone || !password) {
-    return res.status(400).json({ message: 'Please enter all fields' });
+  if (!phone) {
+    return res.status(400).json({ message: 'Phone number is required' });
+  }
+
+  if (!password && !otp) {
+    return res.status(400).json({ message: 'Either password or verification code is required' });
   }
 
   try {
@@ -126,10 +130,28 @@ const login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Check password
-    const isMatch = bcrypt.compareSync(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials. Password is incorrect.' });
+    if (otp) {
+      // Validate OTP
+      const email = user.email;
+      if (!email) {
+        return res.status(400).json({ message: 'No email address associated with this account.' });
+      }
+      const otpCheck = await pool.query('SELECT * FROM email_otps WHERE email = $1 AND otp = $2', [email, otp]);
+      if (otpCheck.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid verification code' });
+      }
+      const otpRecord = otpCheck.rows[0];
+      if (new Date() > new Date(otpRecord.expires_at)) {
+        return res.status(400).json({ message: 'Verification code has expired' });
+      }
+      // Delete used OTP
+      await pool.query('DELETE FROM email_otps WHERE email = $1', [email]);
+    } else {
+      // Check password
+      const isMatch = bcrypt.compareSync(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid credentials. Password is incorrect.' });
+      }
     }
 
     // Generate token
@@ -280,31 +302,68 @@ const changePassword = async (req, res) => {
 };
 
 const sendOtp = async (req, res) => {
-  const { email, phone, type } = req.body; // type can be 'user' or 'vendor'
+  const { email, phone, type, action } = req.body; // type can be 'user' or 'vendor', action can be 'login' or 'register'
 
-  if (!email || !phone) {
-    return res.status(400).json({ message: 'Email and phone number are required' });
+  if (action === 'login') {
+    if (!phone) {
+      return res.status(400).json({ message: 'Phone number is required' });
+    }
+  } else {
+    if (!email || !phone) {
+      return res.status(400).json({ message: 'Email and phone number are required' });
+    }
   }
 
   try {
-    // Validate if user already exists
-    if (type === 'vendor') {
-      const phoneCheck = await pool.query('SELECT id FROM vendors WHERE phone = $1', [phone]);
-      if (phoneCheck.rows.length > 0) {
-        return res.status(400).json({ message: 'A partner with this phone number already exists' });
+    let targetEmail = email;
+
+    if (action === 'login') {
+      if (type === 'vendor') {
+        const vendorCheck = await pool.query('SELECT email, status FROM vendors WHERE phone = $1', [phone]);
+        if (vendorCheck.rows.length === 0) {
+          return res.status(400).json({ message: 'No registered partner account found with this phone number' });
+        }
+        const vendor = vendorCheck.rows[0];
+        if (vendor.status === 'Pending') {
+          return res.status(403).json({ message: 'Your registration is pending administrator approval.' });
+        }
+        if (vendor.status === 'Rejected') {
+          return res.status(403).json({ message: 'Your registration request was rejected.' });
+        }
+        if (vendor.status === 'Deactivated') {
+          return res.status(403).json({ message: 'Your account has been deactivated.' });
+        }
+        targetEmail = vendor.email;
+      } else {
+        const userCheck = await pool.query('SELECT email FROM users WHERE phone = $1', [phone]);
+        if (userCheck.rows.length === 0) {
+          return res.status(400).json({ message: 'No registered user account found with this phone number' });
+        }
+        targetEmail = userCheck.rows[0].email;
       }
-      const emailCheck = await pool.query('SELECT id FROM vendors WHERE email = $1', [email]);
-      if (emailCheck.rows.length > 0) {
-        return res.status(400).json({ message: 'A partner with this email address already exists' });
+      if (!targetEmail) {
+        return res.status(400).json({ message: 'No email address is associated with this account. Please use password login.' });
       }
     } else {
-      const phoneCheck = await pool.query('SELECT id FROM users WHERE phone = $1', [phone]);
-      if (phoneCheck.rows.length > 0) {
-        return res.status(400).json({ message: 'User with this phone number already exists. Please sign in instead.' });
-      }
-      const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-      if (emailCheck.rows.length > 0) {
-        return res.status(400).json({ message: 'User with this email address already exists. Please sign in instead.' });
+      // Validate if user already exists
+      if (type === 'vendor') {
+        const phoneCheck = await pool.query('SELECT id FROM vendors WHERE phone = $1', [phone]);
+        if (phoneCheck.rows.length > 0) {
+          return res.status(400).json({ message: 'A partner with this phone number already exists' });
+        }
+        const emailCheck = await pool.query('SELECT id FROM vendors WHERE email = $1', [email]);
+        if (emailCheck.rows.length > 0) {
+          return res.status(400).json({ message: 'A partner with this email address already exists' });
+        }
+      } else {
+        const phoneCheck = await pool.query('SELECT id FROM users WHERE phone = $1', [phone]);
+        if (phoneCheck.rows.length > 0) {
+          return res.status(400).json({ message: 'User with this phone number already exists. Please sign in instead.' });
+        }
+        const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+        if (emailCheck.rows.length > 0) {
+          return res.status(400).json({ message: 'User with this email address already exists. Please sign in instead.' });
+        }
       }
     }
 
@@ -313,16 +372,20 @@ const sendOtp = async (req, res) => {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
     // Clear old OTPs and insert new
-    await pool.query('DELETE FROM email_otps WHERE email = $1', [email]);
+    await pool.query('DELETE FROM email_otps WHERE email = $1', [targetEmail]);
     await pool.query(
       'INSERT INTO email_otps (email, otp, expires_at) VALUES ($1, $2, $3)',
-      [email, otp, expiresAt]
+      [targetEmail, otp, expiresAt]
     );
 
     // Send email
-    await sendOtpEmail(email, otp);
+    await sendOtpEmail(targetEmail, otp);
 
-    res.json({ success: true, message: 'Verification code sent successfully' });
+    // Mask target email for response (e.g. jo***@domain.com)
+    const atIdx = targetEmail.indexOf('@');
+    const maskedEmail = targetEmail.substring(0, Math.min(2, atIdx)) + '***' + targetEmail.substring(atIdx);
+
+    res.json({ success: true, message: 'Verification code sent successfully', email: maskedEmail });
   } catch (error) {
     console.error('Error sending OTP:', error);
     res.status(500).json({ message: 'Failed to send verification code. Please check your email address.' });

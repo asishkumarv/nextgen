@@ -17,6 +17,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVendor } from '../context/VendorContext';
 import Toast from '../components/Toast';
+import { api } from '../utils/api';
 
 export default function LoginScreen({ onNavigateToRegister }) {
   const insets = useSafeAreaInsets();
@@ -31,6 +32,13 @@ export default function LoginScreen({ onNavigateToRegister }) {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState('error');
 
+  // OTP Login Mode States
+  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+
   const showToast = (msg, type = 'error') => {
     setToastMsg(msg);
     setToastType(type);
@@ -40,6 +48,35 @@ export default function LoginScreen({ onNavigateToRegister }) {
   const clearFieldErrors = () => {
     setPhoneError('');
     setPasswordError('');
+  };
+
+  const handleSendOtp = async () => {
+    Keyboard.dismiss();
+    setPhoneError('');
+    if (!phone.trim()) {
+      setPhoneError('Phone number is required');
+      return;
+    } else if (phone.trim().replace(/\D/g, '').length < 10) {
+      setPhoneError('Enter a valid 10-digit phone number');
+      return;
+    }
+
+    setOtpLoading(true);
+    try {
+      const res = await api.post('/auth/send-otp', { phone: phone.trim(), type: 'vendor', action: 'login' });
+      setOtpLoading(false);
+      if (res.success) {
+        setShowOtpField(true);
+        setOtpError('');
+        setOtp('');
+        showToast(`Verification code sent to registered email ending in ${res.email}`, 'success');
+      } else {
+        showToast(res.message || 'Failed to send verification code', 'error');
+      }
+    } catch (err) {
+      setOtpLoading(false);
+      showToast(err.message || 'Failed to send verification code', 'error');
+    }
   };
 
   const handleLogin = async () => {
@@ -55,9 +92,19 @@ export default function LoginScreen({ onNavigateToRegister }) {
       hasError = true;
     }
 
-    if (!password) {
-      setPasswordError('Password is required');
-      hasError = true;
+    if (loginMethod === 'password') {
+      if (!password) {
+        setPasswordError('Password is required');
+        hasError = true;
+      }
+    } else {
+      if (!otp.trim()) {
+        setOtpError('Verification code is required');
+        hasError = true;
+      } else if (otp.trim().length < 6) {
+        setOtpError('Enter a valid 6-digit verification code');
+        hasError = true;
+      }
     }
 
     if (hasError) {
@@ -66,23 +113,32 @@ export default function LoginScreen({ onNavigateToRegister }) {
     }
 
     setLoading(true);
-    const result = await login(phone.trim(), password);
+    const result = await login(
+      phone.trim(), 
+      loginMethod === 'password' ? password : undefined, 
+      loginMethod === 'otp' ? otp.trim() : undefined
+    );
     setLoading(false);
 
     if (!result.success) {
       const msg = result.message || '';
-      if (msg.toLowerCase().includes('pending')) {
-        showToast('Your registration is pending administrator approval.', 'warning');
-      } else if (msg.toLowerCase().includes('rejected')) {
-        showToast('Your registration request was rejected by the administrator.', 'error');
-      } else if (msg.toLowerCase().includes('does not exist') || msg.toLowerCase().includes('not exist')) {
-        showToast('Vendor does not exist. Please register to login.', 'error');
-        setPhoneError('Vendor does not exist');
-      } else if (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('incorrect') || msg.toLowerCase().includes('password')) {
-        showToast('Invalid credentials. Password is incorrect.', 'error');
-        setPasswordError('Incorrect password');
+      if (loginMethod === 'otp') {
+        setOtpError(msg);
+        showToast(msg, 'error');
       } else {
-        showToast(msg || 'Login failed. Please check your credentials.', 'error');
+        if (msg.toLowerCase().includes('pending')) {
+          showToast('Your registration is pending administrator approval.', 'warning');
+        } else if (msg.toLowerCase().includes('rejected')) {
+          showToast('Your registration request was rejected by the administrator.', 'error');
+        } else if (msg.toLowerCase().includes('does not exist') || msg.toLowerCase().includes('not exist')) {
+          showToast('Vendor does not exist. Please register to login.', 'error');
+          setPhoneError('Vendor does not exist');
+        } else if (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('incorrect') || msg.toLowerCase().includes('password')) {
+          showToast('Invalid credentials. Password is incorrect.', 'error');
+          setPasswordError('Incorrect password');
+        } else {
+          showToast(msg || 'Login failed. Please check your credentials.', 'error');
+        }
       }
     }
   };
@@ -138,51 +194,120 @@ export default function LoginScreen({ onNavigateToRegister }) {
               ) : null}
             </View>
 
-            {/* Password Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View style={[styles.inputWrapper, passwordError ? styles.inputWrapperError : null]}>
-                <Ionicons name="lock-closed-outline" size={18} color={passwordError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#A5A1B8"
-                  secureTextEntry
-                  value={password}
-                  onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
-                  editable={!loading}
-                />
-              </View>
-              {passwordError ? (
-                <View style={styles.fieldErrorRow}>
-                  <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
-                  <Text style={styles.fieldErrorText}>{passwordError}</Text>
+            {/* Password / OTP Input conditional render */}
+            {loginMethod === 'password' ? (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <View style={[styles.inputWrapper, passwordError ? styles.inputWrapperError : null]}>
+                  <Ionicons name="lock-closed-outline" size={18} color={passwordError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#A5A1B8"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
+                    editable={!loading}
+                  />
                 </View>
-              ) : null}
-            </View>
-
-            {/* Action Button */}
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={handleLogin}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#F0C38E', '#F1AA9B']}
-                style={styles.loginButtonGrad}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <View style={styles.btnContent}>
-                    <Text style={styles.loginButtonText}>Sign In</Text>
-                    <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                {passwordError ? (
+                  <View style={styles.fieldErrorRow}>
+                    <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                    <Text style={styles.fieldErrorText}>{passwordError}</Text>
                   </View>
-                )}
-              </LinearGradient>
+                ) : null}
+              </View>
+            ) : (
+              showOtpField && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Verification Code (OTP)</Text>
+                  <View style={[styles.inputWrapper, otpError ? styles.inputWrapperError : null]}>
+                    <Ionicons name="shield-checkmark-outline" size={18} color={otpError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="123456"
+                      placeholderTextColor="#A5A1B8"
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      value={otp}
+                      onChangeText={(t) => { setOtp(t); setOtpError(''); }}
+                      editable={!loading}
+                    />
+                  </View>
+                  {otpError ? (
+                    <View style={styles.fieldErrorRow}>
+                      <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                      <Text style={styles.fieldErrorText}>{otpError}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              )
+            )}
+
+            {/* Action Buttons */}
+            {loginMethod === 'otp' && !showOtpField ? (
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={handleSendOtp}
+                disabled={otpLoading}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#F0C38E', '#F1AA9B']}
+                  style={styles.loginButtonGrad}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {otpLoading ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <View style={styles.btnContent}>
+                      <Text style={styles.loginButtonText}>Send OTP Code</Text>
+                      <Ionicons name="mail-outline" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                    </View>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#F0C38E', '#F1AA9B']}
+                  style={styles.loginButtonGrad}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <View style={styles.btnContent}>
+                      <Text style={styles.loginButtonText}>{loginMethod === 'password' ? 'Sign In' : 'Verify & Login'}</Text>
+                      <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                    </View>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+
+            {/* Switch Login Method Link */}
+            <TouchableOpacity
+              style={styles.switchMethodBtn}
+              onPress={() => {
+                setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
+                setShowOtpField(false);
+                setOtp('');
+                setOtpError('');
+                clearFieldErrors();
+              }}
+              disabled={loading || otpLoading}
+            >
+              <Text style={styles.switchMethodText}>
+                {loginMethod === 'password' ? 'Sign In with Email OTP' : 'Sign In with Password'}
+              </Text>
             </TouchableOpacity>
 
             {/* Sign Up Navigation Toggle */}
@@ -360,5 +485,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#F1AA9B',
     fontWeight: '700',
+  },
+  switchMethodBtn: {
+    alignItems: 'center',
+    marginTop: 15,
+    paddingVertical: 8,
+  },
+  switchMethodText: {
+    color: '#F0C38E',
+    fontSize: 13,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });

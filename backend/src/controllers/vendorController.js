@@ -101,10 +101,14 @@ const vendorRegister = async (req, res) => {
 };
 
 const vendorLogin = async (req, res) => {
-  const { phone, password } = req.body;
+  const { phone, password, otp } = req.body;
 
-  if (!phone || !password) {
-    return res.status(400).json({ message: 'Please enter all fields' });
+  if (!phone) {
+    return res.status(400).json({ message: 'Phone number is required' });
+  }
+
+  if (!password && !otp) {
+    return res.status(400).json({ message: 'Either password or verification code is required' });
   }
 
   try {
@@ -114,11 +118,6 @@ const vendorLogin = async (req, res) => {
     }
 
     const vendor = result.rows[0];
-
-    const isMatch = bcrypt.compareSync(password, vendor.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials. Password is incorrect.' });
-    }
 
     if (vendor.status === 'Pending') {
       return res.status(403).json({ message: 'Your registration is pending administrator approval.' });
@@ -130,6 +129,30 @@ const vendorLogin = async (req, res) => {
 
     if (vendor.status === 'Deactivated') {
       return res.status(403).json({ message: 'Your account has been deactivated by the administrator. Please contact support.' });
+    }
+
+    if (otp) {
+      // Validate OTP
+      const email = vendor.email;
+      if (!email) {
+        return res.status(400).json({ message: 'No email address associated with this partner account. Please use password login.' });
+      }
+      const otpCheck = await pool.query('SELECT * FROM email_otps WHERE email = $1 AND otp = $2', [email, otp]);
+      if (otpCheck.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid verification code' });
+      }
+      const otpRecord = otpCheck.rows[0];
+      if (new Date() > new Date(otpRecord.expires_at)) {
+        return res.status(400).json({ message: 'Verification code has expired' });
+      }
+      // Delete used OTP
+      await pool.query('DELETE FROM email_otps WHERE email = $1', [email]);
+    } else {
+      // Check password
+      const isMatch = bcrypt.compareSync(password, vendor.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid credentials. Password is incorrect.' });
+      }
     }
 
     const token = jwt.sign(

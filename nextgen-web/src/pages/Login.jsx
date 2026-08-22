@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { KeyRound, Phone, LogIn, ShieldAlert, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Phone, LogIn, ShieldAlert, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { api } from '../utils/api';
 
 export default function Login() {
   const { login } = useAuth();
@@ -12,16 +13,61 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // OTP Login states
+  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    if (!phone) {
+      setError('Phone number is required');
+      return;
+    }
+    setError('');
+    setOtpLoading(true);
+    try {
+      const res = await api.post('/auth/send-otp', { phone: phone.trim(), type: 'user', action: 'login' });
+      if (res.success) {
+        setShowOtpField(true);
+        setOtp('');
+        setError(`success:Verification code sent to registered email ending in ${res.email}`);
+      } else {
+        setError(res.message || 'Failed to send verification code');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to send verification code');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!phone || !password) {
+    if (!phone) {
       setError('Please fill in all fields');
       return;
+    }
+    if (loginMethod === 'password') {
+      if (!password) {
+        setError('Please fill in all fields');
+        return;
+      }
+    } else {
+      if (!otp) {
+        setError('Please enter the verification code');
+        return;
+      }
     }
     setError('');
     setLoading(true);
     try {
-      await login(phone, password);
+      await login(
+        phone.trim(),
+        loginMethod === 'password' ? password : undefined,
+        loginMethod === 'otp' ? otp.trim() : undefined
+      );
       // AuthContext will update, navigate to dashboard
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -40,13 +86,13 @@ export default function Login() {
         </div>
 
         {error && (
-          <div className="auth-error-banner">
+          <div className={`auth-error-banner ${error.startsWith('success:') ? 'success-banner' : ''}`} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <ShieldAlert size={16} className="error-icon" />
-            <span>{error}</span>
+            <span>{error.startsWith('success:') ? error.replace('success:', '') : error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={loginMethod === 'otp' && !showOtpField ? handleSendOtp : handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="phone">Phone Number</label>
             <div className="input-with-icon">
@@ -58,51 +104,117 @@ export default function Login() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter registered phone number"
                 required
+                disabled={loading || otpLoading}
               />
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="input-with-icon" style={{ position: 'relative' }}>
-              <KeyRound className="input-icon" size={16} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                required
-                style={{ paddingRight: '40px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: 0, display: 'flex'
-                }}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+          {loginMethod === 'password' ? (
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <div className="input-with-icon" style={{ position: 'relative' }}>
+                <KeyRound className="input-icon" size={16} />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  required
+                  style={{ paddingRight: '40px' }}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: 0, display: 'flex'
+                  }}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            showOtpField && (
+              <div className="form-group animate-slide-up">
+                <label htmlFor="otp">Verification Code (OTP)</label>
+                <div className="input-with-icon">
+                  <ShieldCheck className="input-icon" size={16} />
+                  <input
+                    type="text"
+                    id="otp"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="Enter 6-digit verification code"
+                    maxLength={6}
+                    required
+                    style={{ letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold' }}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            )
+          )}
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-block btn-auth"
-            disabled={loading}
-          >
-            {loading ? (
-              <span>Logging in...</span>
-            ) : (
-              <>
-                <span>Sign In</span>
-                <LogIn size={16} />
-              </>
-            )}
-          </button>
+          {loginMethod === 'otp' && !showOtpField ? (
+            <button
+              type="submit"
+              className="btn btn-primary btn-block btn-auth"
+              disabled={otpLoading}
+            >
+              {otpLoading ? (
+                <span>Sending Code...</span>
+              ) : (
+                <>
+                  <span>Send OTP Code</span>
+                  <LogIn size={16} />
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="btn btn-primary btn-block btn-auth"
+              disabled={loading}
+            >
+              {loading ? (
+                <span>Logging in...</span>
+              ) : (
+                <>
+                  <span>{loginMethod === 'password' ? 'Sign In' : 'Verify & Login'}</span>
+                  <LogIn size={16} />
+                </>
+              )}
+            </button>
+          )}
         </form>
+
+        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+          <button
+            type="button"
+            className="link-btn"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--primary)',
+              fontWeight: '700',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              fontSize: '0.9rem'
+            }}
+            onClick={() => {
+              setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
+              setShowOtpField(false);
+              setOtp('');
+              setError('');
+            }}
+            disabled={loading || otpLoading}
+          >
+            {loginMethod === 'password' ? 'Sign In with Email OTP' : 'Sign In with Password'}
+          </button>
+        </div>
 
         <div className="auth-footer-text">
           Don't have an account? <Link to="/signup">Register here</Link>
