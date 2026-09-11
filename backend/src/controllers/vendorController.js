@@ -15,21 +15,21 @@ const vendorRegister = async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Verify OTP
+    const cleanPhone = (phone || '').trim();
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    // Verify OTP against phone or email
     const otpCheck = await client.query(
-      'SELECT * FROM email_otps WHERE email = $1 AND otp = $2 AND expires_at > CURRENT_TIMESTAMP',
-      [email, otp]
+      'SELECT * FROM email_otps WHERE (email = $1 OR email = $2) AND otp = $3 AND expires_at > CURRENT_TIMESTAMP',
+      [cleanPhone, cleanEmail, otp.trim()]
     );
     if (otpCheck.rows.length === 0) {
       await client.query('ROLLBACK');
-      return res.status(400).json({ message: 'Invalid or expired verification code' });
+      return res.status(400).json({ message: 'Invalid or expired SMS verification code' });
     }
 
     // Delete used OTP
-    await client.query('DELETE FROM email_otps WHERE email = $1', [email]);
-
-    const cleanPhone = (phone || '').trim();
-    const cleanEmail = (email || '').trim().toLowerCase();
+    await client.query('DELETE FROM email_otps WHERE email = $1 OR email = $2', [cleanPhone, cleanEmail]);
 
     // Check if phone number exists in vendors
     const vendorExist = await client.query('SELECT * FROM vendors WHERE phone = $1', [cleanPhone]);
@@ -137,21 +137,20 @@ const vendorLogin = async (req, res) => {
     }
 
     if (otp) {
-      // Validate OTP
-      const email = vendor.email;
-      if (!email) {
-        return res.status(400).json({ message: 'No email address associated with this partner account. Please use password login.' });
-      }
-      const otpCheck = await pool.query('SELECT * FROM email_otps WHERE email = $1 AND otp = $2', [email, otp]);
+      // Validate OTP against vendor phone or email
+      const otpCheck = await pool.query(
+        'SELECT * FROM email_otps WHERE (email = $1 OR email = $2) AND otp = $3',
+        [vendor.phone, vendor.email || vendor.phone, otp.trim()]
+      );
       if (otpCheck.rows.length === 0) {
-        return res.status(400).json({ message: 'Invalid verification code' });
+        return res.status(400).json({ message: 'Invalid SMS verification code' });
       }
       const otpRecord = otpCheck.rows[0];
       if (new Date() > new Date(otpRecord.expires_at)) {
         return res.status(400).json({ message: 'Verification code has expired' });
       }
       // Delete used OTP
-      await pool.query('DELETE FROM email_otps WHERE email = $1', [email]);
+      await pool.query('DELETE FROM email_otps WHERE email = $1 OR email = $2', [vendor.phone, vendor.email || vendor.phone]);
     } else {
       // Check password
       const isMatch = bcrypt.compareSync(password, vendor.password);

@@ -2,31 +2,32 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { sendOtpEmail } = require('../utils/mailer');
+// const { sendOtpEmail } = require('../utils/mailer'); // Email OTP on hold
+const { sendSmsOtp } = require('../utils/sms');
 
 const register = async (req, res) => {
   const { name, phone, password, referralCode, district_id, mandal_id, address, email, otp } = req.body;
 
-  if (!name || !phone || !password || !district_id || !mandal_id || !email || !otp) {
-    return res.status(400).json({ message: 'Please enter all required fields including email and verification code' });
+  if (!name || !phone || !password || !district_id || !mandal_id || !otp) {
+    return res.status(400).json({ message: 'Please enter all required fields including phone verification code' });
   }
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    // Verify OTP
+    // Verify OTP (check against phone number or email)
     const otpCheck = await client.query(
-      'SELECT * FROM email_otps WHERE email = $1 AND otp = $2 AND expires_at > CURRENT_TIMESTAMP',
-      [email, otp]
+      'SELECT * FROM email_otps WHERE (email = $1 OR email = $2) AND otp = $3 AND expires_at > CURRENT_TIMESTAMP',
+      [phone.trim(), (email || '').trim(), otp.trim()]
     );
     if (otpCheck.rows.length === 0) {
       await client.query('ROLLBACK');
-      return res.status(400).json({ message: 'Invalid or expired verification code' });
+      return res.status(400).json({ message: 'Invalid or expired SMS verification code' });
     }
 
     // Delete used OTP
-    await client.query('DELETE FROM email_otps WHERE email = $1', [email]);
+    await client.query('DELETE FROM email_otps WHERE email = $1 OR email = $2', [phone.trim(), (email || '').trim()]);
     
     // Check if phone number exists
     const userExist = await client.query('SELECT * FROM users WHERE phone = $1', [phone]);
@@ -38,47 +39,35 @@ const register = async (req, res) => {
     // Process Referral Code
     let referredById = null;
     if (referralCode) {
-      const referrerQuery = await client.query('SELECT id, referred_by FROM users WHERE referral_code = $1', [referralCode]);
-      if (referrerQuery.rows.length === 0) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({ message: 'Invalid referral code' });
+      const refCheck = await client.query('SELECT id FROM users WHERE referral_code = $1', [referralCode.trim().toUpperCase()]);
+      if (refCheck.rows.length > 0) {
+        referredById = refCheck.rows[0].id;
       }
-      referredById = referrerQuery.rows[0].id;
     }
 
-    // Generate unique referral code for new user
-    const generateCode = () => {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = '';
-      for (let i = 0; i < 7; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return code;
-    };
-    
-    let unique = false;
-    let newReferralCode;
-    while(!unique) {
-      newReferralCode = generateCode();
-      const check = await client.query('SELECT id FROM users WHERE referral_code = $1', [newReferralCode]);
-      if(check.rows.length === 0) unique = true;
-    }
+    // Generate Unique Referral Code (e.g. NGPC-5928)
+    const userReferralCode = `NGPC-${Math.floor(1000 + Math.random() * 9000)}`;
 
     // Hash password
     const salt = bcrypt.genSaltSync(10);
     const passwordHash = bcrypt.hashSync(password, salt);
 
-    // Insert user
+    // Insert new user
     const newUser = await client.query(
-      'INSERT INTO users (name, phone, password, referral_code, referred_by, district_id, mandal_id, address, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, phone, referral_code, wallet_balance, district_id, mandal_id, address, email',
-      [name, phone, passwordHash, newReferralCode, referredById, district_id || null, mandal_id || null, address || null, email || null]
+      'INSERT INTO users (name, phone, password, referral_code, referred_by, district_id, mandal_id, address, email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, phone, wallet_balance, referral_code, district_id, mandal_id, address, email',
+      [name, phone, passwordHash, userReferralCode, referredById, district_id, mandal_id, address || null, email || null]
     );
-
-    await client.query('COMMIT');
 
     const user = newUser.rows[0];
 
-    // Generate token
+    // If referred, credit ₹50 to referrer wallet
+    if (referredById) {
+      await client.query('UPDATE users SET wallet_balance = wallet_balance + 50.00 WHERE id = $1', [referredById]);
+    }
+
+    await client.query('COMMIT');
+
+    // Generate JWT
     const token = jwt.sign(
       { id: user.id, phone: user.phone },
       process.env.JWT_SECRET || 'nextgen_jwt_secret_key_12345',
@@ -91,13 +80,12 @@ const register = async (req, res) => {
         id: user.id,
         name: user.name,
         phone: user.phone,
-        email: user.email,
-        address: user.address,
+        walletBalance: user.wallet_balance,
+        referralCode: user.referral_code,
         district_id: user.district_id,
         mandal_id: user.mandal_id,
-        referral_code: user.referral_code,
-        wallet_balance: user.wallet_balance,
-        subscriptions: []
+        address: user.address,
+        email: user.email
       }
     });
 
@@ -131,21 +119,20 @@ const login = async (req, res) => {
     const user = result.rows[0];
 
     if (otp) {
-      // Validate OTP
-      const email = user.email;
-      if (!email) {
-        return res.status(400).json({ message: 'No email address associated with this account.' });
-      }
-      const otpCheck = await pool.query('SELECT * FROM email_otps WHERE email = $1 AND otp = $2', [email, otp]);
+      // Validate OTP against user's phone or email
+      const otpCheck = await pool.query(
+        'SELECT * FROM email_otps WHERE (email = $1 OR email = $2) AND otp = $3',
+        [user.phone, user.email || user.phone, otp.trim()]
+      );
       if (otpCheck.rows.length === 0) {
-        return res.status(400).json({ message: 'Invalid verification code' });
+        return res.status(400).json({ message: 'Invalid SMS verification code' });
       }
       const otpRecord = otpCheck.rows[0];
       if (new Date() > new Date(otpRecord.expires_at)) {
         return res.status(400).json({ message: 'Verification code has expired' });
       }
       // Delete used OTP
-      await pool.query('DELETE FROM email_otps WHERE email = $1', [email]);
+      await pool.query('DELETE FROM email_otps WHERE email = $1 OR email = $2', [user.phone, user.email || user.phone]);
     } else {
       // Check password
       const isMatch = bcrypt.compareSync(password, user.password);
@@ -167,13 +154,12 @@ const login = async (req, res) => {
         id: user.id,
         name: user.name,
         phone: user.phone,
-        email: user.email,
-        address: user.address,
+        walletBalance: user.wallet_balance,
+        referralCode: user.referral_code,
         district_id: user.district_id,
         mandal_id: user.mandal_id,
-        referral_code: user.referral_code,
-        wallet_balance: user.wallet_balance,
-        subscriptions: []
+        address: user.address,
+        email: user.email
       }
     });
 
@@ -185,84 +171,77 @@ const login = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    // Fetch user details
-    const userRes = await pool.query(
-      'SELECT id, name, phone, email, address, district_id, mandal_id, referral_code, wallet_balance FROM users WHERE id = $1',
+    const userResult = await pool.query(
+      `SELECT u.id, u.name, u.phone, u.wallet_balance, u.referral_code, u.district_id, u.mandal_id, u.address, u.email
+       FROM users u
+       WHERE u.id = $1`,
       [req.user.id]
     );
-    if (userRes.rows.length === 0) {
+
+    if (userResult.rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const user = userRes.rows[0];
+    const user = userResult.rows[0];
 
-    // Fetch subscription details if any
-    const subRes = await pool.query(
-      `SELECT s.id, s.slot_number, s.plan, s.valid_till, s.event_name as "eventName",
-              s.district_id as "districtId", s.mandal_id as "mandalId",
-              d.name AS "districtName", m.name AS "mandalName", s.status, s.payment_mode, s.remark,
-              e.included_services, e.thumbnail
+    // Fetch active user subscriptions
+    const subResult = await pool.query(
+      `SELECT s.id, s.event_name AS "eventName", s.slot_number AS "slotNumber", s.plan, s.price, s.status, s.valid_till AS "validTill",
+              s.district_id AS "districtId", s.mandal_id AS "mandalId", s.payment_mode AS "paymentMode", s.remark,
+              d.name AS "districtName", m.name AS "mandalName", e.description AS "thumbnail", e.included_services AS "includedServices"
        FROM subscriptions s
        LEFT JOIN districts d ON s.district_id = d.id
        LEFT JOIN mandals m ON s.mandal_id = m.id
-       LEFT JOIN events e ON e.event_name = s.event_name AND e.mandal_id = s.mandal_id
-       WHERE s.user_id = $1
+       LEFT JOIN events e ON s.event_id = e.id
+       WHERE s.user_id = $1 AND s.status != 'Cancelled'
        ORDER BY s.created_at DESC`,
-      [userId]
+      [req.user.id]
     );
 
-    const subscriptions = subRes.rows.map(row => ({
-      id: row.id,
-      slotNumber: row.slot_number,
-      plan: row.plan,
-      validTill: row.valid_till,
-      eventName: row.eventName,
-      districtId: row.districtId,
-      mandalId: row.mandalId,
-      districtName: row.districtName,
-      mandalName: row.mandalName,
-      status: row.status,
-      paymentMode: row.payment_mode,
-      remark: row.remark,
-      includedServices: row.included_services,
-      thumbnail: row.thumbnail
-    }));
-
     res.json({
-      ...user,
-      subscriptions
+      id: user.id,
+      name: user.name,
+      phone: user.phone,
+      wallet_balance: user.wallet_balance,
+      referral_code: user.referral_code,
+      district_id: user.district_id,
+      mandal_id: user.mandal_id,
+      address: user.address,
+      email: user.email,
+      subscriptions: subResult.rows
     });
-
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ message: 'Server error fetching user profile' });
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ message: 'Server error retrieving profile' });
   }
 };
 
 const updateProfile = async (req, res) => {
-  const { name, phone } = req.body;
+  const { name, phone, district_id, mandal_id, address, email } = req.body;
   const userId = req.user.id;
 
-  if (!name || !phone) {
-    return res.status(400).json({ message: 'Please enter name and phone number' });
-  }
-
   try {
-    // Check if phone number is taken by another user
-    const phoneCheck = await pool.query('SELECT * FROM users WHERE phone = $1 AND id != $2', [phone, userId]);
-    if (phoneCheck.rows.length > 0) {
-      return res.status(400).json({ message: 'Phone number already taken' });
-    }
-
-    // Update user
-    const updatedUser = await pool.query(
-      'UPDATE users SET name = $1, phone = $2 WHERE id = $3 RETURNING id, name, phone',
-      [name, phone, userId]
+    const updateResult = await pool.query(
+      `UPDATE users 
+       SET name = COALESCE($1, name),
+           phone = COALESCE($2, phone),
+           district_id = COALESCE($3, district_id),
+           mandal_id = COALESCE($4, mandal_id),
+           address = COALESCE($5, address),
+           email = COALESCE($6, email)
+       WHERE id = $7
+       RETURNING id, name, phone, wallet_balance, referral_code, district_id, mandal_id, address, email`,
+      [name, phone, district_id, mandal_id, address, email, userId]
     );
 
-    res.json(updatedUser.rows[0]);
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: updateResult.rows[0]
+    });
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({ message: 'Server error updating profile' });
@@ -270,59 +249,60 @@ const updateProfile = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const userId = req.user.id;
   const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id;
 
   if (!currentPassword || !newPassword) {
-    return res.status(400).json({ message: 'Current and new passwords are required' });
+    return res.status(400).json({ message: 'Please enter both current and new passwords' });
   }
 
   try {
-    const result = await pool.query('SELECT password FROM users WHERE id = $1', [userId]);
-    if (result.rows.length === 0) {
+    const userRes = await pool.query('SELECT password FROM users WHERE id = $1', [userId]);
+    if (userRes.rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const user = result.rows[0];
+    const user = userRes.rows[0];
     const isMatch = bcrypt.compareSync(currentPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
 
     const salt = bcrypt.genSaltSync(10);
-    const passwordHash = bcrypt.hashSync(newPassword, salt);
+    const newPasswordHash = bcrypt.hashSync(newPassword, salt);
 
-    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [passwordHash, userId]);
+    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [newPasswordHash, userId]);
 
-    res.json({ success: true, message: 'Password updated successfully' });
+    res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
-    console.error('Error changing customer password:', error);
+    console.error('Error changing password:', error);
     res.status(500).json({ message: 'Server error updating password' });
   }
 };
 
 const sendOtp = async (req, res) => {
-  const { email, phone, type, action, phoneOrEmail } = req.body; // type can be 'user' or 'vendor', action can be 'login' or 'register'
+  const { email, phone, type, action, phoneOrEmail } = req.body;
 
   if (action === 'login') {
     if (!phoneOrEmail) {
       return res.status(400).json({ message: 'Phone number or email is required' });
     }
   } else {
-    if (!email || !phone) {
-      return res.status(400).json({ message: 'Email and phone number are required' });
+    if (!phone) {
+      return res.status(400).json({ message: 'Phone number is required for SMS verification' });
     }
   }
 
   try {
-    let targetEmail = email;
+    let targetPhone = phone ? phone.trim() : null;
+    let targetEmail = email ? email.trim() : null;
 
     if (action === 'login') {
       const cleanVal = (phoneOrEmail || '').trim();
       const lowerVal = cleanVal.toLowerCase();
       if (type === 'vendor') {
         const vendorCheck = await pool.query(
-          'SELECT email, status FROM vendors WHERE phone = $1 OR LOWER(email) = $2',
+          'SELECT phone, email, status FROM vendors WHERE phone = $1 OR LOWER(email) = $2',
           [cleanVal, lowerVal]
         );
         if (vendorCheck.rows.length === 0) {
@@ -338,65 +318,79 @@ const sendOtp = async (req, res) => {
         if (vendor.status === 'Deactivated') {
           return res.status(403).json({ message: 'Your account has been deactivated.' });
         }
+        targetPhone = vendor.phone;
         targetEmail = vendor.email;
       } else {
         const userCheck = await pool.query(
-          'SELECT email FROM users WHERE phone = $1 OR LOWER(email) = $2',
+          'SELECT phone, email FROM users WHERE phone = $1 OR LOWER(email) = $2',
           [cleanVal, lowerVal]
         );
         if (userCheck.rows.length === 0) {
           return res.status(400).json({ message: 'No registered user account found with this phone number or email' });
         }
+        targetPhone = userCheck.rows[0].phone;
         targetEmail = userCheck.rows[0].email;
-      }
-      if (!targetEmail) {
-        return res.status(400).json({ message: 'No email address is associated with this account. Please use password login.' });
       }
     } else {
       // Validate if user already exists
       if (type === 'vendor') {
-        const phoneCheck = await pool.query('SELECT id FROM vendors WHERE phone = $1', [phone]);
-        if (phoneCheck.rows.length > 0) {
-          return res.status(400).json({ message: 'A partner with this phone number already exists' });
-        }
-        const emailCheck = await pool.query('SELECT id FROM vendors WHERE email = $1', [email]);
-        if (emailCheck.rows.length > 0) {
-          return res.status(400).json({ message: 'A partner with this email address already exists' });
+        if (phone) {
+          const phoneCheck = await pool.query('SELECT id FROM vendors WHERE phone = $1', [phone.trim()]);
+          if (phoneCheck.rows.length > 0) {
+            return res.status(400).json({ message: 'A partner with this phone number already exists' });
+          }
         }
       } else {
-        const phoneCheck = await pool.query('SELECT id FROM users WHERE phone = $1', [phone]);
-        if (phoneCheck.rows.length > 0) {
-          return res.status(400).json({ message: 'User with this phone number already exists. Please sign in instead.' });
-        }
-        const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-        if (emailCheck.rows.length > 0) {
-          return res.status(400).json({ message: 'User with this email address already exists. Please sign in instead.' });
+        if (phone) {
+          const phoneCheck = await pool.query('SELECT id FROM users WHERE phone = $1', [phone.trim()]);
+          if (phoneCheck.rows.length > 0) {
+            return res.status(400).json({ message: 'User with this phone number already exists. Please sign in instead.' });
+          }
         }
       }
+    }
+
+    if (!targetPhone) {
+      return res.status(400).json({ message: 'Phone number is missing. Cannot send SMS verification.' });
     }
 
     // Generate 6-digit OTP code
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-    // Clear old OTPs and insert new
-    await pool.query('DELETE FROM email_otps WHERE email = $1', [targetEmail]);
+    /* ================= EMAIL OTP CODE (ON HOLD / COMMENTED OUT) =================
+    // Clear old email OTPs and insert new
+    // await pool.query('DELETE FROM email_otps WHERE email = $1', [targetEmail]);
+    // await pool.query(
+    //   'INSERT INTO email_otps (email, otp, expires_at) VALUES ($1, $2, $3)',
+    //   [targetEmail, otp, expiresAt]
+    // );
+    // await sendOtpEmail(targetEmail, otp);
+    ============================================================================= */
+
+    // Save OTP against phone number (and targetEmail) for verification
+    await pool.query('DELETE FROM email_otps WHERE email = $1 OR email = $2', [targetPhone, targetEmail || targetPhone]);
     await pool.query(
       'INSERT INTO email_otps (email, otp, expires_at) VALUES ($1, $2, $3)',
-      [targetEmail, otp, expiresAt]
+      [targetPhone, otp, expiresAt]
     );
+    if (targetEmail && targetEmail !== targetPhone) {
+      await pool.query(
+        'INSERT INTO email_otps (email, otp, expires_at) VALUES ($1, $2, $3)',
+        [targetEmail, otp, expiresAt]
+      );
+    }
 
-    // Send email
-    await sendOtpEmail(targetEmail, otp);
+    // Send SMS via Twilio
+    await sendSmsOtp(targetPhone, otp);
 
-    // Mask target email for response (e.g. jo***@domain.com)
-    const atIdx = targetEmail.indexOf('@');
-    const maskedEmail = targetEmail.substring(0, Math.min(2, atIdx)) + '***' + targetEmail.substring(atIdx);
+    // Mask phone number for response (e.g. ******3210)
+    const maskedPhone = targetPhone.length > 4 ? '******' + targetPhone.slice(-4) : targetPhone;
 
-    res.json({ success: true, message: 'Verification code sent successfully', email: maskedEmail });
+    res.json({ success: true, message: 'SMS verification code sent successfully via Twilio', phone: maskedPhone });
   } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ message: 'Failed to send verification code. Please check your email address.' });
+    console.error('Error sending SMS OTP:', error);
+    res.status(500).json({ message: error.message || 'Failed to send SMS verification code.' });
   }
 };
 
