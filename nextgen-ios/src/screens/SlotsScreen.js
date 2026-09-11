@@ -32,7 +32,7 @@ const SLOT_SIZE = (width - 120) / 5;
 export default function SlotsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { bookedSlot, subscriptions, bookSlot, cancelSlot, refreshData } = useApp();
+  const { user, bookedSlot, subscriptions, bookSlot, cancelSlot, refreshData } = useApp();
   
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
@@ -844,6 +844,9 @@ export default function SlotsScreen() {
             <View style={{height: 20}} />
             </ScrollView>
           </View>
+        </View>
+      )}
+
       {/* Razorpay Modal */}
       <RazorpayModal
         visible={razorpayVisible}

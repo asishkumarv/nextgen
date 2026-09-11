@@ -60,9 +60,10 @@ const createBooking = async (req, res) => {
     
     // Choose appropriate icon
     let iconName = 'construct-outline';
-    if (serviceName.toLowerCase().includes('fan')) iconName = 'sync-outline';
-    else if (serviceName.toLowerCase().includes('wiring')) iconName = 'flash-outline';
-    else if (serviceName.toLowerCase().includes('switchboard') || serviceName.toLowerCase().includes('switch')) iconName = 'toggle-outline';
+    const lowerName = serviceName.toLowerCase();
+    if (lowerName.includes('fan')) iconName = 'sync-outline';
+    else if (lowerName.includes('wiring')) iconName = 'flash-outline';
+    else if (lowerName.includes('switchboard') || lowerName.includes('switch')) iconName = 'toggle-outline';
 
     const dateAndSlot = timeSlot ? `${date} (${timeSlot})` : date;
 
@@ -86,18 +87,24 @@ const createBooking = async (req, res) => {
     const userQuery = await pool.query('SELECT district_id, mandal_id FROM users WHERE id = $1', [userId]);
     const userData = userQuery.rows[0] || {};
 
+    const rawDistrict = districtId !== undefined && districtId !== null ? districtId : userData.district_id;
+    const rawMandal = mandalId !== undefined && mandalId !== null ? mandalId : userData.mandal_id;
+
+    let finalDistrictId = rawDistrict && !isNaN(parseInt(rawDistrict, 10)) ? parseInt(rawDistrict, 10) : null;
+    let finalMandalId = rawMandal && !isNaN(parseInt(rawMandal, 10)) ? parseInt(rawMandal, 10) : null;
+    let finalEventName = eventName ? String(eventName) : null;
+    let finalSlotNumber = slotNumber ? String(slotNumber) : null;
     let computedPrice = servicePrice;
-    let finalDistrictId = districtId || userData.district_id;
-    let finalMandalId = mandalId || userData.mandal_id;
-    let finalEventName = eventName;
-    let finalSlotNumber = slotNumber;
 
     if (isSubscribed) {
-      let matchingSub = subCheck.rows[0]; // fallback to first one
+      let matchingSub = subCheck.rows[0]; // fallback to first active sub
       let isServiceFree = false;
 
       for (const sub of subCheck.rows) {
-        const eventRes = await pool.query('SELECT included_services FROM events WHERE id = $1 OR (event_name = $2 AND mandal_id = $3)', [sub.event_id, sub.event_name, sub.mandal_id]);
+        const eventRes = await pool.query(
+          'SELECT included_services FROM events WHERE id = $1 OR (event_name = $2 AND (mandal_id = $3 OR $3::integer IS NULL))',
+          [sub.event_id || null, sub.event_name || null, sub.mandal_id ? parseInt(sub.mandal_id, 10) : null]
+        );
         if (eventRes.rows.length > 0) {
           let includedServices = eventRes.rows[0].included_services || [];
           if (typeof includedServices === 'string') {
@@ -115,10 +122,10 @@ const createBooking = async (req, res) => {
         }
       }
 
-      if (!finalDistrictId) finalDistrictId = matchingSub.district_id;
-      if (!finalMandalId) finalMandalId = matchingSub.mandal_id;
-      if (!finalEventName) finalEventName = matchingSub.event_name;
-      if (!finalSlotNumber) finalSlotNumber = matchingSub.slot_number;
+      if (!finalDistrictId && matchingSub.district_id) finalDistrictId = parseInt(matchingSub.district_id, 10);
+      if (!finalMandalId && matchingSub.mandal_id) finalMandalId = parseInt(matchingSub.mandal_id, 10);
+      if (!finalEventName) finalEventName = matchingSub.event_name || null;
+      if (!finalSlotNumber) finalSlotNumber = matchingSub.slot_number ? String(matchingSub.slot_number) : null;
 
       if (isServiceFree) {
         computedPrice = 0.00;
@@ -126,7 +133,7 @@ const createBooking = async (req, res) => {
     }
 
     const finalPaymentMode = computedPrice === 0 ? 'subscription' : (paymentMode || 'online');
-    const finalTransactionId = computedPrice === 0 ? 'FREE_SUBSCRIPTION' : (transactionId || null);
+    const finalTransactionId = computedPrice === 0 ? 'FREE_SUBSCRIPTION' : (transactionId ? String(transactionId) : null);
 
     // Find the vendor with the least workload offering this service
     let assignedVendorId = null;
@@ -134,30 +141,34 @@ const createBooking = async (req, res) => {
 
     const leaveDateCheck = parseToDateString(date);
 
-    const vendorQuery = await pool.query(`
-      SELECT 
-        v.id, 
-        COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END) AS active_workload,
-        COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN b.price ELSE 0 END), 0) AS total_earnings
-      FROM vendors v
-      JOIN vendor_services vs ON v.id = vs.vendor_id
-      JOIN services s ON vs.service_id = s.id
-      LEFT JOIN bookings b ON v.id = b.vendor_id
-      WHERE LOWER(s.title) = LOWER($1) 
-        AND v.status = 'Approved'
-        AND (v.district_id = $3 OR $3 IS NULL)
-        AND (v.mandal_id = $4 OR $4 IS NULL)
-        AND v.id NOT IN (
-          SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
-        )
-      GROUP BY v.id
-      ORDER BY active_workload ASC, total_earnings ASC, v.id ASC
-      LIMIT 1
-    `, [serviceName.trim(), leaveDateCheck, finalDistrictId, finalMandalId]);
+    try {
+      const vendorQuery = await pool.query(`
+        SELECT 
+          v.id, 
+          COUNT(CASE WHEN b.status = 'Assigned' THEN 1 END) AS active_workload,
+          COALESCE(SUM(CASE WHEN b.status = 'Completed' THEN b.price ELSE 0 END), 0) AS total_earnings
+        FROM vendors v
+        JOIN vendor_services vs ON v.id = vs.vendor_id
+        JOIN services s ON vs.service_id = s.id
+        LEFT JOIN bookings b ON v.id = b.vendor_id
+        WHERE LOWER(s.title) = LOWER($1) 
+          AND v.status = 'Approved'
+          AND (v.district_id = $3::integer OR $3::integer IS NULL)
+          AND (v.mandal_id = $4::integer OR $4::integer IS NULL)
+          AND v.id NOT IN (
+            SELECT vendor_id FROM vendor_leaves WHERE leave_date = $2
+          )
+        GROUP BY v.id
+        ORDER BY active_workload ASC, total_earnings ASC, v.id ASC
+        LIMIT 1
+      `, [serviceName.trim(), leaveDateCheck, finalDistrictId, finalMandalId]);
 
-    if (vendorQuery.rows.length > 0) {
-      assignedVendorId = vendorQuery.rows[0].id;
-      bookingStatus = 'Assigned';
+      if (vendorQuery.rows.length > 0) {
+        assignedVendorId = vendorQuery.rows[0].id;
+        bookingStatus = 'Assigned';
+      }
+    } catch (vErr) {
+      console.warn('Vendor matching query warning:', vErr.message);
     }
 
     // Insert booking
@@ -167,14 +178,14 @@ const createBooking = async (req, res) => {
        RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId", otp,
                  district_id AS "districtId", mandal_id AS "mandalId", event_name AS "eventName", slot_number AS "slotNumber",
                  latitude, longitude, payment_mode AS "paymentMode", transaction_id AS "transactionId"`,
-      [randomId, userId, finalDistrictId || null, finalMandalId || null, finalEventName || null, finalSlotNumber || null, serviceName, dateAndSlot, computedPrice, bookingStatus, iconName, address, assignedVendorId, otp, latitude || null, longitude || null, finalPaymentMode, finalTransactionId]
+      [randomId, userId, finalDistrictId, finalMandalId, finalEventName, finalSlotNumber, serviceName, dateAndSlot, computedPrice, bookingStatus, iconName, address, assignedVendorId, otp, latitude ? String(latitude) : null, longitude ? String(longitude) : null, finalPaymentMode, finalTransactionId]
     );
 
     res.status(201).json(newBooking.rows[0]);
 
   } catch (error) {
     console.error('Error creating booking:', error);
-    res.status(500).json({ message: 'Server error creating booking' });
+    res.status(500).json({ message: error.message || 'Server error creating booking' });
   }
 };
 

@@ -256,7 +256,7 @@ export default function ServicesScreen() {
   );
 
   // District/Mandal/Event/Slot states for booking
-  const { bookedSlot, subscriptions } = useApp();
+  const { user, bookedSlot, subscriptions } = useApp();
   const activeSubs = subscriptions?.filter(s => s.status === 'Active') || [];
   const activeSub = activeSubs[0]; // fallback for legacy uses
 
