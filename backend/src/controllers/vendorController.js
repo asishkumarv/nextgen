@@ -28,15 +28,18 @@ const vendorRegister = async (req, res) => {
     // Delete used OTP
     await client.query('DELETE FROM email_otps WHERE email = $1', [email]);
 
+    const cleanPhone = (phone || '').trim();
+    const cleanEmail = (email || '').trim().toLowerCase();
+
     // Check if phone number exists in vendors
-    const vendorExist = await client.query('SELECT * FROM vendors WHERE phone = $1', [phone]);
+    const vendorExist = await client.query('SELECT * FROM vendors WHERE phone = $1', [cleanPhone]);
     if (vendorExist.rows.length > 0) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: 'Vendor with this phone number already exists' });
     }
 
     // Check if email exists in vendors
-    const vendorEmailExist = await client.query('SELECT * FROM vendors WHERE email = $1', [email]);
+    const vendorEmailExist = await client.query('SELECT * FROM vendors WHERE LOWER(email) = $1', [cleanEmail]);
     if (vendorEmailExist.rows.length > 0) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: 'Vendor with this email address already exists' });
@@ -112,7 +115,9 @@ const vendorLogin = async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM vendors WHERE phone = $1 OR email = $2', [phoneOrEmail, phoneOrEmail]);
+    const cleanVal = (phoneOrEmail || '').trim();
+    const lowerVal = cleanVal.toLowerCase();
+    const result = await pool.query('SELECT * FROM vendors WHERE phone = $1 OR LOWER(email) = $2', [cleanVal, lowerVal]);
     if (result.rows.length === 0) {
       return res.status(400).json({ message: 'Vendor does not exist. Please register to login.' });
     }

@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   },
   inputWrapperError: {
     borderColor: '#EF4444',
-    backgroundColor: '#FFF5F5',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
   fieldErrorRow: {
     flexDirection: 'row',

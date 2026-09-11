@@ -14,6 +14,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVendor } from '../context/VendorContext';
 import Toast from '../components/Toast';
+import { getServiceIconName } from '../utils/iconHelper';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -300,7 +301,7 @@ export default function ProfileScreen() {
                           onPress={() => setSelectedServiceId(item.id)}
                         >
                           <Ionicons 
-                            name={item.icon || 'construct-outline'} 
+                            name={getServiceIconName(item)} 
                             size={16} 
                             color={isSelected ? '#F0C38E' : '#6B7280'} 
                             style={{ marginRight: 8 }}
@@ -382,7 +383,7 @@ export default function ProfileScreen() {
               <View key={item.id} style={styles.skillCard}>
                 <View style={styles.skillLeft}>
                   <View style={styles.skillIconBg}>
-                    <Ionicons name={item.icon || 'construct-outline'} size={18} color="#15803D" />
+                    <Ionicons name={getServiceIconName(item)} size={18} color="#15803D" />
                   </View>
                   <View style={{ marginLeft: 12, flex: 1 }}>
                     <Text style={styles.skillTitle}>{item.title}</Text>

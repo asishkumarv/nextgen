@@ -4,7 +4,7 @@
     "slug": "gofixit-vendor",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/GoFixit.png",
+    "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/GoFixit.png",
+        "foregroundImage": "./src/assets/icon.png",
         "backgroundColor": "#312C51"
       },
       "package": "com.gofixit.vendor",
@@ -34,7 +34,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "6d0b7ceb-3b3c-4abe-98ad-bbbb8ef11616"
+        "projectId": "02e65d07-dcf9-4e24-b666-525f3cc0b715"
       }
     }
   }

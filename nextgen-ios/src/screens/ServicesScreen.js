@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import Header from '../components/Header';
+import RazorpayModal from '../components/RazorpayModal';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 import { getServiceIllustration } from '../utils/illustrations';
@@ -230,6 +231,8 @@ export default function ServicesScreen() {
   // Success view state
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [createdBookingId, setCreatedBookingId] = useState('');
+  const [razorpayVisible, setRazorpayVisible] = useState(false);
+  const [razorpayOrder, setRazorpayOrder] = useState(null);
 
   // Reset form on screen blur
   useFocusEffect(
@@ -415,13 +418,13 @@ export default function ServicesScreen() {
     }
   };
 
-  const handleConfirmBooking = async () => {
-    if (!activeBookingService) return;
+  const handleRazorpaySuccess = async (paymentData) => {
+    setRazorpayVisible(false);
     try {
       const addressString = `${houseNo}, ${street}, ${landmark} - ${pincode}`;
       const isIncluded = isServiceIncluded(activeBookingService?.title);
       const priceToBook = (bookedSlot && isIncluded) ? 0.00 : parseFloat(activeBookingService.price || 0);
-      
+
       const newId = await addBooking(
         activeBookingService.title || '',
         priceToBook,
@@ -433,7 +436,70 @@ export default function ServicesScreen() {
         bookedSlot ? activeSub?.slotNumber : null,
         bookedSlot ? activeSub?.eventName : null,
         latitude,
-        longitude
+        longitude,
+        'online',
+        paymentData.razorpay_payment_id
+      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setCreatedBookingId(newId);
+      setBookingSuccess(true);
+    } catch (error) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      alert(error.message || 'Failed to complete booking after payment.');
+    }
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!activeBookingService) return;
+    try {
+      const addressString = `${houseNo}, ${street}, ${landmark} - ${pincode}`;
+      const isIncluded = isServiceIncluded(activeBookingService?.title);
+      const priceToBook = (bookedSlot && isIncluded) ? 0.00 : parseFloat(activeBookingService.price || 0);
+      
+      if (priceToBook > 0) {
+        // Trigger Razorpay payment
+        const orderData = await api.post('/payments/create-order', {
+          amount: priceToBook,
+          notes: { serviceName: activeBookingService.title, date: selectedDate }
+        });
+
+        if (orderData && orderData.orderId) {
+          setRazorpayOrder({
+            keyId: orderData.keyId,
+            orderId: orderData.orderId,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            name: 'GoFixit Service Booking',
+            description: `${activeBookingService.title} - ${selectedDate}`,
+            prefill: {
+              name: user?.name || user?.username || '',
+              email: user?.email || '',
+              contact: user?.phone || user?.phoneNumber || ''
+            }
+          });
+          setRazorpayVisible(true);
+          return;
+        } else {
+          alert('Failed to initialize payment gateway order.');
+          return;
+        }
+      }
+
+      // Free via subscription
+      const newId = await addBooking(
+        activeBookingService.title || '',
+        priceToBook,
+        selectedDate,
+        selectedTimeSlot ? selectedTimeSlot.split(' ')[0] : 'Morning',
+        addressString,
+        bookedSlot ? activeSub?.districtId : (selectedDistrict?.id || null),
+        bookedSlot ? activeSub?.mandalId : (selectedMandal?.id || null),
+        bookedSlot ? activeSub?.slotNumber : null,
+        bookedSlot ? activeSub?.eventName : null,
+        latitude,
+        longitude,
+        'subscription',
+        'FREE_SUBSCRIPTION'
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setCreatedBookingId(newId);
@@ -989,7 +1055,7 @@ export default function ServicesScreen() {
                     style={{ marginRight: 10 }} 
                   />
                   <Text style={[styles.reviewText, { color: '#F0C38E', fontWeight: '700' }]}>
-                    {isServiceIncluded(activeBookingService?.title) ? 'Paid via Go Fixit Subscription' : 'Local Charge (Paid on completion)'}
+                    {isServiceIncluded(activeBookingService?.title) ? 'Paid via Go Fixit Subscription' : 'Online Payment via Razorpay'}
                   </Text>
                 </View>
               </View>
@@ -998,8 +1064,10 @@ export default function ServicesScreen() {
                 <View
                   style={[styles.nextStepBtnGrad, { backgroundColor: '#F0C38E' }]}
                 >
-                  <Text style={styles.nextStepBtnText}>Confirm & Book Service</Text>
-                  <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" style={{ marginLeft: 8 }} />
+                  <Text style={styles.nextStepBtnText}>
+                    {isServiceIncluded(activeBookingService?.title) ? 'Confirm Free Booking' : `Pay ₹${parseFloat(activeBookingService?.price || 0).toFixed(0)} via Razorpay`}
+                  </Text>
+                  <Ionicons name="card-outline" size={18} color="#312C51" style={{ marginLeft: 8 }} />
                 </View>
               </TouchableOpacity>
             </View>
@@ -1013,6 +1081,20 @@ export default function ServicesScreen() {
   return (
     <View style={styles.container}>
       {activeBookingService ? renderBookingFlow() : renderServiceList()}
+
+      {/* Razorpay Payment Modal */}
+      <RazorpayModal
+        visible={razorpayVisible}
+        orderDetails={razorpayOrder}
+        onSuccess={handleRazorpaySuccess}
+        onCancel={() => {
+          setRazorpayVisible(false);
+        }}
+        onError={(errMsg) => {
+          setRazorpayVisible(false);
+          alert(`Payment Error: ${errMsg}`);
+        }}
+      />
 
       {/* District Dropdown Modal Overlay */}
       {districtDropdownOpen && (

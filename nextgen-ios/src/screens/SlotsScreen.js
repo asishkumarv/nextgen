@@ -21,6 +21,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 import Header from '../components/Header';
+import RazorpayModal from '../components/RazorpayModal';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import gofixitQr from '../assets/GoFixitQr.jpeg';
@@ -49,11 +50,13 @@ export default function SlotsScreen() {
   const [slotSearchQuery, setSlotSearchQuery] = useState('');
 
   // Payment States
-  const [paymentMode, setPaymentMode] = useState('offline'); // offline or online
+  const [paymentMode, setPaymentMode] = useState('razorpay'); // 'razorpay', 'online', or 'offline'
   const [transactionId, setTransactionId] = useState('');
   const [screenshotUri, setScreenshotUri] = useState(null);
   const [screenshotWebFile, setScreenshotWebFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [razorpayVisible, setRazorpayVisible] = useState(false);
+  const [razorpayOrder, setRazorpayOrder] = useState(null);
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadingBooked, setLoadingBooked] = useState(false);
@@ -213,7 +216,80 @@ export default function SlotsScreen() {
     }
   };
 
+  const handleRazorpaySuccess = async (paymentData) => {
+    setRazorpayVisible(false);
+    setIsSubmitting(true);
+    try {
+      if (selectedDistrict && selectedMandal && selectedLocalSlot && selectedEvent) {
+        const result = await bookSlot(
+          selectedDistrict.id,
+          selectedMandal.id,
+          selectedEvent.id,
+          selectedLocalSlot,
+          'online',
+          paymentData.razorpay_payment_id,
+          null
+        );
+        if (result && result.success) {
+          setSelectedDistrict(null);
+          setSelectedMandal(null);
+          setSelectedEvent(null);
+          setSelectedLocalSlot(null);
+          setSlotSearchQuery('');
+          setPaymentMode('razorpay');
+          setTransactionId('');
+          setScreenshotUri(null);
+          setScreenshotWebFile(null);
+          
+          Alert.alert('Success', 'Subscription slot purchased successfully!', [
+            { text: 'OK', onPress: () => navigation.navigate('Home') }
+          ]);
+        } else {
+          Alert.alert('Error', result?.message || 'Failed to purchase subscription');
+        }
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to complete subscription booking after payment.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleConfirmBooking = async () => {
+    if (paymentMode === 'razorpay') {
+      if (!selectedEvent) return;
+      setIsSubmitting(true);
+      try {
+        const orderData = await api.post('/payments/create-order', {
+          amount: selectedEvent.price,
+          notes: { slot: selectedLocalSlot, eventName: selectedEvent.event_name }
+        });
+        if (orderData && orderData.orderId) {
+          setRazorpayOrder({
+            keyId: orderData.keyId,
+            orderId: orderData.orderId,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            name: 'Nextgen Subscription',
+            description: `Slot #${selectedLocalSlot} - ${selectedEvent.event_name}`,
+            prefill: {
+              name: user?.name || user?.username || '',
+              email: user?.email || '',
+              contact: user?.phone || user?.phoneNumber || ''
+            }
+          });
+          setRazorpayVisible(true);
+        } else {
+          Alert.alert('Error', 'Failed to create payment order.');
+        }
+      } catch (err) {
+        Alert.alert('Error', err.message || 'Payment initialization failed.');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     if (paymentMode === 'online') {
       if (!transactionId.trim()) {
         Alert.alert('Error', 'Please enter UPI Transaction ID.');
@@ -276,7 +352,7 @@ export default function SlotsScreen() {
         setSelectedEvent(null);
         setSelectedLocalSlot(null);
         setSlotSearchQuery('');
-        setPaymentMode('offline');
+        setPaymentMode('razorpay');
         setTransactionId('');
         setScreenshotUri(null);
         setScreenshotWebFile(null);
@@ -692,18 +768,25 @@ export default function SlotsScreen() {
             <Text style={styles.paymentHeading}>Payment Method</Text>
             <View style={styles.paymentRow}>
               <TouchableOpacity 
-                style={[styles.paymentBtn, paymentMode === 'offline' && styles.paymentBtnActive]}
-                onPress={() => setPaymentMode('offline')}
+                style={[styles.paymentBtn, paymentMode === 'razorpay' && styles.paymentBtnActive]}
+                onPress={() => setPaymentMode('razorpay')}
               >
-                <Ionicons name="cash-outline" size={20} color={paymentMode === 'offline' ? '#F0C38E' : '#6B7280'} />
-                <Text style={[styles.paymentBtnText, paymentMode === 'offline' && styles.paymentBtnTextActive]}>Offline/Cash</Text>
+                <Ionicons name="card-outline" size={20} color={paymentMode === 'razorpay' ? '#F0C38E' : '#6B7280'} />
+                <Text style={[styles.paymentBtnText, paymentMode === 'razorpay' && styles.paymentBtnTextActive]}>Razorpay</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.paymentBtn, paymentMode === 'online' && styles.paymentBtnActive]}
                 onPress={() => setPaymentMode('online')}
               >
-                <Ionicons name="card-outline" size={20} color={paymentMode === 'online' ? '#F0C38E' : '#6B7280'} />
-                <Text style={[styles.paymentBtnText, paymentMode === 'online' && styles.paymentBtnTextActive]}>Online (UPI)</Text>
+                <Ionicons name="qr-code-outline" size={20} color={paymentMode === 'online' ? '#F0C38E' : '#6B7280'} />
+                <Text style={[styles.paymentBtnText, paymentMode === 'online' && styles.paymentBtnTextActive]}>Manual QR</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.paymentBtn, paymentMode === 'offline' && styles.paymentBtnActive]}
+                onPress={() => setPaymentMode('offline')}
+              >
+                <Ionicons name="cash-outline" size={20} color={paymentMode === 'offline' ? '#F0C38E' : '#6B7280'} />
+                <Text style={[styles.paymentBtnText, paymentMode === 'offline' && styles.paymentBtnTextActive]}>Offline</Text>
               </TouchableOpacity>
             </View>
 
@@ -761,8 +844,21 @@ export default function SlotsScreen() {
             <View style={{height: 20}} />
             </ScrollView>
           </View>
-        </View>
-      )}
+      {/* Razorpay Modal */}
+      <RazorpayModal
+        visible={razorpayVisible}
+        orderDetails={razorpayOrder}
+        onSuccess={handleRazorpaySuccess}
+        onCancel={() => {
+          setRazorpayVisible(false);
+          setIsSubmitting(false);
+        }}
+        onError={(errorMsg) => {
+          setRazorpayVisible(false);
+          setIsSubmitting(false);
+          Alert.alert('Payment Failed', errorMsg);
+        }}
+      />
     </View>
   );
 }

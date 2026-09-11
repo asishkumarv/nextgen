@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVendor } from '../context/VendorContext';
 import Toast from '../components/Toast';
 import { api } from '../utils/api';
+import { getServiceIconName } from '../utils/iconHelper';
 
 export default function RegisterScreen({ onNavigateToLogin }) {
   const insets = useSafeAreaInsets();
@@ -455,26 +456,28 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               ) : (
                 allSystemServices.map(item => {
                   const isSelected = selectedServices.includes(item.id);
+                  const iconName = getServiceIconName(item);
                   return (
                     <TouchableOpacity
                       key={item.id}
-                      activeOpacity={0.8}
+                      activeOpacity={0.7}
+                      delayPressIn={0}
                       style={[styles.serviceSelectCard, isSelected && styles.serviceSelectCardActive]}
                       onPress={() => toggleServiceSelection(item.id)}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                         <View style={[styles.serviceSelectIconBg, isSelected && styles.serviceSelectIconBgActive]}>
                           <Ionicons 
-                            name={item.icon || 'construct-outline'} 
+                            name={iconName} 
                             size={18} 
-                            color={isSelected ? '#F0C38E' : '#6B7280'} 
+                            color={isSelected ? '#F0C38E' : '#A5A1B8'} 
                           />
                         </View>
                         <View style={{ marginLeft: 12, flex: 1 }}>
                           <Text style={[styles.serviceSelectTitle, isSelected && styles.serviceSelectTitleActive]}>
                             {item.title}
                           </Text>
-                          <Text style={styles.serviceSelectSubtitle} numberOfLines={1}>{item.subtitle}</Text>
+                          <Text style={[styles.serviceSelectSubtitle, isSelected && styles.serviceSelectSubtitleActive]} numberOfLines={1}>{item.subtitle}</Text>
                         </View>
                       </View>
                       <View style={[styles.checkboxCircle, isSelected && styles.checkboxCircleActive]}>
@@ -804,9 +807,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   dropdownDisabled: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#25213E',
     borderColor: '#3D3762',
-    opacity: 0.6,
+    opacity: 0.5,
   },
   dropdownText: {
     fontSize: 14,
@@ -986,7 +989,7 @@ const styles = StyleSheet.create({
   },
   inputWrapperError: {
     borderColor: '#EF4444',
-    backgroundColor: '#FFF5F5',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
   inputIcon: {
     marginRight: 10,
@@ -1060,18 +1063,18 @@ const styles = StyleSheet.create({
   },
   serviceSelectCardActive: {
     borderColor: '#F0C38E',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#3A345B',
   },
   serviceSelectIconBg: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#25213E',
     justifyContent: 'center',
     alignItems: 'center',
   },
   serviceSelectIconBgActive: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: 'rgba(240, 195, 142, 0.2)',
   },
   serviceSelectTitle: {
     fontSize: 14,
@@ -1079,12 +1082,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   serviceSelectTitleActive: {
-    color: '#065F46',
+    color: '#F0C38E',
   },
   serviceSelectSubtitle: {
     fontSize: 12,
     color: '#A5A1B8',
     marginTop: 2,
+  },
+  serviceSelectSubtitleActive: {
+    color: '#E5E7EB',
   },
   checkboxCircle: {
     width: 22,
@@ -1285,7 +1291,7 @@ const styles = StyleSheet.create({
   },
   otpInputWrapperError: {
     borderColor: '#EF4444',
-    backgroundColor: '#FFF5F5',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
   },
   otpInputIcon: {
     marginRight: 10,

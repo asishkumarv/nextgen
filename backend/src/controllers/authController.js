@@ -318,8 +318,13 @@ const sendOtp = async (req, res) => {
     let targetEmail = email;
 
     if (action === 'login') {
+      const cleanVal = (phoneOrEmail || '').trim();
+      const lowerVal = cleanVal.toLowerCase();
       if (type === 'vendor') {
-        const vendorCheck = await pool.query('SELECT email, status FROM vendors WHERE phone = $1 OR email = $2', [phoneOrEmail, phoneOrEmail]);
+        const vendorCheck = await pool.query(
+          'SELECT email, status FROM vendors WHERE phone = $1 OR LOWER(email) = $2',
+          [cleanVal, lowerVal]
+        );
         if (vendorCheck.rows.length === 0) {
           return res.status(400).json({ message: 'No registered partner account found with this phone number or email' });
         }
@@ -328,14 +333,17 @@ const sendOtp = async (req, res) => {
           return res.status(403).json({ message: 'Your registration is pending administrator approval.' });
         }
         if (vendor.status === 'Rejected') {
-          return res.status(403).json({ message: 'Your registration request was rejected.' });
+          return res.status(403).json({ message: 'Your registration request was rejected by the administrator.' });
         }
         if (vendor.status === 'Deactivated') {
           return res.status(403).json({ message: 'Your account has been deactivated.' });
         }
         targetEmail = vendor.email;
       } else {
-        const userCheck = await pool.query('SELECT email FROM users WHERE phone = $1 OR email = $2', [phoneOrEmail, phoneOrEmail]);
+        const userCheck = await pool.query(
+          'SELECT email FROM users WHERE phone = $1 OR LOWER(email) = $2',
+          [cleanVal, lowerVal]
+        );
         if (userCheck.rows.length === 0) {
           return res.status(400).json({ message: 'No registered user account found with this phone number or email' });
         }

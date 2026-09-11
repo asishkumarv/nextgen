@@ -452,6 +452,7 @@ const getVendors = async (req, res) => {
         v.id, 
         v.name, 
         v.phone, 
+        v.email,
         v.status, 
         v.created_at AS "createdAt",
         v.district_id AS "districtId",

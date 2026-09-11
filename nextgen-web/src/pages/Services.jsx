@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
-import { Calendar, Clock, MapPin, Wrench, CheckCircle, AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
+import { processRazorpayPayment } from '../utils/razorpay';
+import { Calendar, Clock, MapPin, Wrench, CheckCircle, AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck, Lock } from 'lucide-react';
 import { getServiceIllustration } from '../utils/illustrations';
 
 export default function Services() {
@@ -278,19 +279,42 @@ export default function Services() {
 
     setBookingLoading(true);
     setBookingError('');
-    
-    // Construct request payload with GPS coordinates
-    const payload = {
-      serviceName: selectedService.title,
-      price: selectedService.price,
-      date: bookingDate,
-      timeSlot: timeSlot,
-      address: address.trim(),
-      latitude: lat,
-      longitude: lng,
-    };
+
+    const isCoveredBySub = isServiceIncluded(selectedService?.title);
+    const servicePrice = isCoveredBySub ? 0 : parseFloat(selectedService?.price || 0);
+
+    let paymentId = null;
 
     try {
+      if (servicePrice > 0) {
+        const paymentRes = await processRazorpayPayment({
+          amount: servicePrice,
+          name: 'GoFixit Service Booking',
+          description: `${selectedService.title} - ${bookingDate} (${timeSlot})`,
+          user,
+          notes: {
+            serviceName: selectedService.title,
+            date: bookingDate,
+            timeSlot: timeSlot
+          }
+        });
+
+        paymentId = paymentRes.paymentId;
+      }
+
+      // Construct request payload with GPS coordinates and payment details
+      const payload = {
+        serviceName: selectedService.title,
+        price: servicePrice,
+        date: bookingDate,
+        timeSlot: timeSlot,
+        address: address.trim(),
+        latitude: lat,
+        longitude: lng,
+        paymentMode: servicePrice > 0 ? 'online' : 'subscription',
+        transactionId: servicePrice > 0 ? paymentId : 'FREE_SUBSCRIPTION'
+      };
+
       const result = await api.post('/bookings', payload);
       setCreatedBooking(result);
       setBookingSuccess(true);
@@ -657,11 +681,16 @@ export default function Services() {
               disabled={bookingLoading}
             >
               {bookingLoading ? (
-                <span>Confirming Booking...</span>
+                <span>Processing Payment...</span>
+              ) : isServiceIncluded(selectedService?.title) ? (
+                <>
+                  <span>Confirm Free Booking</span>
+                  <CheckCircle size={16} />
+                </>
               ) : (
                 <>
-                  <span>Confirm and Book</span>
-                  <CheckCircle size={16} />
+                  <Lock size={16} />
+                  <span>Pay ₹{selectedService?.price} via Razorpay</span>
                 </>
               )}
             </button>

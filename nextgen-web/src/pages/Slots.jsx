@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
+import { processRazorpayPayment } from '../utils/razorpay';
 import { Calendar, Shield, CreditCard, CheckCircle2, ChevronRight, AlertTriangle, QrCode, Upload, Info } from 'lucide-react';
 import gofixitQr from '../assets/GoFixitQr.jpeg';
 import './Slots.css';
@@ -63,7 +64,7 @@ export default function Slots() {
   const [slotSearchQuery, setSlotSearchQuery] = useState('');
 
   // Payment States
-  const [paymentMode, setPaymentMode] = useState('offline'); // 'online' or 'offline'
+  const [paymentMode, setPaymentMode] = useState('razorpay'); // 'razorpay', 'online', or 'offline'
   const [transactionId, setTransactionId] = useState('');
   const [transactionError, setTransactionError] = useState('');
   const [screenshotFile, setScreenshotFile] = useState(null);
@@ -241,6 +242,24 @@ export default function Slots() {
     setError('');
 
     try {
+      let finalTransactionId = transactionId;
+
+      // Handle Razorpay Online Payment Flow
+      if (paymentMode === 'razorpay') {
+        const paymentRes = await processRazorpayPayment({
+          amount: activeEvent?.price || 0,
+          name: 'Nextgen Subscription',
+          description: `Slot #${selectedSlot} - ${activeEvent?.event_name}`,
+          user,
+          notes: {
+            eventId: selectedEventId,
+            slotNumber: selectedSlot
+          }
+        });
+
+        finalTransactionId = paymentRes.paymentId;
+      }
+
       let screenshotUrl = null;
 
       if (paymentMode === 'online' && screenshotFile) {
@@ -280,8 +299,8 @@ export default function Slots() {
         mandalId: parseInt(selectedMandalId, 10),
         eventId: parseInt(selectedEventId, 10),
         slotNumber: selectedSlot,
-        paymentMode,
-        transactionId: paymentMode === 'online' ? transactionId : null,
+        paymentMode: paymentMode === 'razorpay' ? 'online' : paymentMode,
+        transactionId: finalTransactionId || null,
         screenshotUrl
       };
 
@@ -560,16 +579,16 @@ export default function Slots() {
               <h3>Step 3: Payment Details</h3>
               <div className="payment-options">
                 <label 
-                  className={`payment-option ${paymentMode === 'offline' ? 'active' : ''}`}
+                  className={`payment-option ${paymentMode === 'razorpay' ? 'active' : ''}`}
                   style={{ 
-                    backgroundColor: paymentMode === 'offline' ? 'var(--primary-glow)' : 'var(--bg-tertiary)',
-                    borderColor: paymentMode === 'offline' ? 'var(--primary)' : 'var(--border-color)'
+                    backgroundColor: paymentMode === 'razorpay' ? 'var(--primary-glow)' : 'var(--bg-tertiary)',
+                    borderColor: paymentMode === 'razorpay' ? 'var(--primary)' : 'var(--border-color)'
                   }}
                 >
-                  <input type="radio" name="paymentMode" value="offline" checked={paymentMode === 'offline'} onChange={(e) => setPaymentMode(e.target.value)} />
+                  <input type="radio" name="paymentMode" value="razorpay" checked={paymentMode === 'razorpay'} onChange={(e) => setPaymentMode(e.target.value)} />
                   <div className="option-content">
-                    <strong style={{ color: 'var(--text-primary)' }}>Pay Offline / Cash Collection</strong>
-                    <span style={{ color: 'var(--text-secondary)' }}>An agent will collect cash or you can pay at the office.</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>Pay Online Instant (Razorpay / UPI / Cards / NetBanking)</strong>
+                    <span style={{ color: 'var(--text-secondary)' }}>Instant & secure payment gateway checkout.</span>
                   </div>
                 </label>
                 <label 
@@ -581,8 +600,21 @@ export default function Slots() {
                 >
                   <input type="radio" name="paymentMode" value="online" checked={paymentMode === 'online'} onChange={(e) => setPaymentMode(e.target.value)} />
                   <div className="option-content">
-                    <strong style={{ color: 'var(--text-primary)' }}>Pay Online via UPI</strong>
-                    <span style={{ color: 'var(--text-secondary)' }}>Scan QR code and upload screenshot.</span>
+                    <strong style={{ color: 'var(--text-primary)' }}>Pay via Manual QR Code</strong>
+                    <span style={{ color: 'var(--text-secondary)' }}>Scan QR code and upload payment receipt screenshot.</span>
+                  </div>
+                </label>
+                <label 
+                  className={`payment-option ${paymentMode === 'offline' ? 'active' : ''}`}
+                  style={{ 
+                    backgroundColor: paymentMode === 'offline' ? 'var(--primary-glow)' : 'var(--bg-tertiary)',
+                    borderColor: paymentMode === 'offline' ? 'var(--primary)' : 'var(--border-color)'
+                  }}
+                >
+                  <input type="radio" name="paymentMode" value="offline" checked={paymentMode === 'offline'} onChange={(e) => setPaymentMode(e.target.value)} />
+                  <div className="option-content">
+                    <strong style={{ color: 'var(--text-primary)' }}>Pay Offline / Cash Collection</strong>
+                    <span style={{ color: 'var(--text-secondary)' }}>An agent will collect cash or you can pay at the office.</span>
                   </div>
                 </label>
               </div>

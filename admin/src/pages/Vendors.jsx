@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../utils/api';
-import { Search, UserCheck, UserX, Briefcase, TrendingUp, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Phone } from 'lucide-react';
+import { Search, UserCheck, UserX, Briefcase, TrendingUp, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Phone, Mail } from 'lucide-react';
 
 export default function Vendors() {
   const [vendors, setVendors] = useState([]);
@@ -82,7 +82,8 @@ export default function Vendors() {
 
   const filteredVendors = vendors.filter(v => 
     v.name.toLowerCase().includes(search.toLowerCase()) ||
-    v.phone.toLowerCase().includes(search.toLowerCase())
+    v.phone.toLowerCase().includes(search.toLowerCase()) ||
+    (v.email && v.email.toLowerCase().includes(search.toLowerCase()))
   );
 
   if (error) {
@@ -96,7 +97,7 @@ export default function Vendors() {
           <Search size={18} color="#9CA3AF" style={styles.searchIcon} />
           <input
             type="text"
-            placeholder="Search vendors by name or phone..."
+            placeholder="Search vendors by name, phone, or email..."
             style={styles.searchInput}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -141,6 +142,11 @@ export default function Vendors() {
                             <div style={{ fontSize: '0.8rem', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                               <Phone size={12} /> {v.phone}
                             </div>
+                            {v.email && (
+                              <div style={{ fontSize: '0.8rem', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                <Mail size={12} /> {v.email}
+                              </div>
+                            )}
                             <div style={{ fontSize: '0.72rem', color: '#9CA3AF', marginTop: '2px' }}>
                               Registered: {formatDate(v.createdAt)}
                             </div>

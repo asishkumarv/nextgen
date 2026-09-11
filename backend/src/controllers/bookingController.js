@@ -39,7 +39,7 @@ const getMyBookings = async (req, res) => {
 };
 
 const createBooking = async (req, res) => {
-  const { serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName, latitude, longitude } = req.body;
+  const { serviceName, price, date, timeSlot, address, districtId, mandalId, slotNumber, eventName, latitude, longitude, paymentMode, transactionId } = req.body;
   const userId = req.user.id;
 
   if (!serviceName || !date || !address) {
@@ -125,6 +125,9 @@ const createBooking = async (req, res) => {
       }
     }
 
+    const finalPaymentMode = computedPrice === 0 ? 'subscription' : (paymentMode || 'online');
+    const finalTransactionId = computedPrice === 0 ? 'FREE_SUBSCRIPTION' : (transactionId || null);
+
     // Find the vendor with the least workload offering this service
     let assignedVendorId = null;
     let bookingStatus = 'Booked';
@@ -159,12 +162,12 @@ const createBooking = async (req, res) => {
 
     // Insert booking
     const newBooking = await pool.query(
-      `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_name, slot_number, service_name, date, price, status, icon, address, vendor_id, otp, latitude, longitude) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
+      `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_name, slot_number, service_name, date, price, status, icon, address, vendor_id, otp, latitude, longitude, payment_mode, transaction_id) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) 
        RETURNING id, service_name AS "serviceName", date, price, status, icon, address, vendor_id AS "vendorId", otp,
                  district_id AS "districtId", mandal_id AS "mandalId", event_name AS "eventName", slot_number AS "slotNumber",
-                 latitude, longitude`,
-      [randomId, userId, finalDistrictId || null, finalMandalId || null, finalEventName || null, finalSlotNumber || null, serviceName, dateAndSlot, computedPrice, bookingStatus, iconName, address, assignedVendorId, otp, latitude || null, longitude || null]
+                 latitude, longitude, payment_mode AS "paymentMode", transaction_id AS "transactionId"`,
+      [randomId, userId, finalDistrictId || null, finalMandalId || null, finalEventName || null, finalSlotNumber || null, serviceName, dateAndSlot, computedPrice, bookingStatus, iconName, address, assignedVendorId, otp, latitude || null, longitude || null, finalPaymentMode, finalTransactionId]
     );
 
     res.status(201).json(newBooking.rows[0]);

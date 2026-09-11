@@ -209,8 +209,16 @@ const createTables = async (dropExisting = false) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         vendor_id INTEGER REFERENCES vendors(id) ON DELETE SET NULL,
         otp VARCHAR(4) DEFAULT '1234',
-        settlement_id INTEGER REFERENCES settlements(id) ON DELETE SET NULL
+        settlement_id INTEGER REFERENCES settlements(id) ON DELETE SET NULL,
+        payment_mode VARCHAR(20) DEFAULT 'online',
+        transaction_id VARCHAR(100)
       );
+    `);
+
+    // Ensure columns exist on existing table
+    await client.query(`
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_mode VARCHAR(20) DEFAULT 'online';
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);
     `);
 
     // Create Admins Table
