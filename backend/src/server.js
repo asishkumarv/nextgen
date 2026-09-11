@@ -76,8 +76,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-// Auto-initialize DB and start server
+// Auto-initialize DB migrations and start server
+const runMigrations = async () => {
+  try {
+    const pool = require('./config/db');
+    console.log('Checking and running database schema migrations...');
+    await pool.query(`
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_mode VARCHAR(20) DEFAULT 'online';
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);
+      ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS payment_mode VARCHAR(20) DEFAULT 'offline';
+      ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);
+    `);
+    console.log('Database schema migrations completed successfully.');
+  } catch (err) {
+    console.error('Migration warning/error:', err.message);
+  }
+};
+
 const startServer = async () => {
+  await runMigrations();
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
   });

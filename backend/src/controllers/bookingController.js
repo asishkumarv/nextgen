@@ -171,6 +171,12 @@ const createBooking = async (req, res) => {
       console.warn('Vendor matching query warning:', vErr.message);
     }
 
+    // Ensure payment_mode and transaction_id columns exist before inserting
+    await pool.query(`
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_mode VARCHAR(20) DEFAULT 'online';
+      ALTER TABLE bookings ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);
+    `).catch(() => {});
+
     // Insert booking
     const newBooking = await pool.query(
       `INSERT INTO bookings (id, user_id, district_id, mandal_id, event_name, slot_number, service_name, date, price, status, icon, address, vendor_id, otp, latitude, longitude, payment_mode, transaction_id) 
