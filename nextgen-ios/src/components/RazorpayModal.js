@@ -12,7 +12,7 @@ export default function RazorpayModal({ visible, orderDetails, onSuccess, onCanc
     key: keyId || 'rzp_test_Taem2JpBTkElnV',
     amount: amount,
     currency: currency || 'INR',
-    name: name || 'Nextgen Power Care',
+    name: name || 'GoFixit',
     description: description || 'Online Payment',
     order_id: orderId,
     prefill: prefill || {},
@@ -55,7 +55,7 @@ export default function RazorpayModal({ visible, orderDetails, onSuccess, onCanc
       <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     </head>
     <body>
-      <div className="loader"></div>
+      <div class="loader"></div>
       <p id="msg" style="font-size: 16px; font-weight: 500;">Opening Razorpay Payment Gateway...</p>
       <script>
         const options = ${JSON.stringify(razorpayOptions)};
@@ -127,6 +127,11 @@ export default function RazorpayModal({ visible, orderDetails, onSuccess, onCanc
           onMessage={handleMessage}
           javaScriptEnabled={true}
           domStorageEnabled={true}
+          thirdPartyCookiesEnabled={true}
+          sharedCookiesEnabled={true}
+          originWhitelist={['*']}
+          mixedContentMode="always"
+          allowsInlineMediaPlayback={true}
           startInLoadingState={true}
           renderLoading={() => (
             <View style={styles.loadingContainer}>

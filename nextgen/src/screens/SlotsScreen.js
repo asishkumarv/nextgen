@@ -271,12 +271,12 @@ export default function SlotsScreen() {
             orderId: orderData.orderId,
             amount: orderData.amount,
             currency: orderData.currency,
-            name: 'Nextgen Subscription',
+            name: 'GoFixit Subscription',
             description: `Slot #${selectedLocalSlot} - ${selectedEvent.event_name}`,
             prefill: {
               name: user?.name || user?.username || '',
               email: user?.email || '',
-              contact: user?.phone || user?.phoneNumber || ''
+              contact: user?.phone ? user.phone.replace(/[^0-9]/g, '').slice(-10) : (user?.phoneNumber ? user.phoneNumber.replace(/[^0-9]/g, '').slice(-10) : '')
             }
           });
           setRazorpayVisible(true);

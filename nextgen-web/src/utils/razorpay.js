@@ -46,13 +46,13 @@ export const processRazorpayPayment = async ({
       key: orderData.keyId || 'rzp_test_Taem2JpBTkElnV',
       amount: orderData.amount,
       currency: orderData.currency || 'INR',
-      name: name || 'Nextgen Power Care',
+      name: name || 'GoFixit',
       description: description || 'Online Payment',
       order_id: orderData.orderId,
       prefill: {
         name: user?.name || user?.username || '',
         email: user?.email || '',
-        contact: user?.phone || user?.phoneNumber || ''
+        contact: user?.phone ? user.phone.replace(/[^0-9]/g, '').slice(-10) : (user?.phoneNumber ? user.phoneNumber.replace(/[^0-9]/g, '').slice(-10) : '')
       },
       theme: {
         color: '#F1AA9B'
