@@ -48,6 +48,7 @@ export default function SlotsScreen() {
   const [mandalDropdownOpen, setMandalDropdownOpen] = useState(false);
   const [eventDropdownOpen, setEventDropdownOpen] = useState(false);
   const [slotSearchQuery, setSlotSearchQuery] = useState('');
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   // Payment States
   const [paymentMode, setPaymentMode] = useState('razorpay'); // 'razorpay', 'online', or 'offline'
@@ -226,7 +227,7 @@ export default function SlotsScreen() {
           selectedMandal.id,
           selectedEvent.id,
           selectedLocalSlot,
-          'online',
+          'razorpay',
           paymentData.razorpay_payment_id,
           null
         );
@@ -461,9 +462,23 @@ export default function SlotsScreen() {
             <Ionicons name="information-circle-outline" size={20} color="#F1AA9B" style={{ marginRight: 6 }} />
             <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF' }}>Event Details</Text>
           </View>
-          <Text style={{ fontSize: 14, color: '#4B5563', lineHeight: 20 }}>
+          <Text 
+            style={{ fontSize: 14, color: '#D1D5DB', lineHeight: 20 }}
+            numberOfLines={isDescriptionExpanded ? undefined : 3}
+          >
             {selectedEvent.description || 'No description provided.'}
           </Text>
+          {selectedEvent.description && selectedEvent.description.length > 80 && (
+            <TouchableOpacity 
+              onPress={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}
+            >
+              <Text style={{ fontSize: 13, color: '#F0C38E', fontWeight: '700', marginRight: 4 }}>
+                {isDescriptionExpanded ? 'Collapse Details' : 'Expand Details'}
+              </Text>
+              <Ionicons name={isDescriptionExpanded ? 'chevron-up' : 'chevron-down'} size={14} color="#F0C38E" />
+            </TouchableOpacity>
+          )}
           {selectedEvent.thumbnail && (
             <Image source={{ uri: selectedEvent.thumbnail }} style={{ width: '100%', height: 140, borderRadius: 8, marginTop: 12 }} />
           )}
@@ -754,13 +769,13 @@ export default function SlotsScreen() {
                 style={styles.sheetCloseBtn} 
                 onPress={() => setSelectedLocalSlot(null)}
               >
-                <Ionicons name="close" size={22} color="#4B5563" />
+                <Ionicons name="close" size={22} color="#A5A1B8" />
               </TouchableOpacity>
             </View>
 
             <LinearGradient
-              colors={['#E6F4EA', '#E3F2FD']}
-              style={styles.subInfoCard}
+              colors={['#25213E', '#3D3762']}
+              style={[styles.subInfoCard, { borderWidth: 1, borderColor: '#3D3762' }]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
@@ -773,7 +788,6 @@ export default function SlotsScreen() {
               </View>
             </LinearGradient>
 
-            {/* Payment Mode Selection */}
             <Text style={styles.paymentHeading}>Payment Method</Text>
             <View style={styles.paymentRow}>
               <TouchableOpacity 
@@ -784,56 +798,13 @@ export default function SlotsScreen() {
                 <Text style={[styles.paymentBtnText, paymentMode === 'razorpay' && styles.paymentBtnTextActive]}>Razorpay</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.paymentBtn, paymentMode === 'online' && styles.paymentBtnActive]}
-                onPress={() => setPaymentMode('online')}
-              >
-                <Ionicons name="qr-code-outline" size={20} color={paymentMode === 'online' ? '#F0C38E' : '#6B7280'} />
-                <Text style={[styles.paymentBtnText, paymentMode === 'online' && styles.paymentBtnTextActive]}>Manual QR</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
                 style={[styles.paymentBtn, paymentMode === 'offline' && styles.paymentBtnActive]}
                 onPress={() => setPaymentMode('offline')}
               >
                 <Ionicons name="cash-outline" size={20} color={paymentMode === 'offline' ? '#F0C38E' : '#6B7280'} />
-                <Text style={[styles.paymentBtnText, paymentMode === 'offline' && styles.paymentBtnTextActive]}>Offline</Text>
+                <Text style={[styles.paymentBtnText, paymentMode === 'offline' && styles.paymentBtnTextActive]}>Cash / Offline</Text>
               </TouchableOpacity>
             </View>
-
-            {paymentMode === 'online' && (
-              <View style={styles.onlinePaymentContainer}>
-                <View style={styles.qrPlaceholder}>
-                  <Image source={gofixitQr} style={{ width: 160, height: 160, borderRadius: 8, marginBottom: 12 }} resizeMode="contain" />
-                  <Text style={{ fontSize: 12, color: '#A5A1B8', marginBottom: 4 }}>Pay to UPI ID:</Text>
-                  <TouchableOpacity 
-                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
-                    onPress={async () => {
-                      await Clipboard.setStringAsync('Vyapar.175693314872@hdfcbank');
-                      Alert.alert('Copied!', 'UPI ID copied to clipboard.');
-                    }}
-                  >
-                    <Text style={[styles.qrText, { marginRight: 8, color: '#F1AA9B' }]} selectable={true}>Vyapar.175693314872@hdfcbank</Text>
-                    <Ionicons name="copy-outline" size={16} color="#F1AA9B" />
-                  </TouchableOpacity>
-                </View>
-                
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="UPI Transaction ID *"
-                  value={transactionId}
-                  onChangeText={setTransactionId}
-                  placeholderTextColor="#A5A1B8"
-                />
-
-                <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
-                  <Ionicons name="image-outline" size={20} color="#374151" />
-                  <Text style={styles.uploadBtnText}>Upload Screenshot</Text>
-                </TouchableOpacity>
-
-                {screenshotUri && (
-                  <Image source={{ uri: screenshotUri }} style={styles.screenshotPreview} />
-                )}
-              </View>
-            )}
 
             <TouchableOpacity 
               style={styles.sheetConfirmBtnWrapper}
@@ -1188,7 +1159,7 @@ const styles = StyleSheet.create({
   },
   subInfoLabel: {
     fontSize: 13,
-    color: '#4B5563',
+    color: '#A5A1B8',
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -1211,6 +1182,7 @@ const styles = StyleSheet.create({
   paymentHeading: {
     fontSize: 15,
     fontWeight: '700',
+    color: '#FFFFFF',
     marginBottom: 10,
   },
   paymentRow: {
@@ -1231,7 +1203,7 @@ const styles = StyleSheet.create({
   },
   paymentBtnActive: {
     borderColor: '#F0C38E',
-    backgroundColor: '#F0FDF4',
+    backgroundColor: '#25213E',
   },
   paymentBtnText: {
     fontWeight: '600',

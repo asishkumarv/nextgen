@@ -12,6 +12,10 @@ const bookSlot = async (req, res) => {
     return res.status(400).json({ message: 'Transaction ID and screenshot are required for online payments' });
   }
 
+  if (paymentMode === 'razorpay' && !transactionId) {
+    return res.status(400).json({ message: 'Transaction ID is required for Razorpay payments' });
+  }
+
   try {
 
     // Verify Event exists and belongs to Mandal

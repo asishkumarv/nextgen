@@ -182,7 +182,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
         setOtpError('');
         setOtpCode('');
         setShowOtpModal(true);
-        showToast('Verification code sent to your email', 'success');
+        showToast('SMS verification code sent to your mobile phone', 'success');
       } else {
         showToast(otpRes.message || 'Failed to send verification code', 'error');
       }
@@ -243,7 +243,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
       const otpRes = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'vendor' });
       setOtpLoading(false);
       if (otpRes.success) {
-        showToast('Verification code resent to your email', 'success');
+        showToast('SMS verification code resent to your mobile phone', 'success');
       } else {
         showToast(otpRes.message || 'Failed to send verification code', 'error');
       }
@@ -664,9 +664,9 @@ export default function RegisterScreen({ onNavigateToLogin }) {
               <View style={styles.otpLogoWrapper}>
                 <Ionicons name="construct-outline" size={32} color="#F0C38E" />
               </View>
-              <Text style={styles.otpTitle}>Verify Your Email</Text>
-              <Text style={styles.otpSubtitle}>We have sent a 6-digit code to</Text>
-              <Text style={styles.otpEmailText}>{email}</Text>
+              <Text style={styles.otpTitle}>Verify Mobile Number</Text>
+              <Text style={styles.otpSubtitle}>We have sent a 6-digit SMS code to</Text>
+              <Text style={styles.otpEmailText}>{phone}</Text>
             </View>
 
             <View style={styles.otpInputGroup}>

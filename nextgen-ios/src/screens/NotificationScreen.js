@@ -112,7 +112,7 @@ const NotificationScreen = ({ navigation }) => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1f2937" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
         <TouchableOpacity onPress={markAllAsRead}>
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     backgroundColor: '#48426D',
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#3D3762',
   },
   backButton: {
     padding: 5,
@@ -181,7 +181,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   unreadCard: {
-    backgroundColor: '#f0fdf4',
+    backgroundColor: '#38325B',
+    borderLeftWidth: 4,
+    borderLeftColor: '#F0C38E',
   },
   iconContainer: {
     width: 48,
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
-    color: '#4b5563',
+    color: '#D1D5DB',
     lineHeight: 20,
     marginBottom: 8,
   },

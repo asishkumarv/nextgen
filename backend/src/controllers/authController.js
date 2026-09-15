@@ -283,8 +283,8 @@ const changePassword = async (req, res) => {
 const sendOtp = async (req, res) => {
   const { email, phone, type, action, phoneOrEmail } = req.body;
 
-  if (action === 'login') {
-    if (!phoneOrEmail) {
+  if (action === 'login' || action === 'reset') {
+    if (!phoneOrEmail && !phone) {
       return res.status(400).json({ message: 'Phone number or email is required' });
     }
   } else {
@@ -297,8 +297,8 @@ const sendOtp = async (req, res) => {
     let targetPhone = phone ? phone.trim() : null;
     let targetEmail = email ? email.trim() : null;
 
-    if (action === 'login') {
-      const cleanVal = (phoneOrEmail || '').trim();
+    if (action === 'login' || action === 'reset') {
+      const cleanVal = (phoneOrEmail || phone || '').trim();
       const lowerVal = cleanVal.toLowerCase();
       if (type === 'vendor') {
         const vendorCheck = await pool.query(
@@ -309,14 +309,16 @@ const sendOtp = async (req, res) => {
           return res.status(400).json({ message: 'No registered partner account found with this phone number or email' });
         }
         const vendor = vendorCheck.rows[0];
-        if (vendor.status === 'Pending') {
-          return res.status(403).json({ message: 'Your registration is pending administrator approval.' });
-        }
-        if (vendor.status === 'Rejected') {
-          return res.status(403).json({ message: 'Your registration request was rejected by the administrator.' });
-        }
-        if (vendor.status === 'Deactivated') {
-          return res.status(403).json({ message: 'Your account has been deactivated.' });
+        if (action === 'login') {
+          if (vendor.status === 'Pending') {
+            return res.status(403).json({ message: 'Your registration is pending administrator approval.' });
+          }
+          if (vendor.status === 'Rejected') {
+            return res.status(403).json({ message: 'Your registration request was rejected by the administrator.' });
+          }
+          if (vendor.status === 'Deactivated') {
+            return res.status(403).json({ message: 'Your account has been deactivated.' });
+          }
         }
         targetPhone = vendor.phone;
         targetEmail = vendor.email;
@@ -358,16 +360,6 @@ const sendOtp = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-    /* ================= EMAIL OTP CODE (ON HOLD / COMMENTED OUT) =================
-    // Clear old email OTPs and insert new
-    // await pool.query('DELETE FROM email_otps WHERE email = $1', [targetEmail]);
-    // await pool.query(
-    //   'INSERT INTO email_otps (email, otp, expires_at) VALUES ($1, $2, $3)',
-    //   [targetEmail, otp, expiresAt]
-    // );
-    // await sendOtpEmail(targetEmail, otp);
-    ============================================================================= */
-
     // Save OTP against phone number (and targetEmail) for verification
     await pool.query('DELETE FROM email_otps WHERE email = $1 OR email = $2', [targetPhone, targetEmail || targetPhone]);
     await pool.query(
@@ -387,10 +379,84 @@ const sendOtp = async (req, res) => {
     // Mask phone number for response (e.g. ******3210)
     const maskedPhone = targetPhone.length > 4 ? '******' + targetPhone.slice(-4) : targetPhone;
 
-    res.json({ success: true, message: 'SMS verification code sent successfully via Twilio', phone: maskedPhone });
+    res.json({ success: true, message: 'SMS verification code sent successfully via SMS', phone: maskedPhone });
   } catch (error) {
     console.error('Error sending SMS OTP:', error);
     res.status(500).json({ message: error.message || 'Failed to send SMS verification code.' });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { phoneOrEmail, phone, otp, newPassword, type } = req.body;
+  const targetIdentifier = (phone || phoneOrEmail || '').trim();
+
+  if (!targetIdentifier || !otp || !newPassword) {
+    return res.status(400).json({ message: 'Phone number, SMS verification code, and new password are required' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+  }
+
+  try {
+    let userPhone = targetIdentifier;
+    let userEmail = targetIdentifier;
+
+    if (type === 'vendor') {
+      const vCheck = await pool.query('SELECT phone, email FROM vendors WHERE phone = $1 OR LOWER(email) = LOWER($2)', [targetIdentifier, targetIdentifier]);
+      if (vCheck.rows.length > 0) {
+        userPhone = vCheck.rows[0].phone;
+        userEmail = vCheck.rows[0].email || vCheck.rows[0].phone;
+      }
+    } else {
+      const uCheck = await pool.query('SELECT phone, email FROM users WHERE phone = $1 OR LOWER(email) = LOWER($2)', [targetIdentifier, targetIdentifier]);
+      if (uCheck.rows.length > 0) {
+        userPhone = uCheck.rows[0].phone;
+        userEmail = uCheck.rows[0].email || uCheck.rows[0].phone;
+      }
+    }
+
+    // Verify OTP against email_otps table
+    const otpCheck = await pool.query(
+      'SELECT * FROM email_otps WHERE (email = $1 OR email = $2 OR email = $3) AND otp = $4 AND expires_at > CURRENT_TIMESTAMP',
+      [targetIdentifier, userPhone, userEmail, otp.trim()]
+    );
+
+    if (otpCheck.rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired SMS verification code' });
+    }
+
+    // Hash new password
+    const salt = bcrypt.genSaltSync(10);
+    const passwordHash = bcrypt.hashSync(newPassword, salt);
+
+    // Update password
+    let updated = false;
+    if (type === 'vendor') {
+      const result = await pool.query(
+        'UPDATE vendors SET password = $1 WHERE phone = $2 OR LOWER(email) = LOWER($3) RETURNING id',
+        [passwordHash, userPhone, userEmail]
+      );
+      if (result.rows.length > 0) updated = true;
+    } else {
+      const result = await pool.query(
+        'UPDATE users SET password = $1 WHERE phone = $2 OR LOWER(email) = LOWER($3) RETURNING id',
+        [passwordHash, userPhone, userEmail]
+      );
+      if (result.rows.length > 0) updated = true;
+    }
+
+    if (!updated) {
+      return res.status(400).json({ message: 'Account not found to reset password' });
+    }
+
+    // Delete used OTP
+    await pool.query('DELETE FROM email_otps WHERE email = $1 OR email = $2 OR email = $3', [targetIdentifier, userPhone, userEmail]);
+
+    res.json({ success: true, message: 'Password reset successfully. You can now log in with your new password.' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ message: 'Server error resetting password' });
   }
 };
 
@@ -400,5 +466,6 @@ module.exports = {
   getMe,
   updateProfile,
   changePassword,
-  sendOtp
+  sendOtp,
+  resetPassword
 };

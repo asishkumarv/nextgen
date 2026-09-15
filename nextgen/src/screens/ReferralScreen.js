@@ -116,7 +116,7 @@ export default function ReferralScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Wallet</Text>
         <TouchableOpacity onPress={() => setTermsVisible(true)} style={styles.infoBtn}>
@@ -260,14 +260,14 @@ export default function ReferralScreen({ navigation }) {
                 <Ionicons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
             </View>
-            <Text style={{ color: '#4B5563', marginBottom: 12 }}>Invite your friends and earn money!</Text>
-            <View style={{ backgroundColor: '#F3F4F6', padding: 12, borderRadius: 8, marginBottom: 16 }}>
-              <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Direct Referrals:</Text>
+            <Text style={{ color: '#D1D5DB', marginBottom: 12 }}>Invite your friends and earn money!</Text>
+            <View style={{ backgroundColor: '#25213E', borderWidth: 1, borderColor: '#3D3762', padding: 14, borderRadius: 12, marginBottom: 16 }}>
+              <Text style={{ fontWeight: 'bold', color: '#F0C38E', marginBottom: 8, fontSize: 14 }}>Direct Referrals:</Text>
               <Text style={styles.tierText}>• 1st: ₹200, 2nd: ₹230, 3rd: ₹260</Text>
               <Text style={styles.tierText}>• ... Increases by ₹30 until the 8th referral</Text>
               <Text style={styles.tierText}>• 9th referral: ₹450</Text>
               <Text style={styles.tierText}>• 10th and onwards: ₹500 Flat</Text>
-              <Text style={{ fontWeight: 'bold', marginTop: 8, marginBottom: 8 }}>2nd Level Referrals:</Text>
+              <Text style={{ fontWeight: 'bold', color: '#F0C38E', marginTop: 12, marginBottom: 8, fontSize: 14 }}>2nd Level Referrals:</Text>
               <Text style={styles.tierText}>• Flat ₹100 for every sub-referral</Text>
             </View>
             <Text style={{ color: '#A5A1B8', fontSize: 13, marginBottom: 4 }}>• Min withdrawal is ₹100.</Text>
@@ -299,11 +299,11 @@ const styles = StyleSheet.create({
   withdrawBtnText: { color: '#F1AA9B', fontWeight: '700', fontSize: 14 },
   section: { backgroundColor: '#48426D', borderRadius: 16, padding: 16, marginBottom: 16 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', marginBottom: 16 },
-  codeWrapper: { backgroundColor: '#F3F4F6', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  codeText: { fontSize: 24, fontWeight: '800', letterSpacing: 4, color: '#FFFFFF' },
+  codeWrapper: { backgroundColor: '#25213E', borderWidth: 1, borderColor: '#3D3762', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  codeText: { fontSize: 24, fontWeight: '800', letterSpacing: 4, color: '#F0C38E' },
   copyBtn: { padding: 8 },
   subText: { color: '#A5A1B8', fontSize: 13 },
-  listItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  listItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#3D3762' },
   listMain: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   listSub: { fontSize: 12, color: '#A5A1B8', marginTop: 4 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
@@ -316,6 +316,6 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 13, fontWeight: '600', color: '#FFFFFF', marginBottom: 6 },
   input: { backgroundColor: '#25213E', borderWidth: 1, borderColor: '#3D3762', borderRadius: 10, padding: 12, fontSize: 15, color: '#FFFFFF' },
   submitBtn: { backgroundColor: '#F0C38E', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 12 },
-  submitBtnText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
-  tierText: { color: '#FFFFFF', marginBottom: 4 }
+  submitBtnText: { color: '#312C51', fontWeight: '700', fontSize: 16 },
+  tierText: { color: '#D1D5DB', marginBottom: 4 }
 });

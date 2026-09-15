@@ -21,8 +21,12 @@ const sendSmsOtp = async (toPhone, otp) => {
 
   let client;
   try {
-    if (accountSid.startsWith('SK') && mainAccountSid) {
-      client = twilio(accountSid, authToken, { accountSid: mainAccountSid });
+    if (accountSid.startsWith('SK')) {
+      if (mainAccountSid && mainAccountSid.startsWith('AC')) {
+        client = twilio(accountSid, authToken, { accountSid: mainAccountSid });
+      } else {
+        throw new Error("Your TWILIO_ACCOUNT_SID starts with 'SK' (API Key). Twilio requires your main Account SID (starts with 'AC...') in TWILIO_MAIN_ACCOUNT_SID or TWILIO_ACCOUNT_SID in backend/.env.");
+      }
     } else {
       client = twilio(accountSid, authToken);
     }
@@ -38,12 +42,13 @@ const sendSmsOtp = async (toPhone, otp) => {
   }
 
   try {
+    const smsBody = process.env.TWILIO_SMS_BODY || 'sms_2fa';
     const message = await client.messages.create({
-      body: `Your Go Fixit verification code is: ${otp}. Valid for 10 minutes.`,
+      body: smsBody,
       from: twilioPhoneNumber,
       to: formattedPhone
     });
-    console.log(`[Twilio SMS] OTP sent to ${formattedPhone} (SID: ${message.sid})`);
+    console.log(`[Twilio SMS] Generated OTP ${otp} dispatched to ${formattedPhone} via Twilio template '${smsBody}' (SID: ${message.sid})`);
     return true;
   } catch (error) {
     console.error('[Twilio SMS Error] Failed to send SMS:', error.message);

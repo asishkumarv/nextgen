@@ -592,19 +592,6 @@ export default function Slots() {
                   </div>
                 </label>
                 <label 
-                  className={`payment-option ${paymentMode === 'online' ? 'active' : ''}`}
-                  style={{ 
-                    backgroundColor: paymentMode === 'online' ? 'var(--primary-glow)' : 'var(--bg-tertiary)',
-                    borderColor: paymentMode === 'online' ? 'var(--primary)' : 'var(--border-color)'
-                  }}
-                >
-                  <input type="radio" name="paymentMode" value="online" checked={paymentMode === 'online'} onChange={(e) => setPaymentMode(e.target.value)} />
-                  <div className="option-content">
-                    <strong style={{ color: 'var(--text-primary)' }}>Pay via Manual QR Code</strong>
-                    <span style={{ color: 'var(--text-secondary)' }}>Scan QR code and upload payment receipt screenshot.</span>
-                  </div>
-                </label>
-                <label 
                   className={`payment-option ${paymentMode === 'offline' ? 'active' : ''}`}
                   style={{ 
                     backgroundColor: paymentMode === 'offline' ? 'var(--primary-glow)' : 'var(--bg-tertiary)',
@@ -618,79 +605,7 @@ export default function Slots() {
                   </div>
                 </label>
               </div>
-
-              {paymentMode === 'online' && (
-                <div className="online-payment-details">
-                  <div className="qr-section">
-                    <div className="qr-placeholder" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', textAlign: 'center', width: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}>
-                      <img src={gofixitQr} alt="Payment QR Code" style={{ width: '100%', height: 'auto', borderRadius: '8px', marginBottom: '12px' }} />
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Pay to UPI ID:</span>
-                      <strong 
-                        style={{ 
-                          fontSize: '0.85rem', 
-                          color: 'var(--text-primary)', 
-                          marginTop: '4px',
-                          wordBreak: 'break-all',
-                          userSelect: 'all',
-                          cursor: 'copy',
-                          padding: '4px 8px',
-                          backgroundColor: 'var(--bg-secondary)',
-                          borderRadius: '6px',
-                          border: '1px dashed var(--border-color)'
-                        }}
-                        onClick={() => {
-                          navigator.clipboard.writeText(mockUpiId);
-                          alert('UPI ID copied to clipboard!');
-                        }}
-                        title="Click to copy"
-                      >
-                        {mockUpiId}
-                      </strong>
-                    </div>
-                  </div>
-                  
-                  <div className="upload-section">
-                    <div className="form-group" style={{ marginBottom: '16px' }}>
-                      <label>Transaction ID *</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. T2105151234" 
-                        className={`form-control ${transactionError ? 'is-invalid' : ''}`}
-                        style={transactionError ? { borderColor: 'var(--danger)' } : {}}
-                        value={transactionId}
-                        onChange={(e) => {
-                          setTransactionId(e.target.value);
-                          if(e.target.value.trim()) setTransactionError('');
-                        }}
-                      />
-                      {transactionError && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>{transactionError}</div>}
-                    </div>
-                    
-                    <div className="form-group">
-                      <label>Payment Screenshot *</label>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        ref={fileInputRef}
-                        style={{ display: 'none' }}
-                        onChange={handleImageChange}
-                      />
-                      
-                      {!screenshotPreview ? (
-                        <button type="button" className="upload-btn-custom" style={screenshotError ? { borderColor: 'var(--danger)', color: 'var(--danger)' } : {}} onClick={() => fileInputRef.current.click()}>
-                          <Upload size={18} /> Choose Image
-                        </button>
-                      ) : (
-                        <div className="screenshot-preview-container">
-                          <img src={screenshotPreview} alt="Screenshot" className="screenshot-img" />
-                          <button type="button" className="change-img-btn" onClick={() => fileInputRef.current.click()}>Change</button>
-                        </div>
-                      )}
-                      {screenshotError && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px' }}>{screenshotError}</div>}
-                    </div>
-                  </div>
-                </div>
-              )}
+            </div>
             </div>
           )}
 

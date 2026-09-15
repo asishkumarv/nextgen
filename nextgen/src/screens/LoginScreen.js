@@ -39,6 +39,14 @@ export default function LoginScreen({ onNavigateToRegister }) {
   const [otpError, setOtpError] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
 
+  // Forgot Password / Reset Password States
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetOtpSent, setResetOtpSent] = useState(false);
+  const [resetOtp, setResetOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+
   const showToast = (msg, type = 'error') => {
     setToastMsg(msg);
     setToastType(type);
@@ -66,13 +74,82 @@ export default function LoginScreen({ onNavigateToRegister }) {
         setShowOtpField(true);
         setOtpError('');
         setOtp('');
-        showToast(`Verification code sent to registered email ending in ${res.email}`, 'success');
+        showToast(`SMS verification code sent to phone ending in ${res.phone || 'mobile'}`, 'success');
       } else {
-        showToast(res.message || 'Failed to send verification code', 'error');
+        showToast(res.message || 'Failed to send SMS verification code', 'error');
       }
     } catch (err) {
       setOtpLoading(false);
-      showToast(err.message || 'Failed to send verification code', 'error');
+      showToast(err.message || 'Failed to send SMS verification code', 'error');
+    }
+  };
+
+  const handleSendResetOtp = async () => {
+    Keyboard.dismiss();
+    setPhoneOrEmailError('');
+    if (!phoneOrEmail.trim()) {
+      setPhoneOrEmailError('Registered phone number is required');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await api.post('/auth/send-otp', { phoneOrEmail: phoneOrEmail.trim(), type: 'user', action: 'reset' });
+      setResetLoading(false);
+      if (res.success) {
+        setResetOtpSent(true);
+        showToast(`SMS reset code sent to mobile ending in ${res.phone || 'phone'}`, 'success');
+      } else {
+        showToast(res.message || 'Failed to send SMS reset code', 'error');
+      }
+    } catch (err) {
+      setResetLoading(false);
+      showToast(err.message || 'Failed to send SMS reset code', 'error');
+    }
+  };
+
+  const handleResetPasswordSubmit = async () => {
+    Keyboard.dismiss();
+    if (!resetOtp.trim()) {
+      showToast('Please enter the 6-digit SMS verification code', 'error');
+      return;
+    }
+    if (!newPassword) {
+      showToast('Please enter your new password', 'error');
+      return;
+    }
+    if (newPassword.length < 6) {
+      showToast('New password must be at least 6 characters', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast('Passwords do not match', 'error');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await api.post('/auth/reset-password', {
+        phoneOrEmail: phoneOrEmail.trim(),
+        otp: resetOtp.trim(),
+        newPassword,
+        type: 'user'
+      });
+      setResetLoading(false);
+      if (res.success) {
+        showToast('Password reset successfully! Please log in.', 'success');
+        setIsForgotPassword(false);
+        setResetOtpSent(false);
+        setResetOtp('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setLoginMethod('password');
+      } else {
+        showToast(res.message || 'Failed to reset password', 'error');
+      }
+    } catch (err) {
+      setResetLoading(false);
+      showToast(err.message || 'Failed to reset password', 'error');
     }
   };
 
@@ -158,159 +235,296 @@ export default function LoginScreen({ onNavigateToRegister }) {
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            <Text style={styles.formHeading}>Welcome Back</Text>
-            <Text style={styles.formSub}>Log in to manage your bookings</Text>
+            {isForgotPassword ? (
+              <>
+                <Text style={styles.formHeading}>Reset Password</Text>
+                <Text style={styles.formSub}>
+                  {resetOtpSent ? 'Enter the SMS code sent to your phone and your new password' : 'Enter your registered phone number to receive an SMS OTP'}
+                </Text>
 
-            {/* Phone or Email Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Phone Number or Email Address</Text>
-              <View style={[styles.inputWrapper, phoneOrEmailError ? styles.inputWrapperError : null]}>
-                <Ionicons name="person-outline" size={18} color={phoneOrEmailError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Enter phone or email"
-                  placeholderTextColor="#A5A1B8"
-                  keyboardType="default"
-                  autoCapitalize="none"
-                  value={phoneOrEmail}
-                  onChangeText={(t) => { setPhoneOrEmail(t); setPhoneOrEmailError(''); }}
-                  editable={!loading}
-                />
-              </View>
-              {phoneOrEmailError && phoneOrEmailError.trim() ? (
-                <View style={styles.fieldErrorRow}>
-                  <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
-                  <Text style={styles.fieldErrorText}>{phoneOrEmailError}</Text>
-                </View>
-              ) : null}
-            </View>
-
-            {/* Password / OTP Input conditional render */}
-            {loginMethod === 'password' ? (
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Password</Text>
-                <View style={[styles.inputWrapper, passwordError ? styles.inputWrapperError : null]}>
-                  <Ionicons name="lock-closed-outline" size={18} color={passwordError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="Enter your password"
-                    placeholderTextColor="#A5A1B8"
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
-                    editable={!loading}
-                  />
-                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-                    <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#6B7280" />
-                  </TouchableOpacity>
-                </View>
-                {passwordError && passwordError.trim() ? (
-                  <View style={styles.fieldErrorRow}>
-                    <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
-                    <Text style={styles.fieldErrorText}>{passwordError}</Text>
-                  </View>
-                ) : null}
-              </View>
-            ) : (
-              showOtpField && (
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Verification Code (OTP)</Text>
-                  <View style={[styles.inputWrapper, otpError ? styles.inputWrapperError : null]}>
-                    <Ionicons name="shield-checkmark-outline" size={18} color={otpError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                  <Text style={styles.inputLabel}>Registered Phone Number</Text>
+                  <View style={[styles.inputWrapper, phoneOrEmailError ? styles.inputWrapperError : null]}>
+                    <Ionicons name="call-outline" size={18} color="#6B7280" style={styles.inputIcon} />
                     <TextInput
                       style={styles.textInput}
-                      placeholder="123456"
+                      placeholder="Enter registered phone"
                       placeholderTextColor="#A5A1B8"
-                      keyboardType="number-pad"
-                      maxLength={6}
-                      value={otp}
-                      onChangeText={(t) => { setOtp(t); setOtpError(''); }}
+                      keyboardType="phone-pad"
+                      value={phoneOrEmail}
+                      onChangeText={(t) => setPhoneOrEmail(t)}
+                      editable={!resetLoading && !resetOtpSent}
+                    />
+                  </View>
+                </View>
+
+                {resetOtpSent && (
+                  <>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>SMS OTP Code</Text>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="shield-checkmark-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInput}
+                          placeholder="6-digit SMS OTP"
+                          placeholderTextColor="#A5A1B8"
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          value={resetOtp}
+                          onChangeText={setResetOtp}
+                          editable={!resetLoading}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>New Password</Text>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="lock-closed-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInput}
+                          placeholder="At least 6 characters"
+                          placeholderTextColor="#A5A1B8"
+                          secureTextEntry
+                          value={newPassword}
+                          onChangeText={setNewPassword}
+                          editable={!resetLoading}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Confirm New Password</Text>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="lock-closed-outline" size={18} color="#6B7280" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInput}
+                          placeholder="Re-enter new password"
+                          placeholderTextColor="#A5A1B8"
+                          secureTextEntry
+                          value={confirmPassword}
+                          onChangeText={setConfirmPassword}
+                          editable={!resetLoading}
+                        />
+                      </View>
+                    </View>
+                  </>
+                )}
+
+                {!resetOtpSent ? (
+                  <TouchableOpacity
+                    style={styles.loginButton}
+                    onPress={handleSendResetOtp}
+                    disabled={resetLoading}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={['#F0C38E', '#F1AA9B']}
+                      style={styles.loginButtonGrad}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      {resetLoading ? (
+                        <ActivityIndicator color="#FFF" size="small" />
+                      ) : (
+                        <Text style={styles.loginButtonText}>Send Reset SMS OTP</Text>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.loginButton}
+                    onPress={handleResetPasswordSubmit}
+                    disabled={resetLoading}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={['#F0C38E', '#F1AA9B']}
+                      style={styles.loginButtonGrad}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      {resetLoading ? (
+                        <ActivityIndicator color="#FFF" size="small" />
+                      ) : (
+                        <Text style={styles.loginButtonText}>Set New Password</Text>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  style={styles.switchMethodBtn}
+                  onPress={() => {
+                    setIsForgotPassword(false);
+                    setResetOtpSent(false);
+                  }}
+                >
+                  <Text style={styles.switchMethodText}>Back to Sign In</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.formHeading}>Welcome Back</Text>
+                <Text style={styles.formSub}>Log in to manage your bookings</Text>
+
+                {/* Phone or Email Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Phone Number or Email Address</Text>
+                  <View style={[styles.inputWrapper, phoneOrEmailError ? styles.inputWrapperError : null]}>
+                    <Ionicons name="person-outline" size={18} color={phoneOrEmailError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Enter phone or email"
+                      placeholderTextColor="#A5A1B8"
+                      keyboardType="default"
+                      autoCapitalize="none"
+                      value={phoneOrEmail}
+                      onChangeText={(t) => { setPhoneOrEmail(t); setPhoneOrEmailError(''); }}
                       editable={!loading}
                     />
                   </View>
-                  {otpError && otpError.trim() ? (
+                  {phoneOrEmailError && phoneOrEmailError.trim() ? (
                     <View style={styles.fieldErrorRow}>
                       <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
-                      <Text style={styles.fieldErrorText}>{otpError}</Text>
+                      <Text style={styles.fieldErrorText}>{phoneOrEmailError}</Text>
                     </View>
                   ) : null}
                 </View>
-              )
-            )}
 
-            {/* Action Buttons */}
-            {loginMethod === 'otp' && !showOtpField ? (
-              <TouchableOpacity
-                style={styles.loginButton}
-                onPress={handleSendOtp}
-                disabled={otpLoading}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={['#F0C38E', '#F1AA9B']}
-                  style={styles.loginButtonGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  {otpLoading ? (
-                    <ActivityIndicator color="#FFF" size="small" />
-                  ) : (
-                    <View style={styles.btnContent}>
-                      <Text style={styles.loginButtonText}>Send OTP Code</Text>
-                      <Ionicons name="mail-outline" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                {/* Password / OTP Input conditional render */}
+                {loginMethod === 'password' ? (
+                  <View style={styles.inputGroup}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <Text style={[styles.inputLabel, { marginBottom: 0 }]}>Password</Text>
+                      <TouchableOpacity onPress={() => { setIsForgotPassword(true); setResetOtpSent(false); }}>
+                        <Text style={{ color: '#F0C38E', fontSize: 12, fontWeight: '600' }}>Forgot Password?</Text>
+                      </TouchableOpacity>
                     </View>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.loginButton}
-                onPress={handleLogin}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={['#F0C38E', '#F1AA9B']}
-                  style={styles.loginButtonGrad}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFF" size="small" />
-                  ) : (
-                    <View style={styles.btnContent}>
-                      <Text style={styles.loginButtonText}>{loginMethod === 'password' ? 'Sign In' : 'Verify & Login'}</Text>
-                      <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                    <View style={[styles.inputWrapper, passwordError ? styles.inputWrapperError : null]}>
+                      <Ionicons name="lock-closed-outline" size={18} color={passwordError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="Enter your password"
+                        placeholderTextColor="#A5A1B8"
+                        secureTextEntry={!showPassword}
+                        value={password}
+                        onChangeText={(t) => { setPassword(t); setPasswordError(''); }}
+                        editable={!loading}
+                      />
+                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                        <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#6B7280" />
+                      </TouchableOpacity>
                     </View>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
+                    {passwordError && passwordError.trim() ? (
+                      <View style={styles.fieldErrorRow}>
+                        <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                        <Text style={styles.fieldErrorText}>{passwordError}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                ) : (
+                  showOtpField && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Verification Code (SMS OTP)</Text>
+                      <View style={[styles.inputWrapper, otpError ? styles.inputWrapperError : null]}>
+                        <Ionicons name="shield-checkmark-outline" size={18} color={otpError ? '#EF4444' : '#6B7280'} style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInput}
+                          placeholder="123456"
+                          placeholderTextColor="#A5A1B8"
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          value={otp}
+                          onChangeText={(t) => { setOtp(t); setOtpError(''); }}
+                          editable={!loading}
+                        />
+                      </View>
+                      {otpError && otpError.trim() ? (
+                        <View style={styles.fieldErrorRow}>
+                          <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
+                          <Text style={styles.fieldErrorText}>{otpError}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  )
+                )}
+
+                {/* Action Buttons */}
+                {loginMethod === 'otp' && !showOtpField ? (
+                  <TouchableOpacity
+                    style={styles.loginButton}
+                    onPress={handleSendOtp}
+                    disabled={otpLoading}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={['#F0C38E', '#F1AA9B']}
+                      style={styles.loginButtonGrad}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      {otpLoading ? (
+                        <ActivityIndicator color="#FFF" size="small" />
+                      ) : (
+                        <View style={styles.btnContent}>
+                          <Text style={styles.loginButtonText}>Send Mobile SMS OTP</Text>
+                          <Ionicons name="chatbox-ellipses-outline" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                        </View>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.loginButton}
+                    onPress={handleLogin}
+                    disabled={loading}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={['#F0C38E', '#F1AA9B']}
+                      style={styles.loginButtonGrad}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      {loading ? (
+                        <ActivityIndicator color="#FFF" size="small" />
+                      ) : (
+                        <View style={styles.btnContent}>
+                          <Text style={styles.loginButtonText}>{loginMethod === 'password' ? 'Sign In' : 'Verify & Login'}</Text>
+                          <Ionicons name="arrow-forward" size={16} color="#312C51" style={{ marginLeft: 8 }} />
+                        </View>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
+
+                {/* Switch Login Method Link */}
+                <TouchableOpacity
+                  style={styles.switchMethodBtn}
+                  onPress={() => {
+                    setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
+                    setShowOtpField(false);
+                    setOtp('');
+                    setOtpError('');
+                    clearFieldErrors();
+                  }}
+                  disabled={loading || otpLoading}
+                >
+                  <Text style={styles.switchMethodText}>
+                    {loginMethod === 'password' ? 'Sign In with Mobile SMS OTP' : 'Sign In with Password'}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Sign Up Navigation Toggle */}
+                <View style={styles.signupRow}>
+                  <Text style={styles.signupText}>{"Don't have an account? "}</Text>
+                  <TouchableOpacity onPress={onNavigateToRegister} disabled={loading}>
+                    <Text style={styles.signupLink}>Sign Up</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
             )}
-
-            {/* Switch Login Method Link */}
-            <TouchableOpacity
-              style={styles.switchMethodBtn}
-              onPress={() => {
-                setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
-                setShowOtpField(false);
-                setOtp('');
-                setOtpError('');
-                clearFieldErrors();
-              }}
-              disabled={loading || otpLoading}
-            >
-              <Text style={styles.switchMethodText}>
-                {loginMethod === 'password' ? 'Sign In with Email OTP' : 'Sign In with Password'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Sign Up Navigation Toggle */}
-            <View style={styles.signupRow}>
-              <Text style={styles.signupText}>{"Don't have an account? "}</Text>
-              <TouchableOpacity onPress={onNavigateToRegister} disabled={loading}>
-                <Text style={styles.signupLink}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </ScrollView>
         <Toast

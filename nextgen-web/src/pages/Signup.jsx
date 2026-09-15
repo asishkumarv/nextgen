@@ -129,7 +129,7 @@ export default function Signup() {
     try {
       const res = await api.post('/auth/send-otp', { email: email.trim(), phone: phone.trim(), type: 'user' });
       if (res.success) {
-        setOtpError('Verification code resent successfully!');
+        setOtpError('SMS verification code resent successfully!');
       } else {
         setOtpError(res.message || 'Failed to resend verification code');
       }
@@ -353,9 +353,9 @@ export default function Signup() {
                 <div className="otp-modal-logo">
                   <UserPlus size={32} />
                 </div>
-                <h3>Verify Your Email</h3>
-                <p>We've sent a 6-digit verification code to</p>
-                <span className="otp-modal-email">{email}</span>
+                <h3>Verify Mobile Number</h3>
+                <p>We've sent a 6-digit SMS verification code to</p>
+                <span className="otp-modal-email">{phone}</span>
               </div>
 
               {otpError && (
