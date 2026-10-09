@@ -488,15 +488,15 @@ export default function SlotsScreen() {
       {selectedEvent && (
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#22C55E' }]} />
+            <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
             <Text style={styles.legendText}>Available</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#FCA5A5' }]} />
+            <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
             <Text style={styles.legendText}>Booked</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#F1AA9B' }]} />
+            <View style={[styles.legendDot, { backgroundColor: '#F0C38E' }]} />
             <Text style={styles.legendText}>Selected</Text>
           </View>
         </View>
@@ -570,7 +570,7 @@ export default function SlotsScreen() {
                     <Text style={[styles.slotLabel, textStyle]}>{num}</Text>
                     {isBooked && (
                       <View style={styles.blockOverlay}>
-                        <Ionicons name="ban" size={14} color="#EF4444" style={styles.banIcon} />
+                        <Ionicons name="ban" size={11} color="#FFFFFF" style={styles.banIcon} />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -939,7 +939,7 @@ const styles = StyleSheet.create({
   legendContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#48426D',
+    backgroundColor: '#25213E',
     borderRadius: 16,
     paddingVertical: 14,
     marginTop: 16,
@@ -954,12 +954,12 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    marginRight: 6,
+    marginRight: 8,
   },
   legendText: {
-    color: '#4B5563',
-    fontSize: 13,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   gridCard: {
     backgroundColor: '#48426D',
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#3D3762',
     paddingBottom: 12,
   },
   gridHeading: {
@@ -990,7 +990,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gridActionText: {
-    color: '#F1AA9B',
+    color: '#F0C38E',
     fontSize: 13,
     fontWeight: '750',
   },
@@ -1019,29 +1019,29 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   slotAvailable: {
-    backgroundColor: '#DCFCE7',
-    borderWidth: 1,
-    borderColor: '#86EFAC',
+    backgroundColor: '#047857',
+    borderWidth: 2,
+    borderColor: '#10B981',
   },
   slotBooked: {
-    backgroundColor: '#FEE2E2',
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
+    backgroundColor: '#7F1D1D',
+    borderWidth: 1.5,
+    borderColor: '#EF4444',
   },
   slotSelected: {
-    backgroundColor: '#F1AA9B',
-    borderWidth: 1,
-    borderColor: '#F1AA9B',
+    backgroundColor: '#F0C38E',
+    borderWidth: 2.5,
+    borderColor: '#FFFFFF',
   },
   slotLabel: {
-    fontSize: 11,
-    fontWeight: '750',
+    fontSize: 16,
+    fontWeight: '800',
   },
   slotTextAvailable: {
-    color: '#15803D',
+    color: '#FFFFFF',
   },
   slotTextBooked: {
-    color: '#B91C1C',
+    color: '#FCA5A5',
   },
   slotTextSelected: {
     color: '#312C51',
@@ -1050,10 +1050,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: '#48426D',
-    borderRadius: 7,
-    width: 14,
-    height: 14,
+    backgroundColor: '#EF4444',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },

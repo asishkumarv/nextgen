@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { KeyRound, Phone, LogIn, ShieldAlert, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { KeyRound, Phone, LogIn, ShieldAlert, Eye, EyeOff, ShieldCheck, Smartphone, UserPlus } from 'lucide-react';
 import { api } from '../utils/api';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [phoneOrEmail, setPhoneOrEmail] = useState('');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialPhone = searchParams.get('phone') || '';
+  const initialMethod = searchParams.get('method') || 'password';
+
+  const [phoneOrEmail, setPhoneOrEmail] = useState(initialPhone);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   // OTP Login states
-  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
+  const [loginMethod, setLoginMethod] = useState(initialMethod === 'otp' ? 'otp' : 'password'); // 'password' or 'otp'
   const [showOtpField, setShowOtpField] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
@@ -258,6 +262,76 @@ export default function Login() {
           </form>
         ) : (
           <>
+            {/* Segmented Login Mode Switcher */}
+            <div className="login-method-tabs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '4px', borderRadius: '12px' }}>
+              <button
+                type="button"
+                className={`login-method-tab ${loginMethod === 'password' ? 'active' : ''}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  borderRadius: '9px',
+                  border: 'none',
+                  fontSize: '0.9rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  backgroundColor: loginMethod === 'password' ? 'var(--primary)' : 'transparent',
+                  color: loginMethod === 'password' ? '#0A0F1D' : 'var(--text-secondary)',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => {
+                  setLoginMethod('password');
+                  setShowOtpField(false);
+                  setOtp('');
+                  setError('');
+                }}
+              >
+                <KeyRound size={16} />
+                <span>Password</span>
+              </button>
+
+              <button
+                type="button"
+                className={`login-method-tab ${loginMethod === 'otp' ? 'active' : ''}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  borderRadius: '9px',
+                  border: 'none',
+                  fontSize: '0.9rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  backgroundColor: loginMethod === 'otp' ? 'var(--primary)' : 'transparent',
+                  color: loginMethod === 'otp' ? '#0A0F1D' : 'var(--text-secondary)',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => {
+                  setLoginMethod('otp');
+                  setShowOtpField(false);
+                  setOtp('');
+                  setError('');
+                }}
+              >
+                <Smartphone size={16} />
+                <span>SMS OTP</span>
+              </button>
+            </div>
+
+            {error && error.toLowerCase().includes('not exist') && (
+              <div style={{ marginBottom: '16px', padding: '12px', borderRadius: '10px', backgroundColor: 'rgba(240, 195, 142, 0.15)', border: '1px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>New here? Create your account in simple steps:</span>
+                <Link to={`/signup?phone=${encodeURIComponent(phoneOrEmail)}`} style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'underline' }}>
+                  Register
+                </Link>
+              </div>
+            )}
+
             <form onSubmit={loginMethod === 'otp' && !showOtpField ? handleSendOtp : handleSubmit} className="auth-form">
               <div className="form-group">
                 <label htmlFor="phoneOrEmail">Phone Number or Email Address</label>

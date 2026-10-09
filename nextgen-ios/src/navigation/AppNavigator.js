@@ -23,6 +23,7 @@ export default function AppNavigator() {
   const insets = useSafeAreaInsets();
   const { token, isLoading } = useApp();
   const [currentAuthScreen, setCurrentAuthScreen] = useState('login');
+  const [authParams, setAuthParams] = useState({});
 
   if (isLoading) {
     return (
@@ -34,9 +35,26 @@ export default function AppNavigator() {
 
   if (!token) {
     if (currentAuthScreen === 'login') {
-      return <LoginScreen onNavigateToRegister={() => setCurrentAuthScreen('register')} />;
+      return (
+        <LoginScreen 
+          onNavigateToRegister={(params) => {
+            setAuthParams(params || {});
+            setCurrentAuthScreen('register');
+          }}
+          initialPhone={authParams.phone || ''}
+          initialMethod={authParams.method || 'password'}
+        />
+      );
     } else {
-      return <RegisterScreen onNavigateToLogin={() => setCurrentAuthScreen('login')} />;
+      return (
+        <RegisterScreen 
+          onNavigateToLogin={(params) => {
+            setAuthParams(params || {});
+            setCurrentAuthScreen('login');
+          }}
+          initialPhone={authParams.phone || ''}
+        />
+      );
     }
   }
 

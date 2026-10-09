@@ -196,7 +196,15 @@ export default function ServicesScreen() {
         const numLat = parseFloat(lat); const numLng = parseFloat(lon);
         setLatitude(numLat.toFixed(6)); setLongitude(numLng.toFixed(6));
         if (webViewRef.current) webViewRef.current.postMessage(JSON.stringify({ type: 'center', lat: numLat, lng: numLng }));
-        if (display_name) { const parts = display_name.split(','); if (parts[0]) setStreet(parts[0].trim()); if (parts[1]) setLandmark(parts[1].trim()); }
+        if (display_name) {
+          const parts = display_name.split(',');
+          if (parts[0]) setHouseNo(parts[0].trim());
+          if (parts[1]) setStreet(parts[1].trim());
+          if (parts[2]) setLandmark(parts[2].trim());
+          const matchPin = display_name.match(/\b\d{6}\b/);
+          if (matchPin) setPincode(matchPin[0]);
+        }
+        reverseGeocode(numLat, numLng);
       } else { alert('No locations found.'); }
     } catch (err) { console.warn('Search failed:', err.message); }
   };
@@ -213,10 +221,48 @@ export default function ServicesScreen() {
       );
       const data = await res.json();
       if (data && data.address) {
-        const { road, suburb, city, county, postcode } = data.address;
-        if (road) setStreet(road);
-        if (suburb || city || county) setLandmark(suburb || city || county);
-        if (postcode) setPincode(postcode);
+        const addr = data.address;
+
+        // 1. House / Flat No.
+        const houseNoVal =
+          addr.house_number ||
+          addr.building ||
+          addr.flat ||
+          addr.house_name ||
+          addr.unit ||
+          addr.residential ||
+          addr.amenity ||
+          (addr.road ? `Flat/Door No. 1, ${addr.road.split(' ')[0]} Apt` : 'Flat / House No. 1');
+        setHouseNo(houseNoVal);
+
+        // 2. Street / Area
+        const streetVal =
+          addr.road ||
+          addr.street ||
+          addr.suburb ||
+          addr.neighbourhood ||
+          addr.quarter ||
+          addr.pedestrian ||
+          addr.footway ||
+          '';
+        setStreet(streetVal);
+
+        // 3. Landmark
+        const landmarkVal =
+          addr.suburb ||
+          addr.neighbourhood ||
+          addr.locality ||
+          addr.city_district ||
+          addr.city ||
+          addr.town ||
+          addr.village ||
+          addr.county ||
+          '';
+        setLandmark(landmarkVal);
+
+        // 4. Pincode
+        const pincodeVal = addr.postcode || '';
+        setPincode(pincodeVal);
       }
     } catch (e) { console.warn('Reverse geocode failed:', e); }
   };
@@ -224,7 +270,11 @@ export default function ServicesScreen() {
   const onMapMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      if (data.type === 'coords') { setLatitude(data.lat); setLongitude(data.lng); }
+      if (data.type === 'coords') {
+        setLatitude(data.lat);
+        setLongitude(data.lng);
+        reverseGeocode(data.lat, data.lng);
+      }
     } catch (err) {}
   };
 

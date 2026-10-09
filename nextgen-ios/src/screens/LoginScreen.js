@@ -18,10 +18,10 @@ import { useApp } from '../context/AppContext';
 import Toast from '../components/Toast';
 import { api } from '../utils/api';
 
-export default function LoginScreen({ onNavigateToRegister }) {
+export default function LoginScreen({ onNavigateToRegister, initialPhone = '', initialMethod = 'password' }) {
   const insets = useSafeAreaInsets();
   const { login } = useApp();
-  const [phoneOrEmail, setPhoneOrEmail] = useState('');
+  const [phoneOrEmail, setPhoneOrEmail] = useState(initialPhone || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,11 +32,16 @@ export default function LoginScreen({ onNavigateToRegister }) {
   const [toastType, setToastType] = useState('error');
 
   // OTP Login Mode States
-  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
+  const [loginMethod, setLoginMethod] = useState(initialMethod || 'password'); // 'password' or 'otp'
   const [showOtpField, setShowOtpField] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (initialPhone) setPhoneOrEmail(initialPhone);
+    if (initialMethod) setLoginMethod(initialMethod);
+  }, [initialPhone, initialMethod]);
 
   // Forgot Password / Reset Password States
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -357,6 +362,37 @@ export default function LoginScreen({ onNavigateToRegister }) {
                 <Text style={styles.formHeading}>Welcome Back</Text>
                 <Text style={styles.formSub}>Log in to manage your bookings</Text>
 
+                {/* Login Method Tab Switcher */}
+                <View style={styles.methodTabContainer}>
+                  <TouchableOpacity
+                    style={[styles.methodTabBtn, loginMethod === 'password' && styles.methodTabBtnActive]}
+                    onPress={() => {
+                      setLoginMethod('password');
+                      setShowOtpField(false);
+                      setOtp('');
+                      clearFieldErrors();
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="key-outline" size={15} color={loginMethod === 'password' ? '#312C51' : '#A5A1B8'} style={{ marginRight: 6 }} />
+                    <Text style={[styles.methodTabText, loginMethod === 'password' && styles.methodTabTextActive]}>Password Login</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.methodTabBtn, loginMethod === 'otp' && styles.methodTabBtnActive]}
+                    onPress={() => {
+                      setLoginMethod('otp');
+                      setShowOtpField(false);
+                      setOtp('');
+                      clearFieldErrors();
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="phone-portrait-outline" size={15} color={loginMethod === 'otp' ? '#312C51' : '#A5A1B8'} style={{ marginRight: 6 }} />
+                    <Text style={[styles.methodTabText, loginMethod === 'otp' && styles.methodTabTextActive]}>Mobile SMS OTP</Text>
+                  </TouchableOpacity>
+                </View>
+
                 {/* Phone or Email Input */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Phone Number or Email Address</Text>
@@ -378,6 +414,17 @@ export default function LoginScreen({ onNavigateToRegister }) {
                       <Ionicons name="information-circle-outline" size={13} color="#EF4444" />
                       <Text style={styles.fieldErrorText}>{phoneOrEmailError}</Text>
                     </View>
+                  ) : null}
+                  {phoneOrEmailError && phoneOrEmailError.toLowerCase().includes('exist') ? (
+                    <TouchableOpacity
+                      style={styles.notRegisteredAlert}
+                      onPress={() => onNavigateToRegister && onNavigateToRegister({ phone: phoneOrEmail })}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="person-add" size={16} color="#312C51" style={{ marginRight: 8 }} />
+                      <Text style={styles.notRegisteredAlertText}>New user? Tap to Register with step-by-step OTP flow</Text>
+                      <Ionicons name="arrow-forward" size={14} color="#312C51" style={{ marginLeft: 6 }} />
+                    </TouchableOpacity>
                   ) : null}
                 </View>
 
@@ -586,8 +633,57 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#A5A1B8',
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: 16,
     fontWeight: '500',
+  },
+  methodTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#25213E',
+    borderRadius: 14,
+    padding: 4,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#3D3762',
+  },
+  methodTabBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  methodTabBtnActive: {
+    backgroundColor: '#F0C38E',
+    shadowColor: '#F0C38E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  methodTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#A5A1B8',
+  },
+  methodTabTextActive: {
+    color: '#312C51',
+    fontWeight: '800',
+  },
+  notRegisteredAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0C38E',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  notRegisteredAlertText: {
+    flex: 1,
+    color: '#312C51',
+    fontSize: 12,
+    fontWeight: '700',
   },
   alertBox: {
     flexDirection: 'row',

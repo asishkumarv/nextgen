@@ -460,6 +460,54 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const checkUserExists = async (req, res) => {
+  const { phone, email } = req.body;
+  if (!phone && !email) {
+    return res.status(400).json({ message: 'Phone number or email is required' });
+  }
+  try {
+    const cleanPhone = (phone || '').trim();
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const result = await pool.query(
+      'SELECT id, name, phone, email FROM users WHERE phone = $1 OR (email IS NOT NULL AND LOWER(email) = $2)',
+      [cleanPhone, cleanEmail]
+    );
+    if (result.rows.length > 0) {
+      return res.json({ exists: true, message: 'User already exists with this phone or email' });
+    }
+    return res.json({ exists: false, message: 'User does not exist' });
+  } catch (error) {
+    console.error('Error checking user existence:', error);
+    res.status(500).json({ message: 'Server error checking user existence' });
+  }
+};
+
+const verifyOtp = async (req, res) => {
+  const { phone, email, otp } = req.body;
+  if ((!phone && !email) || !otp) {
+    return res.status(400).json({ message: 'Phone number and verification code are required' });
+  }
+  const cleanPhone = (phone || '').trim();
+  const cleanEmail = (email || '').trim();
+  const cleanOtp = otp.trim();
+
+  try {
+    const otpCheck = await pool.query(
+      'SELECT * FROM email_otps WHERE (email = $1 OR email = $2) AND otp = $3 AND expires_at > CURRENT_TIMESTAMP',
+      [cleanPhone, cleanEmail, cleanOtp]
+    );
+
+    if (otpCheck.rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired SMS verification code' });
+    }
+
+    res.json({ success: true, message: 'Phone number verified successfully' });
+  } catch (error) {
+    console.error('Error verifying OTP code:', error);
+    res.status(500).json({ message: 'Server error verifying SMS verification code' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -467,5 +515,8 @@ module.exports = {
   updateProfile,
   changePassword,
   sendOtp,
-  resetPassword
+  resetPassword,
+  checkUserExists,
+  verifyOtp
 };
+
