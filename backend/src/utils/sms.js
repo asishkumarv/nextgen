@@ -42,13 +42,19 @@ const sendSmsOtp = async (toPhone, otp) => {
   }
 
   try {
-    const smsBody = process.env.TWILIO_SMS_BODY || 'sms_2fa';
+    let smsBody = process.env.TWILIO_SMS_BODY;
+    if (smsBody && smsBody !== 'sms_2fa' && smsBody.includes('{otp}')) {
+      smsBody = smsBody.replace(/{otp}/gi, otp);
+    } else {
+      smsBody = `Your Nextgen Power Care verification code is: ${otp}. Valid for 10 minutes. Do not share this code with anyone.`;
+    }
+
     const message = await client.messages.create({
       body: smsBody,
       from: twilioPhoneNumber,
       to: formattedPhone
     });
-    console.log(`[Twilio SMS] Generated OTP ${otp} dispatched to ${formattedPhone} via Twilio template '${smsBody}' (SID: ${message.sid})`);
+    console.log(`[Twilio SMS] Generated OTP ${otp} dispatched to ${formattedPhone} (SID: ${message.sid})`);
     return true;
   } catch (error) {
     console.error('[Twilio SMS Error] Failed to send SMS:', error.message);
