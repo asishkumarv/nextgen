@@ -55,7 +55,7 @@ export default function Footer() {
             </div>
             <div className="contact-item">
               <MapPin size={16} className="contact-icon" />
-              <span>1/57,kalekanpet,jalalpet, machilipatnam, andhra Pradesh,521004,india.</span>
+              <span>Plot No. 47/HIG, M.C.K., Block No. 3, Kukatpally, KPHB Colony, Tirumalagiri, Hyderabad- 500085, Telangana.</span>
             </div>
           </div>
         </div>

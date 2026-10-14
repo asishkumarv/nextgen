@@ -88,7 +88,7 @@ export default function Contact() {
                 <MapPin className="detail-icon" size={20} />
                 <div>
                   <h4>Corporate Office</h4>
-                  <p>1/57,kalekanpet,jalalpet, machilipatnam, andhra Pradesh,521004,india.</p>
+                  <p>Plot No. 47/HIG, M.C.K., Block No. 3, Kukatpally, KPHB Colony, Tirumalagiri, Hyderabad- 500085, Telangana, India.</p>
                 </div>
               </div>
             </div>

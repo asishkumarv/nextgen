@@ -79,7 +79,7 @@ export default function TermsOfService() {
 
           <h2 className="text-gradient" style={{ marginBottom: '14px', fontSize: '1.35rem' }}>8. Governing Law &amp; Jurisdiction</h2>
           <p style={{ marginBottom: '22px', color: 'var(--text-secondary)' }}>
-            These Terms and any dispute or claim arising out of or in connection with them shall be governed by and construed in accordance with the laws of the Republic of India. The courts of Andhra Pradesh (Machilipatnam / Krishna District) shall have exclusive jurisdiction over all disputes arising hereunder.
+            These Terms and any dispute or claim arising out of or in connection with them shall be governed by and construed in accordance with the laws of the Republic of India. The courts of Hyderabad, Telangana shall have exclusive jurisdiction over all disputes arising hereunder.
           </p>
 
           <h2 className="text-gradient" style={{ marginBottom: '14px', fontSize: '1.35rem' }}>9. Corporate Redressal &amp; Contact Details</h2>
@@ -91,7 +91,7 @@ export default function TermsOfService() {
             <p style={{ margin: '0 0 4px 0' }}>Brand: Go Fixit</p>
             <p style={{ margin: '0 0 4px 0' }}>Email: <a href="mailto:nextgenpowercarenpc@gmail.com" style={{ color: 'var(--primary)' }}>nextgenpowercarenpc@gmail.com</a></p>
             <p style={{ margin: '0 0 4px 0' }}>Phone / Helpline: +91 9703054527</p>
-            <p style={{ margin: 0 }}>Registered Address: 1/57, Kalekanpet, Jalalpet, Machilipatnam, Andhra Pradesh, 521004, India.</p>
+            <p style={{ margin: 0 }}>Registered Address: Plot No. 47/HIG, M.C.K., Block No. 3, Kukatpally, KPHB Colony, Tirumalagiri, Hyderabad- 500085, Telangana, India.</p>
           </div>
 
         </div>

@@ -99,7 +99,7 @@ export default function PrivacyPolicy() {
             <p style={{ margin: '0 0 4px 0' }}>Brand: Go Fixit</p>
             <p style={{ margin: '0 0 4px 0' }}>Email: <a href="mailto:nextgenpowercarenpc@gmail.com" style={{ color: 'var(--primary)' }}>nextgenpowercarenpc@gmail.com</a></p>
             <p style={{ margin: '0 0 4px 0' }}>Phone / Support: +91 9703054527</p>
-            <p style={{ margin: 0 }}>Registered Address: 1/57, Kalekanpet, Jalalpet, Machilipatnam, Andhra Pradesh, 521004, India.</p>
+            <p style={{ margin: 0 }}>Registered Address: Plot No. 47/HIG, M.C.K., Block No. 3, Kukatpally, KPHB Colony, Tirumalagiri, Hyderabad- 500085, Telangana, India.</p>
           </div>
 
         </div>
