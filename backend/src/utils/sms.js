@@ -46,7 +46,7 @@ const sendSmsOtp = async (toPhone, otp) => {
     if (smsBody && smsBody !== 'sms_2fa' && smsBody.includes('{otp}')) {
       smsBody = smsBody.replace(/{otp}/gi, otp);
     } else {
-      smsBody = `Your Nextgen Power Care verification code is: ${otp}. Valid for 10 minutes. Do not share this code with anyone.`;
+      smsBody = `Your Go Fix it verification code is: ${otp}. Valid for 10 minutes. Do not share this code with anyone.`;
     }
 
     const message = await client.messages.create({
