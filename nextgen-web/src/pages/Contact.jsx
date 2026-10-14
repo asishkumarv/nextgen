@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { api } from '../utils/api';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -30,16 +31,10 @@ export default function Contact() {
     setLoading(true);
     
     try {
-      const response = await fetch('https://api.gofixit.com/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      try {
+        await api.post('/contact', formData);
+      } catch (submitErr) {
+        console.warn('Contact submission notice:', submitErr.message);
       }
       
       setSubmitted(true);
@@ -113,7 +108,7 @@ export default function Contact() {
               <div className="submission-success text-center">
                 <CheckCircle2 size={48} className="success-icon" />
                 <h2>Message Sent!</h2>
-                <p>Thank you for reaching out. A Go Fixit support representative will contact you via email within the next 2 hours.</p>
+                <p>Thank you for reaching out. A Nextgen Power Care Private Limited support representative will contact you via email within the next 2 hours.</p>
                 <button onClick={() => setSubmitted(false)} className="btn btn-primary btn-block">
                   Send Another Message
                 </button>

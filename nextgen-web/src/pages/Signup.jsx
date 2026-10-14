@@ -391,7 +391,7 @@ export default function Signup() {
                   <span>Account Already Exists!</span>
                 </div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '14px', lineHeight: '1.4' }}>
-                  A Go Fixit account with this mobile number already exists. Would you like to log in with your Password or an SMS OTP?
+                  A Nextgen Power Care Private Limited account with this mobile number already exists. Would you like to log in with your Password or an SMS OTP?
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <Link

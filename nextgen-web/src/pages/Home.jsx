@@ -18,7 +18,7 @@ export default function Home() {
             <span className="text-gradient">Zero-Cost Scheduling</span>
           </h1>
           <p className="hero-subtitle animate-slide-up">
-            Go Fixit provides certified, on-demand technician routing. Book services directly or unlock unlimited free repairs with our annual subscription slots.
+            Nextgen Power Care Private Limited provides certified, on-demand technician routing. Book services directly or unlock unlimited free repairs with our annual subscription slots.
           </p>
           <div className="hero-actions animate-slide-up">
             {token ? (
@@ -72,7 +72,7 @@ export default function Home() {
       <section className="features-section">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose Go Fixit?</h2>
+            <h2>Why Choose Nextgen Power Care Private Limited?</h2>
             <p>Our intelligent scheduling platform ensures premium repairs with zero delays.</p>
           </div>
 

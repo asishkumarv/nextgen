@@ -248,7 +248,7 @@ export default function Slots() {
       if (paymentMode === 'razorpay') {
         const paymentRes = await processRazorpayPayment({
           amount: activeEvent?.price || 0,
-          name: 'GoFixit Subscription',
+          name: 'Nextgen Power Care Subscription',
           description: `Slot #${selectedSlot} - ${activeEvent?.event_name}`,
           user,
           notes: {

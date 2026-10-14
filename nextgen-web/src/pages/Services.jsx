@@ -38,7 +38,7 @@ export default function Services() {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
         {
           headers: {
-            'User-Agent': 'GoFixitWeb/1.0.0 (contact@nextgenpowercare.com)'
+            'User-Agent': 'NextGenPowerCareWeb/1.0.0 (contact@nextgenpowercare.com)'
           }
         }
       );
@@ -136,7 +136,7 @@ export default function Services() {
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}`,
         {
           headers: {
-            'User-Agent': 'GoFixitWeb/1.0.0 (contact@nextgenpowercare.com)'
+            'User-Agent': 'NextGenPowerCareWeb/1.0.0 (contact@nextgenpowercare.com)'
           }
         }
       );
@@ -289,7 +289,7 @@ export default function Services() {
       if (servicePrice > 0) {
         const paymentRes = await processRazorpayPayment({
           amount: servicePrice,
-          name: 'GoFixit Service Booking',
+          name: 'Nextgen Power Care Service Booking',
           description: `${selectedService.title} - ${bookingDate} (${timeSlot})`,
           user,
           notes: {

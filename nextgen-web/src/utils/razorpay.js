@@ -46,7 +46,7 @@ export const processRazorpayPayment = async ({
       key: orderData.keyId || 'rzp_test_Taem2JpBTkElnV',
       amount: orderData.amount,
       currency: orderData.currency || 'INR',
-      name: name || 'GoFixit',
+      name: name || 'Nextgen Power Care Private Limited',
       description: description || 'Online Payment',
       order_id: orderData.orderId,
       prefill: {

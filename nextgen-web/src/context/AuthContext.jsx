@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('Go Fixit_token'));
+  const [token, setToken] = useState(localStorage.getItem('nextgen_token') || localStorage.getItem('Go Fixit_token'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const data = await api.post('/auth/login', { phoneOrEmail, password, otp });
+      localStorage.setItem('nextgen_token', data.token);
       localStorage.setItem('Go Fixit_token', data.token);
       setToken(data.token);
       return data;
@@ -55,6 +56,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const data = await api.post('/auth/register', { name, phone, password, referralCode, district_id, mandal_id, address, email, otp });
+      localStorage.setItem('nextgen_token', data.token);
       localStorage.setItem('Go Fixit_token', data.token);
       setToken(data.token);
       return data;
@@ -66,6 +68,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem('nextgen_token');
     localStorage.removeItem('Go Fixit_token');
     setToken(null);
     setUser(null);

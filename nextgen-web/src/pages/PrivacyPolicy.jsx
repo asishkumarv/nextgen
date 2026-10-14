@@ -24,18 +24,18 @@ export default function PrivacyPolicy() {
           <div style={{ padding: '18px 22px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-color)', marginBottom: '30px' }}>
             <p style={{ margin: 0, fontSize: '14.5px', color: 'var(--text-secondary)' }}>
               <strong style={{ color: 'var(--primary)' }}>Corporate Notice: </strong> 
-              <strong>Go Fixit</strong> is a commercial consumer brand owned, operated, and maintained exclusively by <strong>Nextgen Power Care Private Limited</strong> (&ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). All data collection, user consents, privacy undertakings, and technological operations are executed by and under the legal responsibility of <strong>Nextgen Power Care Private Limited</strong>.
+              All data collection, user consents, privacy undertakings, and technological operations are executed by and under the legal responsibility of <strong>Nextgen Power Care Private Limited</strong> (&ldquo;Company&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;).
             </p>
           </div>
 
           <h2 className="text-gradient" style={{ marginBottom: '14px', fontSize: '1.35rem' }}>1. Corporate Identity &amp; Scope</h2>
           <p style={{ marginBottom: '22px', color: 'var(--text-secondary)' }}>
-            This Privacy Policy governs the manner in which <strong>Nextgen Power Care Private Limited</strong> collects, uses, maintains, and discloses information gathered from users across the Go Fixit web platform, mobile applications, and customer support channels. By registering, requesting services, or purchasing subscription slots, you enter into direct agreement with Nextgen Power Care Private Limited.
+            This Privacy Policy governs the manner in which <strong>Nextgen Power Care Private Limited</strong> collects, uses, maintains, and discloses information gathered from users across the Nextgen Power Care Private Limited web platform, mobile applications, and customer support channels. By registering, requesting services, or purchasing subscription slots, you enter into direct agreement with Nextgen Power Care Private Limited.
           </p>
 
           <h2 className="text-gradient" style={{ marginBottom: '14px', fontSize: '1.35rem' }}>2. User Oath, Affirmation &amp; Express Consent</h2>
           <p style={{ marginBottom: '12px', color: 'var(--text-secondary)' }}>
-            By creating an account or scheduling a service on Go Fixit, you solemnly take oath and provide your voluntary, informed, and explicit consent to <strong>Nextgen Power Care Private Limited</strong> to:
+            By creating an account or scheduling a service on Nextgen Power Care Private Limited, you solemnly take oath and provide your voluntary, informed, and explicit consent to <strong>Nextgen Power Care Private Limited</strong> to:
           </p>
           <ul style={{ marginBottom: '24px', paddingLeft: '22px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <li>
@@ -96,7 +96,6 @@ export default function PrivacyPolicy() {
           </p>
           <div style={{ padding: '16px 20px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', fontSize: '14px', color: 'var(--text-secondary)' }}>
             <p style={{ margin: '0 0 6px 0', fontWeight: '600', color: 'var(--text-primary)' }}>Grievance Officer &mdash; Nextgen Power Care Private Limited</p>
-            <p style={{ margin: '0 0 4px 0' }}>Brand: Go Fixit</p>
             <p style={{ margin: '0 0 4px 0' }}>Email: <a href="mailto:nextgenpowercarenpc@gmail.com" style={{ color: 'var(--primary)' }}>nextgenpowercarenpc@gmail.com</a></p>
             <p style={{ margin: '0 0 4px 0' }}>Phone / Support: +91 9703054527</p>
             <p style={{ margin: 0 }}>Registered Address: Plot No. 47/HIG, M.C.K., Block No. 3, Kukatpally, KPHB Colony, Tirumalagiri, Hyderabad- 500085, Telangana, India.</p>
