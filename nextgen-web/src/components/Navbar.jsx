@@ -59,8 +59,8 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo" onClick={() => setMobileMenuOpen(false)}>
-          <img src={logoImg} alt="Go Fixit Logo" className="logo-img" />
-          <span>Go Fixit</span>
+          <img src={logoImg} alt="NEXT GEN POWER Logo" className="logo-img" />
+          <span>NEXT GEN POWER PRIVATE LIMITED</span>
         </Link>
 
         {/* Desktop Navigation Links */}

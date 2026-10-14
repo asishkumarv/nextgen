@@ -11,14 +11,11 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <img src={logoImg} alt="Go Fixit Logo" className="logo-img" />
-              <span>Go Fixit</span>
+              <img src={logoImg} alt="NEXT GEN POWER Logo" className="logo-img" />
+              <span>NEXT GEN POWER PRIVATE LIMITED</span>
             </div>
-            <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--primary)', marginBottom: '8px', letterSpacing: '0.5px' }}>
-              A Brand of Nextgen Power Care Private Limited
-            </p>
             <p className="footer-desc">
-              State-of-the-art power system solutions, subscription-based slot booking, and priority technician routing. Serving you 24/7 with reliability and transparency under Nextgen Power Care Private Limited.
+              State-of-the-art power system solutions, subscription-based slot booking, and priority technician routing. Serving you 24/7 with reliability and transparency under NEXT GEN POWER PRIVATE LIMITED.
             </p>
           </div>
 
@@ -63,7 +60,7 @@ export default function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-bottom-container">
-          <p>&copy; {new Date().getFullYear()} Go Fixit &mdash; A Brand of Nextgen Power Care Private Limited. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} NEXT GEN POWER PRIVATE LIMITED. All rights reserved.</p>
           <div className="footer-legal">
             <Link to="/terms-of-service">Terms of Service</Link>
             <span className="bullet">&bull;</span>
