@@ -80,7 +80,7 @@ export default function Contact() {
                 <Mail className="detail-icon" size={20} />
                 <div>
                   <h4>Email Us</h4>
-                  <p>Go Fixitpowecarenpc@gmail.com</p>
+                  <p>nextgenpowercarenpc@gmail.com</p>
                 </div>
               </div>
 
